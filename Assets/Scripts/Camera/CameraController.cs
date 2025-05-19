@@ -56,7 +56,7 @@ public class CameraController : MonoBehaviour
         if (target == null)
         {
             target = GameObject.FindGameObjectWithTag("Player") as GameObject;
-            Debug.Log("Looking for Player");
+           // Debug.Log("Looking for Player");
         }
 
     }

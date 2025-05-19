@@ -52,6 +52,10 @@ public class ROSEImportWindow : EditorWindow
         if (GUILayout.Button("Generate Character Player Animations"))
             ResourceManager.Instance.GenerateAnimationAssets();
 
+        if (GUILayout.Button("Import PTL / EFT"))
+            ROSEImport.ImportParticles();
+
+
         GUILayout.Label("Maps", EditorStyles.boldLabel);
 
         mapListShowUnnamed = GUILayout.Toggle(mapListShowUnnamed, "Show Unnamed Maps");

@@ -278,6 +278,15 @@ public class ROSEImport
         return AssetDatabase.LoadAssetAtPath<Texture2D>(texPath);
     }
 
+
+    public static void ImportParticles()
+    {
+
+        PtlImporter importer = new PtlImporter();
+
+
+    }
+
     public class ChrImporter
     {
         private string targetPath = "";
@@ -346,6 +355,80 @@ public class ROSEImport
 
     }
 
+    public class PtlImporter
+    {
+        public List<PTL> LoadedParticles { get; } = new();
+
+        public PtlImporter()
+        {
+            var path = Utils.CombinePath(dataPath, "3DDATA/EFFECT/PARTICLES");
+            string[] ptlFiles = Directory.GetFiles(path, "*.PTL", SearchOption.AllDirectories);
+
+            foreach (var file in ptlFiles)
+            {
+                try
+                {
+                    using var stream = File.OpenRead(file);
+                    using var reader = new BinaryReader(stream);
+                    PTL ptl = new();
+                    ptl.Read(reader);
+
+                    LoadedParticles.Add(ptl);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log(ex);
+                }
+            }
+
+            for (int i = 0; i < LoadedParticles.Count; i++)
+            {
+                string importFolder = "Assets/GameData/PTLTextures";
+                Directory.CreateDirectory(importFolder); 
+
+                string sourceDdsPath = Path.Combine(dataPath, LoadedParticles[i].Emitters[0].Texture);
+                string targetDdsPath = Path.Combine(importFolder, Path.GetFileName(LoadedParticles[i].Emitters[0].Texture));
+
+                sourceDdsPath = NormalizePath(sourceDdsPath);
+
+                if (File.Exists(sourceDdsPath) && !File.Exists(targetDdsPath))
+                {
+                    //  File.Copy(sourceDdsPath, targetDdsPath);
+                    //  AssetDatabase.ImportAsset(targetDdsPath.Replace("\\", "/"));
+
+                    var mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                    mat.SetFloat("_Surface", 1);
+
+                    AssetDatabase.CreateAsset(mat, Path.Combine(importFolder, "PTL_" + LoadedParticles[i].Emitters[0].Name + ".mat"));
+
+                    string destTexturePath = Path.Combine(importFolder, Path.GetFileName(sourceDdsPath));
+                    File.Copy(sourceDdsPath, destTexturePath, true);
+                    AssetDatabase.ImportAsset(destTexturePath);
+
+                    Texture2D mainTex = AssetDatabase.LoadAssetAtPath<Texture2D>(destTexturePath);
+                    mat.SetTexture("_BaseMap", mainTex);
+                    EditorUtility.SetDirty(mat);
+                }
+
+                //AssetDatabase.LoadAssetAtPath<Material>(importFolder);
+                //AssetDatabase.LoadAssetAtPath<Texture2D>(Utils.CombinePath(dataPath,LoadedParticles[i].Emitters[0].Texture));
+                // ImportTexture(Utils.CombinePath(dataPath, LoadedParticles[i].Emitters[0].Texture),true);
+            }
+
+            Debug.Log("Particles loaded : " + LoadedParticles.Count);
+        }
+
+        public static string NormalizePath(string rawPath)
+        {
+            string unified = rawPath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+
+            while (unified.Contains(new string(Path.DirectorySeparatorChar, 2)))
+                unified = unified.Replace(new string(Path.DirectorySeparatorChar, 2), Path.DirectorySeparatorChar.ToString());
+
+            return Path.GetFullPath(unified);
+        }
+    }
+
     public class ZscImporter
     {
         private string targetPath = "";
@@ -382,7 +465,7 @@ public class ROSEImport
                 throw new System.Exception("Unexpected ZSC name...");
             }
 
-        //    zsc = new ZSC(Utils.CombinePath(dataPath, path));
+            //    zsc = new ZSC(Utils.CombinePath(dataPath, path));
             zsc = new ZSC(path); // TODO : Check here if we have to handle Map & NPC differently
         }
 
