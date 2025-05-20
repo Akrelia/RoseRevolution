@@ -9,9 +9,9 @@ public class Client
 {
     TcpClient tcpClient;
     PacketHandler packetHandler;
-    Task updateTask; 
     CancellationTokenSource cancellationTokenSource;
 
+    private Task updateTask;
     private static Client _instance;
     public static Client Instance => _instance ??= new Client();
 
@@ -47,7 +47,7 @@ public class Client
             cancellationTokenSource = new CancellationTokenSource();
             updateTask = UpdateAsync(cancellationTokenSource.Token);
 
-            Debug.Log("Connected to server!");
+            Debug.Log($"Connected to server ! ({address}:{port})");
         }
     }
 
@@ -101,8 +101,7 @@ public class Client
         if (updateTask != null)
             await updateTask;
 
-        if (tcpClient.Connected)
-            tcpClient.Close();
+        tcpClient?.Close();
 
         cancellationTokenSource.Dispose();
 

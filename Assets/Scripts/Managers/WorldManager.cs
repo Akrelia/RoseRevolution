@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityRose;
 
@@ -10,6 +12,7 @@ public class WorldManager : MonoBehaviour
     public GameObject mainPlayer;
     public GameObject mobSpawner;
     public GameObject playerSpawner;
+    public GameObject entityGUI;
     [Header("Components")]
     public CameraController cameraController;
 
@@ -17,7 +20,7 @@ public class WorldManager : MonoBehaviour
     /// Spawn main player.
     /// </summary>
     /// <param name="position">Position.</param>
-    public void SpawnMainPlayer(GenderType gender,byte hairID, byte faceID, Vector3 position)
+    public RosePlayer SpawnMainPlayer(GenderType gender,string playerName, byte hairID, byte faceID, int backID, int bodyID, int glovesID, int shoesID, int maskID, int hatID, Vector3 position)
     {
         CharModel model = new CharModel();
 
@@ -29,11 +32,23 @@ public class WorldManager : MonoBehaviour
         model.changeID(BodyPartType.HAIR, hairID);
         model.changeID(BodyPartType.FACE, faceID);
 
+        model.changeID(BodyPartType.BACK, backID);
+        model.changeID(BodyPartType.BODY, bodyID);
+        model.changeID(BodyPartType.ARMS, glovesID);
+        model.changeID(BodyPartType.FOOT, shoesID);
+        model.changeID(BodyPartType.FACEITEM, maskID);
+        model.changeID(BodyPartType.CAP, hatID);
+
         var rosePlayer = new RosePlayer(model);
 
-        //var rosePlayer = new RosePlayer(transform.position); // Note: Player reference is lost after hitting play.  Must create new after that.
-
+        rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = true;
 
         cameraController.target = rosePlayer.player;
+
+        var gui = Instantiate(entityGUI, rosePlayer.player.transform).GetComponentInChildren<EntityGUIController>();
+
+        gui.SetName(playerName);
+
+        return rosePlayer;
     }
 }

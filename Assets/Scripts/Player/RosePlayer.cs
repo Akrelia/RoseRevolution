@@ -62,7 +62,7 @@ public class RosePlayer : IPointerClickHandler
 		player.layer = LayerMask.NameToLayer("Players");
 
 		//add PlayerController script
-		PlayerController controller = player.AddComponent<PlayerController>();
+		PlayerController controller = player.AddComponent<PlayerController>(); // Akima : Reference it somewhere
 		controller.rosePlayer = this;
 		controller.playerInfo.tMovS = charModel.stats.movSpd;
 
@@ -75,6 +75,7 @@ public class RosePlayer : IPointerClickHandler
 		charController.center = center;
 		charController.height = height;
 		charController.radius = radius;
+		charController.slopeLimit = 125; // Akima : Increase this for stairs IG, we should do some tests furthermore
 
 		//add collider
 		CapsuleCollider c = player.AddComponent<CapsuleCollider>();
@@ -259,7 +260,9 @@ public class RosePlayer : IPointerClickHandler
 		// Create material
 		string shader = "Universal Render Pipeline/Unlit";
 		if (bodyPart == BodyPartType.BACK)
-			shader = "Custom/ObjectShader"; // TODO : use this for the NPC too, a different shader (for transparence stuff I guess)
+		{
+		//	shader = "Custom/ObjectShader"; // TODO : use this for the NPC too, a different shader (for transparence stuff I guess)
+		}
 
 		Material mat = new Material(Shader.Find(shader));
 

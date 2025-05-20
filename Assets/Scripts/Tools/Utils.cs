@@ -80,7 +80,6 @@ public class Utils
 #endif
     }
 
-
     public static bool isOneHanded(WeaponType weapon)
     {
         return weapon == WeaponType.OHAXE ||

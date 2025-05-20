@@ -44,6 +44,18 @@ public partial class PacketHandler
     [PacketCommand(ServerCommands.SandboxConnectionResponse)]
     public async Task Connected(Client client, PacketIn packet)
     {
+        await SendPacket(client, Packets.GetWorld());
+    }
+
+    /// <summary>
+    /// Action - Message Received.
+    /// </summary>
+    /// <param name="client">Client.</param>
+    /// <param name="packet">Packet.</param>
+    /// <returns>Task.</returns>
+    [PacketCommand(ServerCommands.MessageReceived)]
+    public async Task ChatMessageReceived(Client client, PacketIn packet)
+    {
         await Task.CompletedTask;
     }
 }
@@ -96,6 +108,31 @@ public static class Packets
     public static PacketOut DisconnectSandbox()
     {
         PacketOut packet = new PacketOut(ClientCommands.DisconnectSandbox);
+
+        return packet;
+    }
+
+    /// <summary>
+    /// Packet - Send chat Message.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    /// <returns>Packet.</returns>
+    public static PacketOut SendChatMessage(string message)
+    {
+        PacketOut packet = new PacketOut(ClientCommands.SendNormalChat);
+
+        packet.Add(message);
+
+        return packet;
+    }
+
+    /// <summary>
+    /// Packet - Get world.
+    /// </summary>
+    /// <returns></returns>
+    public static PacketOut GetWorld()
+    {
+        PacketOut packet = new PacketOut(ClientCommands.GetWorld);
 
         return packet;
     }
