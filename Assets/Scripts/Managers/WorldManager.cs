@@ -47,6 +47,12 @@ public class WorldManager : MonoBehaviour
 
         var gui = Instantiate(entityGUI, rosePlayer.player.transform).GetComponentInChildren<EntityGUIController>();
 
+        var bubble = gui.gameObject.GetComponentInChildren<SpeechBubble>(true);
+
+        Debug.Log(bubble);
+
+        bubble.gameObject.transform.localScale = new Vector3(bubble.transform.localScale.x, bubble.transform.localScale.y, 0.1F); // WTF I NEED THAT ?
+
         gui.SetName(playerName);
 
         return rosePlayer;
