@@ -105,6 +105,12 @@ public class RoseTerrainWindow : EditorWindow
 
         string atlasPath = "Assets/Terrain/Textures/" + mapID + "_atlas.png";
 
+        if (!Directory.Exists("Assets/Terrain/Textures/"))
+        {
+            Directory.CreateDirectory("Assets/Terrain/Textures/");
+        }
+
+
         if (!File.Exists(atlasPath))
         {
             FileStream fs = new FileStream(atlasPath, FileMode.Create);

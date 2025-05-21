@@ -25,10 +25,11 @@ public class ROSEImportWindow : EditorWindow
 
     private Vector2 mapListScrollPosition;
     private bool mapListShowUnnamed = false;
+
     void OnGUI()
     {
         GUILayout.Label("Settings", EditorStyles.boldLabel);
-        dataPath = EditorGUILayout.TextField("3DData Path", dataPath);
+        dataPath = EditorGUILayout.TextField("Uncompressed VFS folder path", dataPath);
         npcShader = (Shader)EditorGUILayout.ObjectField("Shader for NPC", npcShader, typeof(Shader), false);
         mapShader = (Shader)EditorGUILayout.ObjectField("Shader for Map", mapShader, typeof(Shader), false);
 
