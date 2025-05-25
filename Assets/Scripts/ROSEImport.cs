@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using UnityEngine;
 using UnityEditor;
 using UnityRose.Formats;
@@ -610,7 +612,7 @@ public class ROSEImport
             }
             catch (Exception ex)
             {
-                Debug.LogWarning("Failed to import : " + ex.Message);
+                RoseDebug.LogWarning("Failed to import : " + ex.Message);
             }
         }
 
@@ -624,3 +626,4 @@ public class ROSEImport
     }
 
 }
+#endif

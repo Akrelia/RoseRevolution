@@ -22,7 +22,7 @@ namespace UnityRose
 			intel = 10;
 			crit = 10;
 			luck = 10;
-			movSpd = 10;
+			movSpd = 5;
 			atkSpd = 10;
 		}
 	}

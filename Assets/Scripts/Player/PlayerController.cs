@@ -65,7 +65,7 @@ namespace UnityRose
 			if (isMainPlayer)
 			{
 				// Tell server main player has finished loading
-				NetworkManager.Send(new CharLoadCompleted(playerInfo.name));
+				//NetworkManager.Send(new CharLoadCompleted(playerInfo.name));
 			}
 
 		}
@@ -125,7 +125,7 @@ namespace UnityRose
 					if (Input.GetKeyDown(KeyCode.J))
 					{
 						// this packet is reflected to all clients by server (for debugging only)
-						NetworkManager.Send(new InstantiateChar(false, gameObject.transform.position, gameObject.transform.rotation, playerInfo)); //gameObject.name, gameObject.transform.position, gameObject.transform.rotation ));
+						//NetworkManager.Send(new InstantiateChar(false, gameObject.transform.position, gameObject.transform.rotation, playerInfo)); //gameObject.name, gameObject.transform.position, gameObject.transform.rotation ));
 					}
 
 
@@ -189,16 +189,24 @@ namespace UnityRose
 
 			if (fire)
 			{
-				if (VR)
-					destinationPosition = cursor.transform.position;
-				// Perform the raycast and if it hits something on the floor layer...
-				else if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
-					destinationPosition = floorHit.point;
+				if (EventSystem.current.IsPointerOverGameObject())
+				{
+					return;
+				}
 
-				// Send a clicked on ground packet
-				NetworkManager.Send(new GroundClick(gameObject.name, destinationPosition));
-				//destinationPosition = transform.position; // TODO: restore this
+				else
+				{
 
+					if (VR)
+						destinationPosition = cursor.transform.position;
+					// Perform the raycast and if it hits something on the floor layer...
+					else if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
+						destinationPosition = floorHit.point;
+
+					// Send a clicked on ground packet
+					//NetworkManager.Send(new GroundClick(gameObject.name, destinationPosition)); // TODO : Here send ours instead
+					//destinationPosition = transform.position; // TODO: restore this
+				}
 			}
 		}
 

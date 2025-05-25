@@ -4,6 +4,8 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
+#if UNITY_EDITOR
+
 public class CustomAssetPostProcessor : AssetPostprocessor
 {
     void OnPreprocessAsset()
@@ -17,3 +19,5 @@ public class CustomAssetPostProcessor : AssetPostprocessor
         }
     }
 }
+
+#endif

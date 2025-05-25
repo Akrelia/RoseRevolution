@@ -86,7 +86,7 @@ public class CameraController : MonoBehaviour
                 }
                 break;
             default:
-                if ((GUIUtility.hotControl == 0) && (Input.GetMouseButton(0) || Input.GetMouseButton(1)))
+                if ((GUIUtility.hotControl == 0) && (Input.GetMouseButton(1)))
                 {
                     //Check to see if mouse input is allowed on the axis
                     if (allowMouseInputX)
