@@ -6,12 +6,20 @@ using UnityEngine;
 
 public static class NetworkEvents
 {
-    private static readonly Dictionary<ServerCommands, List<Action<Client, PacketIn>>> events = new();
+    public static readonly Dictionary<ServerCommands, List<Action<Client, PacketIn>>> events = new();
 
     public static void RegisterEvent(ServerCommands command)
     {
         if (!events.ContainsKey(command))
             events[command] = new List<Action<Client, PacketIn>>();
+    }
+
+    public static void RegisterAllEvents()
+    {
+        foreach (ServerCommands command in Enum.GetValues(typeof(ServerCommands)))
+        {
+            RegisterEvent(command);
+        }
     }
 
     public static void Subscribe(ServerCommands command, Action<Client, PacketIn> handler)
@@ -28,8 +36,8 @@ public static class NetworkEvents
         if (events.TryGetValue(command, out var handlers))
         {
             handlers.Remove(handler);
-            if (handlers.Count == 0)
-                events.Remove(command);
+
+          RoseDebug.Log($"Unsubscribing {handler.Method.Name} method from {Enum.GetName(typeof(ServerCommands), command)} command");
         }
     }
 

@@ -25,11 +25,6 @@ public class Client
         packetHandler = new PacketHandler();
     }
 
-    private async Task OnPing(TcpClient client)
-    {
-        await packetHandler.PongServer(client);
-    }
-
     /// <summary>
     /// Connect the client.
     /// </summary>
@@ -40,14 +35,14 @@ public class Client
     {
         await tcpClient.ConnectAsync(address, port);
 
-        Debug.Log("Connecting ...");
+        RoseDebug.Log("Connecting ...");
 
         if (tcpClient.Connected)
         {
             cancellationTokenSource = new CancellationTokenSource();
             updateTask = UpdateAsync(cancellationTokenSource.Token);
 
-            Debug.Log($"Connected to server ! ({address}:{port})");
+            RoseDebug.Log($"Connected to server ! ({address}:{port})");
         }
     }
 
@@ -73,7 +68,7 @@ public class Client
 
         catch (Exception ex)
         {
-            Debug.LogError($"Client crashed : {ex.Message}{ex.StackTrace}");
+            RoseDebug.LogError($"Client crashed : {ex.Message}{ex.StackTrace}");
         }
 
         finally
@@ -105,7 +100,7 @@ public class Client
 
         cancellationTokenSource.Dispose();
 
-        Debug.Log("Client is now closed");
+        RoseDebug.Log("Client is now closed");
     }
 
     /// <summary>

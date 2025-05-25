@@ -83,10 +83,10 @@ namespace UnityRose
         CHARSELECT,
     }
 
-    public enum GenderType
+    public enum GenderType : byte
     {
         MALE = 1,
-        FEMALE,
+        FEMALE = 2,
     };
 
     public enum BodyPartType

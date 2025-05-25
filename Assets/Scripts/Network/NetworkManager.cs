@@ -67,7 +67,7 @@ namespace Network
             state.packetState = State.PacketState.HEADER;
             state.bytesReceived = 0;
             state.bytesExpected = PrefixSize;
-            Connect();
+         //   Connect();
         }
 
 

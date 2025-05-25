@@ -3,6 +3,7 @@ using RevolutionShared.Networking.Packets;
 using RevolutionShared.Packets;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityRose;
 
 /// <summary>
 /// Packets for Packet Handler.
@@ -48,13 +49,13 @@ public partial class PacketHandler
     }
 
     /// <summary>
-    /// Action - Message Received.
+    /// Action - Send World.
     /// </summary>
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     /// <returns>Task.</returns>
-    [PacketCommand(ServerCommands.MessageReceived)]
-    public async Task ChatMessageReceived(Client client, PacketIn packet)
+    [PacketCommand(ServerCommands.SendWorld)]
+    public async Task WorldReceived(Client client, PacketIn packet)
     {
         await Task.CompletedTask;
     }
@@ -92,11 +93,22 @@ public static class Packets
     /// </summary>
     /// <param name="username">Username.</param>
     /// <returns>Packet.</returns>
-    public static PacketOut ConnectSandbox(string username)
+    public static PacketOut ConnectSandbox(string username, GenderType gender, byte hair, byte face, int back, int body, int gloves, int shoes, int mask, int hat, int weapon, int subweapon)
     {
         PacketOut packet = new PacketOut(ClientCommands.ConnectSandbox);
 
         packet.Add(username);
+        packet.Add((byte)gender);
+        packet.Add(hair);
+        packet.Add(face);
+        packet.Add(back);
+        packet.Add(body);
+        packet.Add(gloves);
+        packet.Add(shoes);
+        packet.Add(mask);
+        packet.Add(hat);
+        packet.Add(weapon);
+        packet.Add(subweapon);
 
         return packet;
     }
@@ -133,6 +145,22 @@ public static class Packets
     public static PacketOut GetWorld()
     {
         PacketOut packet = new PacketOut(ClientCommands.GetWorld);
+
+        return packet;
+    }
+
+    /// <summary>
+    /// Packet - Move.
+    /// </summary>
+    /// <param name="position">Position.</param>
+    /// <returns>Packet.</returns>
+    public static PacketOut Move(Vector3 position)
+    {
+        PacketOut packet = new PacketOut(ClientCommands.Move);
+
+        packet.Add(position.x);
+        packet.Add(position.y);
+        packet.Add(position.z);
 
         return packet;
     }

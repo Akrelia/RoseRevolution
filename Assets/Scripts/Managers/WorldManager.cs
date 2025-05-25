@@ -20,7 +20,7 @@ public class WorldManager : MonoBehaviour
     /// Spawn main player.
     /// </summary>
     /// <param name="position">Position.</param>
-    public RosePlayer SpawnMainPlayer(GenderType gender,string playerName, byte hairID, byte faceID, int backID, int bodyID, int glovesID, int shoesID, int maskID, int hatID, Vector3 position)
+    public RosePlayer SpawnPlayer(bool mainPlayer, GenderType gender, string playerName, byte hairID, byte faceID, int backID, int bodyID, int glovesID, int shoesID, int maskID, int hatID, int weaponID, int subWeaponID, Vector3 position)
     {
         CharModel model = new CharModel();
 
@@ -41,15 +41,18 @@ public class WorldManager : MonoBehaviour
 
         var rosePlayer = new RosePlayer(model);
 
-        rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = true;
+        rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = mainPlayer;
 
-        cameraController.target = rosePlayer.player;
+        rosePlayer.equip(BodyPartType.FACEITEM, maskID);
+        rosePlayer.equip(BodyPartType.WEAPON, weaponID);
+        //rosePlayer.equip(BodyPartType.SUBWEAPON, subWeaponID);
+
+        if (mainPlayer)
+            cameraController.target = rosePlayer.player;
 
         var gui = Instantiate(entityGUI, rosePlayer.player.transform).GetComponentInChildren<EntityGUIController>();
 
         var bubble = gui.gameObject.GetComponentInChildren<SpeechBubble>(true);
-
-        Debug.Log(bubble);
 
         bubble.gameObject.transform.localScale = new Vector3(bubble.transform.localScale.x, bubble.transform.localScale.y, 0.1F); // WTF I NEED THAT ?
 

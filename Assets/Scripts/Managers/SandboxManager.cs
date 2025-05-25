@@ -25,6 +25,8 @@ public class SandboxManager : MonoBehaviour
     public int shoes;
     public int mask;
     public int hat;
+    public int weapon;
+    public int shield;
     [Header("Components")]
     public Transform spawnPosition;
     public CameraController cameraController;
@@ -40,10 +42,12 @@ public class SandboxManager : MonoBehaviour
     {
         players = new Dictionary<Guid, RosePlayer>();
 
+#if UNITY_EDITOR
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-
-        NetworkEvents.Subscribe(ServerCommands.SandboxConnectionResponse, Connected);
-        NetworkEvents.Subscribe(ServerCommands.MessageReceived, MessageReceived);
+#endif
+        //NetworkEvents.Subscribe(ServerCommands.SandboxConnectionResponse, Connected);
+        //NetworkEvents.Subscribe(ServerCommands.MessageReceived, MessageReceived);
+        //NetworkEvents.Subscribe(ServerCommands.PlayerConnected, PlayerConnected);
     }
 
     /// <summary>
@@ -53,7 +57,7 @@ public class SandboxManager : MonoBehaviour
     {
         await Client.ConnectAsync(address, port);
 
-        Client.SendPacket(Packets.ConnectSandbox(playerName));
+        Client.SendPacket(Packets.ConnectSandbox(playerName, gender, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield));
     }
 
     /// <summary>
@@ -61,9 +65,10 @@ public class SandboxManager : MonoBehaviour
     /// </summary>
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
+    [PacketEvent(ServerCommands.SandboxConnectionResponse)]
     private void Connected(Client client, PacketIn packet)
     {
-        var mainPlayer = worldManager.SpawnMainPlayer(gender,playerName, hair, face, back, body, gloves, shoes, mask, hat, spawnPosition.position);
+        var mainPlayer = worldManager.SpawnPlayer(true, gender, playerName, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield, spawnPosition.position);
 
         var guid = new Guid(packet.GetBytes(16));
         var name = packet.GetString();
@@ -72,9 +77,15 @@ public class SandboxManager : MonoBehaviour
 
         players.Add(guid, mainPlayer);
 
-        Debug.Log("Main Character added");
+        RoseDebug.Log("Main Character added");
     }
 
+    /// <summary>
+    /// When message received.
+    /// </summary>
+    /// <param name="client">Client.</param>
+    /// <param name="packet">Packet.</param>
+    [PacketEvent(ServerCommands.MessageReceived)]
     private void MessageReceived(Client client, PacketIn packet)
     {
         var guid = new Guid(packet.GetBytes(16));
@@ -91,10 +102,47 @@ public class SandboxManager : MonoBehaviour
 
         else
         {
-            Debug.LogWarning("Received a message from a missing player !");
+            RoseDebug.LogWarning("Received a message from a missing player !");
         }
     }
 
+    /// <summary>
+    /// When a player is connected.
+    /// </summary>
+    /// <param name="client">Client.</param>
+    /// <param name="packet">Packet.</param>
+    [PacketEvent(ServerCommands.PlayerConnected)]
+    private void PlayerConnected(Client client, PacketIn packet)
+    {
+        var guid = new Guid(packet.GetBytes(16));
+        var playerName = packet.GetString();
+
+        if (!players.ContainsKey(guid))
+        {
+            var playerGender = (GenderType)packet.GetByte();
+            var playerHair = packet.GetByte();
+            var playerFace = packet.GetByte();
+            var playerBack = packet.GetInt();
+            var playerBody = packet.GetInt();
+            var playerGloves = packet.GetInt();
+            var playerShoes = packet.GetInt();
+            var playerMask = packet.GetInt();
+            var playerHat = packet.GetInt();
+            var playerWeapon = packet.GetInt();
+            var playerSubweapon = packet.GetInt();
+
+            var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat,playerWeapon,playerSubweapon, spawnPosition.position);
+
+            players.Add(guid, player);
+        }
+
+        else
+        {
+            RoseDebug.LogWarning("Trying to add a player that's already exists !");
+        }
+    }
+
+#if UNITY_EDITOR
     /// <summary>
     /// Stop the client when exiting play mode.
     /// </summary>
@@ -108,7 +156,7 @@ public class SandboxManager : MonoBehaviour
             _ = Client.CloseAsync();
         }
     }
-
+#endif
     /// <summary>
     /// Get the client.
     /// </summary>

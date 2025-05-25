@@ -4,6 +4,7 @@ using RevolutionShared.Packets;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
@@ -22,9 +23,10 @@ public partial class PacketHandler
     /// </summary>
     public PacketHandler()
     {
-        this.actions = new Dictionary<int, Func<Client, PacketIn, Task>>();
+        actions = new Dictionary<int, Func<Client, PacketIn, Task>>();
 
         LoadAsyncActions();
+        GeneratePacketEvents();
     }
 
     /// <summary>
@@ -61,7 +63,7 @@ public partial class PacketHandler
 
                 PacketIn packet = new PacketIn(buffer);
 
-                Debug.Log("PACKET IN : " + packet.StringFormat);
+                RoseDebug.LogPacket($"[IN] {((ServerCommands)packet.Command).GetName()} (Size : {packet.Size})");
 
                 return packet;
             }
@@ -95,14 +97,14 @@ public partial class PacketHandler
                         {
                             await (Task)method.Invoke(instance, new object[] { client, packet });
 
-                            NetworkEvents.Raise((ServerCommands)attribute.Value, client, packet);
+                        //    NetworkEvents.Raise((ServerCommands)attribute.Value, client, packet);
                         };
 
                         if (!actions.ContainsKey(attribute.Value))
                         {
                             actions[attribute.Value] = action; // Call the action
 
-                            NetworkEvents.RegisterEvent((ServerCommands)attribute.Value); // Register the event
+                          //  NetworkEvents.RegisterEvent((ServerCommands)attribute.Value); // Register the event
 
                         }
 
@@ -111,6 +113,7 @@ public partial class PacketHandler
                             Console.WriteLine($"Warning: Duplicate key {attribute.Value}. Method {method.Name} was skipped.");
                         }
                     }
+
                     else
                     {
                         Console.WriteLine($"Method {method.Name} skipped: Incorrect parameter type or count.");
@@ -118,6 +121,82 @@ public partial class PacketHandler
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Generate packet events.
+    /// </summary>
+    public void GeneratePacketEvents()
+    {
+        NetworkEvents.RegisterAllEvents();
+
+        RoseDebug.Log($"{NetworkEvents.events.Count} packet events created from Server Commands");
+
+        var allTypes = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.StartsWith("Assembly-CSharp")).SelectMany(a => a.GetTypes());
+
+        foreach (var type in allTypes)
+        {
+            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                var attribute = method.GetCustomAttribute<PacketEvent>();
+
+                if (attribute != null)
+                {
+                    var parameters = method.GetParameters();
+
+                    if (parameters.Length == 2 && parameters[1].ParameterType == typeof(PacketIn) && parameters[0].ParameterType == typeof(Client))
+                    {
+                        ServerCommands command = (ServerCommands)attribute.Value;
+
+                        var instance = UnityEngine.Object.FindAnyObjectByType(type, FindObjectsInactive.Include);
+
+                        if (instance != null)
+                        {
+                            var del = (Action<Client, PacketIn>)Delegate.CreateDelegate(typeof(Action<Client, PacketIn>), instance, method);
+
+                            NetworkEvents.Subscribe(command, del);
+
+                            if (instance is MonoBehaviour behaviour)
+                            {
+                                var unsubscriber = behaviour.GetComponent<AutoUnsubscriber>();
+
+                                if (unsubscriber == null)
+                                {
+                                    unsubscriber = behaviour.gameObject.AddComponent<AutoUnsubscriber>();
+                                }
+
+                                unsubscriber.RegisterUnsubscribe(() =>
+                                {
+                                    NetworkEvents.Unsubscribe(command, del);
+                                });
+                            }
+
+                            /*   Func<Client, PacketIn, Task> action = async (Client client, PacketIn packet) =>
+                               {
+                                   await (Task)method.Invoke(instance, new object[] { client, packet });
+
+                                   NetworkEvents.Raise((ServerCommands)attribute.Value, client, packet);
+                               };
+                            */
+                        }
+
+                        else
+                        {
+                            RoseDebug.LogWarning($"Can't find an instance of type {type.Name} for function {method.Name}");
+                        }
+                    }
+
+                    else
+                    {
+                        RoseDebug.LogError($"Method {method.Name} in {type.Name} is assigned with Packet Attribute but does not have the good parameters !");
+                    }
+                }
+            }
+        }
+
+        RoseDebug.Log($"{NetworkEvents.events.Values.Sum(list => list.Count)} Function(s) subscribed to Packet Events");
     }
 
     /// <summary>
@@ -135,7 +214,17 @@ public partial class PacketHandler
 
         else
         {
-            Debug.LogWarning($"There is no packet action for the following command : {packet.Command} ({packet.CommandString})");
+            RoseDebug.LogWarning($"There is no packet action for the following command : {packet.Command} ({packet.CommandString})");
+        }
+
+        if (NetworkEvents.events.ContainsKey((ServerCommands)packet.Command))
+        {
+            NetworkEvents.Raise((ServerCommands)packet.Command,client,packet);
+        }
+
+        else
+        {
+            RoseDebug.LogWarning($"There is no packet event for the following command : {packet.Command} ({packet.CommandString}) - It mostly happens because of a RevolutionShared.dll version difference.");
         }
     }
 
@@ -147,7 +236,7 @@ public partial class PacketHandler
     /// <returns>Task.</returns>
     public virtual async Task SendPacket(Stream stream, PacketOut packet)
     {
-        Debug.Log("PACKET OUT " + packet.StringFormat);
+        RoseDebug.LogPacket($"[OUT] {((ClientCommands)packet.Command).GetName()} (Size : {packet.Size})");
 
         await stream.WriteAsync(packet.Buffer, 0, packet.Buffer.Length);
 
