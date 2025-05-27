@@ -10,6 +10,7 @@ using System.IO;
 using System.Collections.Generic;
 using UnityRose.Game;
 using UnityRose;
+using System.Linq;
 
 public class RoseTerrainWindow : EditorWindow
 {
@@ -175,17 +176,97 @@ public class RoseTerrainWindow : EditorWindow
 
         }
 
-
         terrainObjects.transform.localScale = new Vector3(1.0f, 1.0f, -1.0f);
         terrainObjects.transform.Rotate(0.0f, -90.0f, 0.0f);
         terrainObjects.transform.position = new Vector3(5200.0f, 0.0f, 5200.0f);
+
+
+        var worldManager = FindAnyObjectByType<SandboxManager>(); // Akima : this will be removed when everything will be off editor scripts
+
+        GameObject spawns = new GameObject();
+        spawns.name = "Spawn Points";
+        spawns.transform.position = new Vector3(5200*2F, 0, 0); // Akima : took me almost an hour to find the correct offset, I guess its the origin of Rose Map + The -1 scale of every object
+        spawns.transform.Rotate(0, -90F, 0);
+        spawns.transform.SetParent(map.transform);
+
+        for (int i = 0; i < patches[0].m_ZON.SpawnPoints.Count; i++)
+        {
+            var spawnPoint = patches[0].m_ZON.SpawnPoints[i];
+
+            GameObject spawn = new GameObject();
+
+            spawn.name = spawnPoint.Name;
+
+            spawn.transform.parent = spawns.transform;
+            spawn.transform.localPosition = Utils.r2uScale((spawnPoint.Position));
+            spawn.transform.rotation = Quaternion.identity;
+
+            if (spawnPoint.Name == "start")
+            {
+                worldManager.spawnPosition = spawn.transform.position;
+            }
+        }
+
+        GameObject npcs = new GameObject();
+        npcs.name = "NPCs";
+        npcs.transform.SetParent(map.transform);
+        npcs.transform.localScale = new Vector3(1.0f, 1.0f, -1.0f);
+        npcs.transform.Rotate(0, -90F, 0);
+        npcs.transform.position = new Vector3(5200, 0, 5200);
+
+        for (int i = 0;i < patches.Count;i++)
+        {
+            var ifo = patches[i].m_IFO;
+
+            for (int j = 0; j < ifo.NPCs.Count; j++)
+            {
+                ROSEImport.ImportNPC(ifo.NPCs[j].ObjectID);
+
+                GameObject npc = new GameObject();
+
+                npc.name = "NPC_" + ifo.NPCs[j].ObjectID;
+
+                npc.transform.parent = npcs.transform;
+
+                Debug.Log(ifo.NPCs[j].Position);
+
+                npc.transform.localPosition = ifo.NPCs[j].Position / 100F;
+                npc.transform.rotation = Quaternion.identity; ;
+
+                var roseNpc = npc.AddComponent<RoseNpc>();
+
+                roseNpc.data = LoadNPCAssetStartingWith<RoseNpcData>($"[{ifo.NPCs[j].ObjectID}]");
+            }
+        }
+
 
         if (success)
             Debug.Log("Map Import Complete");
         else
             Debug.Log("!Map Import Failed");
+
+   
+
+        // worldManager.spawnPosition = Utils.r2uScale(patches[0].m_ZON.SpawnPoints.FirstOrDefault(sp => sp.Name == "start").Position); // Akima : since ZON file is the same for every patch, just take the ref of the first one
     }
 
+    public static T LoadNPCAssetStartingWith<T>(string prefix) where T : ScriptableObject
+    {
+        string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}", new[] { "Assets/Npcs" });
+
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            string filename = System.IO.Path.GetFileNameWithoutExtension(path);
+
+            if (filename.StartsWith(prefix))
+            {
+                return AssetDatabase.LoadAssetAtPath<T>(path);
+            }
+        }
+
+        return null;
+    }
 
     /*
 	private RosePatch ImportPatch(string inputDir, Transform terrainParent, Transform objectsParent)

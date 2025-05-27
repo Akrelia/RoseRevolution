@@ -32,6 +32,11 @@ public class Utils
         return Quaternion.AngleAxis(angle, new Vector3(axis.x, axis.z, -axis.y));
     }
 
+    public static Quaternion R2URotation2(Quaternion q)
+    {
+        return new Quaternion(q.x, q.z, -q.y, q.w);
+    }
+
     public static Vector3 r2uPosition(Vector3 v)
     {
         return new Vector3(v.x, v.z, -v.y);

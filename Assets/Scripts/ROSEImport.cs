@@ -87,10 +87,21 @@ public class ROSEImport
         Debug.Log("Importing Map #" + mapIdx);
     }
 
+    public static void ImportNPC(int id)
+    {
+        AssetHelper.StartAssetEditing();
+
+        var importer = new ChrImporter();
+
+        importer.ImportNpc(id);
+
+        AssetHelper.StopAssetEditing();
+    }
+
     /// <summary>
     /// Import all the NPC.
     /// </summary>
-    public static void ImportNPC(int count)
+    public static void ImportNPCs(int count)
     {
         AssetHelper.StartAssetEditing();
 
@@ -104,11 +115,15 @@ public class ROSEImport
             }
         }
 
-        finally
+        catch (Exception ex)
+        {
+            Debug.Log("Something went wrong while importing 30 NPC :" + ex.Message + " - " + ex.StackTrace);
+        }
+
+        finally 
         {
             AssetHelper.StopAssetEditing();
 
-            Debug.Log("Something went wrong while importing 30 NPC");
         }
     }
 
@@ -129,11 +144,16 @@ public class ROSEImport
             }
         }
 
+        catch (Exception ex)
+        {
+            Debug.Log("Something went wrong while importing ALL NPC :" + ex.Message + " - " + ex.StackTrace);
+        }
+
         finally
         {
             AssetHelper.StopAssetEditing();
 
-            Debug.Log("Something went wrong while importing all NPC");
+            Debug.Log("Something went wrong while importing all NPC : ");
         }
     }
 
@@ -306,6 +326,7 @@ public class ROSEImport
         {
             if (!chr.Characters[npcIdx].IsEnabled)
             {
+
                 return null;
             }
 
@@ -329,9 +350,11 @@ public class ROSEImport
                 for (var i = 0; i < chrObj.Objects.Count; ++i)
                 {
                     var zscPart = chrObj.Objects[i];
-                    var partData = zsc.ImportPart(zscPart.Object);
 
-                    npc.parts.Add(partData);
+                    zsc.ImportPart(zscPart.Object, (partData) =>
+                    { 
+                        npc.parts.Add(partData);
+                    });
                 }
 
                 for (var i = 0; i < chrObj.Animations.Count; ++i)
@@ -354,9 +377,7 @@ public class ROSEImport
             }
             return AssetDatabase.LoadAssetAtPath<RoseNpcData>(npcPath);
         }
-
     }
-
     public class PtlImporter
     {
         public List<PTL> LoadedParticles { get; } = new();
@@ -471,34 +492,57 @@ public class ROSEImport
             zsc = new ZSC(path); // TODO : Check here if we have to handle Map & NPC differently
         }
 
-        public RoseCharPartData ImportPart(int partIdx)
+        public void ImportPart(int partIdx, Action<RoseCharPartData> onComplete)
         {
-            var partPath = Utils.CombinePath(targetPath, "Obj_" + partIdx + ".asset");
-            if (!File.Exists(partPath))
+            var partPath = Utils.CombinePath(targetPath, "NPC_PART_" + partIdx + ".asset");
+
+            if (File.Exists(partPath))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(partPath));
-
-                var zscObj = zsc.Objects[partIdx];
-                var mdl = ScriptableObject.CreateInstance<RoseCharPartData>();
-
-                for (int j = 0; j < zscObj.Models.Count; ++j)
-                {
-                    var part = zscObj.Models[j];
-                    var subObj = new Model();
-
-                    subObj.mesh = ImportMesh(part.ModelID);
-                    subObj.material = ImportMaterial(part.TextureID);
-                    subObj.boneIndex = -1;
-
-                    mdl.models.Add(subObj);
-                }
-
-                AssetDatabase.CreateAsset(mdl, partPath);
-                EditorUtility.SetDirty(mdl);
-                AssetDatabase.SaveAssets();
+                var loaded = AssetDatabase.LoadAssetAtPath<RoseCharPartData>(partPath);
+                onComplete?.Invoke(loaded);
+                return;
             }
-            return AssetDatabase.LoadAssetAtPath<RoseCharPartData>(partPath);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(partPath));
+
+            var zscObj = zsc.Objects[partIdx];
+            var mdl = ScriptableObject.CreateInstance<RoseCharPartData>();
+
+            int remaining = zscObj.Models.Count;
+
+            for (int j = 0; j < zscObj.Models.Count; ++j)
+            {
+                var part = zscObj.Models[j];
+                var subObj = new Model
+                {
+                    mesh = ImportMesh(part.ModelID),
+                    boneIndex = -1
+                };
+
+                ImportMaterial(part.TextureID, (mat) =>
+                {
+                    subObj.material = mat;
+                    mdl.models.Add(subObj);
+
+                    remaining--;
+
+                    if (remaining == 0)
+                    {
+                        AssetDatabase.CreateAsset(mdl, partPath);
+                        EditorUtility.SetDirty(mdl);
+                        AssetDatabase.SaveAssets();
+                        AssetDatabase.Refresh();
+
+                        EditorApplication.delayCall += () =>
+                        {
+                            var loaded = AssetDatabase.LoadAssetAtPath<RoseCharPartData>(partPath);
+                            onComplete?.Invoke(loaded);
+                        };
+                    }
+                });
+            }
         }
+
 
         public RoseMapObjectData ImportObject(int objectIdx)
         {
@@ -516,7 +560,11 @@ public class ROSEImport
                     var subObj = new RoseMapObjectData.SubObject();
 
                     subObj.mesh = ImportMesh(part.ModelID);
-                    subObj.material = ImportMaterial(part.TextureID);
+                    ImportMaterial(part.TextureID, (mat) =>
+                    {
+                        Debug.Log("Material ready: " + mat.name);
+                        subObj.material = mat;
+                    });
                     subObj.animation = null;
                     subObj.parent = part.Parent;
                     subObj.position = part.Position / 100;
@@ -556,30 +604,41 @@ public class ROSEImport
             return ROSEImport.ImportMesh(zsc.Models[meshIdx]);
         }
 
-        public Material ImportMaterial(int materialIdx)
+        public void ImportMaterial(int materialIdx, Action<Material> onComplete)
         {
             var zscMat = zsc.Textures[materialIdx];
+            var matFolder = Path.Combine(targetPath, "Materials");
+            var matPath = Path.Combine(matFolder, "Mat_" + materialIdx + ".mat");
 
-            var matPath = Utils.CombinePath(targetPath, "Materials", "Mat_" + materialIdx + ".asset");
             if (!File.Exists(matPath))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(matPath));
+                if (!Directory.Exists(matFolder))
+                    Directory.CreateDirectory(matFolder);
 
                 var mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
                 AssetDatabase.CreateAsset(mat, matPath);
 
                 ImportTexture(zscMat.Path, false, () =>
-                 {
-                     Texture2D mainTex = ImportTexture(zscMat.Path, false);
-                     mat.SetTexture("_BaseMap", mainTex);
-                     EditorUtility.SetDirty(mat);
-                 });
+                {
+                    Texture2D mainTex = ImportTexture(zscMat.Path, false);
+                    mat.SetTexture("_BaseMap", mainTex);
+                    EditorUtility.SetDirty(mat);
+
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.Refresh();
+
+                    Material loadedMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+
+                    onComplete?.Invoke(loadedMat);
+                });
             }
-            return AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            else
+            {
+                Material loadedMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                onComplete?.Invoke(loadedMat);
+            }
         }
-
     }
-
     public class AssetHelper
     {
         public delegate void ImportDone();
@@ -612,7 +671,7 @@ public class ROSEImport
             }
             catch (Exception ex)
             {
-                RoseDebug.LogWarning("Failed to import : " + ex.Message);
+                RoseDebug.LogWarning("Failed to import texture : " + ex.Message);
             }
         }
 

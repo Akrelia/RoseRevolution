@@ -130,7 +130,7 @@ public partial class PacketHandler
     {
         NetworkEvents.RegisterAllEvents();
 
-        RoseDebug.Log($"{NetworkEvents.events.Count} packet events created from Server Commands");
+        RoseDebug.Log($"{NetworkEvents.events.Count} Packet Event(s) created from Server Commands");
 
         var allTypes = AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.StartsWith("Assembly-CSharp")).SelectMany(a => a.GetTypes());
 
@@ -214,7 +214,7 @@ public partial class PacketHandler
 
         else
         {
-            RoseDebug.LogWarning($"There is no packet action for the following command : {packet.Command} ({packet.CommandString})");
+            RoseDebug.LogWarning($"There is no packet action for the following command : {((ServerCommands)packet.Command).GetName()}");
         }
 
         if (NetworkEvents.events.ContainsKey((ServerCommands)packet.Command))
@@ -224,7 +224,7 @@ public partial class PacketHandler
 
         else
         {
-            RoseDebug.LogWarning($"There is no packet event for the following command : {packet.Command} ({packet.CommandString}) - It mostly happens because of a RevolutionShared.dll version difference.");
+            RoseDebug.LogWarning($"There is no packet event for the following command : {((ServerCommands)packet.Command).GetName()} (It mostly happens because of a RevolutionShared.dll version difference)");
         }
     }
 

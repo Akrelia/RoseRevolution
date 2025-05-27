@@ -807,14 +807,15 @@ namespace UnityRose.Formats
                                     {
                                         x = fh.Read<int>(),
                                         y = fh.Read<int>()
+
                                     },
-                                    Rotation = Utils.r2uRotation(new Quaternion()
+                                    Rotation = new Quaternion()
                                     {
-                                        w = fh.Read<float>(),
                                         x = fh.Read<float>(),
                                         y = fh.Read<float>(),
-                                        z = fh.Read<float>()
-                                    }),
+                                        z = fh.Read<float>(),
+                                        w = fh.Read<float>()
+                                    },
                                     Position = Utils.r2uPosition(new Vector3()
                                     {
                                         x = fh.Read<float>(),
@@ -830,7 +831,7 @@ namespace UnityRose.Formats
                                     AIPatternIndex = fh.Read<int>(),
                                     Path = fh.Read<BString>(),
                                     Parent = this
-                                });
+                                });; ;
                             }
 
                             fh.Seek(position, SeekOrigin.Begin);

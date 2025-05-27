@@ -28,7 +28,7 @@ public class SandboxManager : MonoBehaviour
     public int weapon;
     public int shield;
     [Header("Components")]
-    public Transform spawnPosition;
+    public Vector3 spawnPosition;
     public CameraController cameraController;
     public WorldManager worldManager;
     public GUIController guiController;
@@ -68,7 +68,7 @@ public class SandboxManager : MonoBehaviour
     [PacketEvent(ServerCommands.SandboxConnectionResponse)]
     private void Connected(Client client, PacketIn packet)
     {
-        var mainPlayer = worldManager.SpawnPlayer(true, gender, playerName, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield, spawnPosition.position);
+        var mainPlayer = worldManager.SpawnPlayer(true, gender, playerName, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield, spawnPosition);
 
         var guid = new Guid(packet.GetBytes(16));
         var name = packet.GetString();
@@ -131,7 +131,7 @@ public class SandboxManager : MonoBehaviour
             var playerWeapon = packet.GetInt();
             var playerSubweapon = packet.GetInt();
 
-            var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat,playerWeapon,playerSubweapon, spawnPosition.position);
+            var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat,playerWeapon,playerSubweapon, spawnPosition);
 
             players.Add(guid, player);
         }

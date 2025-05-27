@@ -8,10 +8,9 @@ public class ROSEImportWindow : EditorWindow
 {
 
     private const string DataPathKey = "ROSE_DataPath";
-    private const string NPCShaderKey = "ROSE_NPCShader";
-    private const string MapShaderKey = "ROSE_MapShader";
 
     private bool wasEditing = false;
+    private int indexNPC = 0;
     private string dataPath = "";
     private Shader npcShader;
     private Shader mapShader;
@@ -35,8 +34,8 @@ public class ROSEImportWindow : EditorWindow
 
         GUILayout.Label("Importing", EditorStyles.boldLabel);
         GUILayout.Label("Current Path: " + ROSEImport.GetCurrentPath());
-        if (GUILayout.Button("Spawn 30 NPC"))
-            ROSEImport.ImportNPC(30);
+        if (GUILayout.Button("Import the first 30 NPC"))
+            ROSEImport.ImportNPCs(30);
         if (GUILayout.Button("Import ALL NPC"))
         {
             bool confirm = EditorUtility.DisplayDialog("Confirmation", "This will take a lot of time, are you sure ?", "Yes", "No");
@@ -46,6 +45,17 @@ public class ROSEImportWindow : EditorWindow
                 ROSEImport.ImportAllNPC();
             }
         }
+
+        GUILayout.BeginHorizontal();
+
+        indexNPC = EditorGUILayout.IntField("NPC ID", indexNPC);
+
+        if (GUILayout.Button("Import NPC"))
+        {
+            ROSEImport.ImportNPC(indexNPC);
+        }
+
+        GUILayout.EndHorizontal();
 
         if (GUILayout.Button("Clear Generated ROSE Data"))
             ROSEImport.ClearData();
@@ -72,10 +82,12 @@ public class ROSEImportWindow : EditorWindow
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label("[" + i.ToString() + "] " + mapName);
+
                     if (GUILayout.Button("Import", GUILayout.Width(100)))
                     {
                         RoseTerrainWindow.ImportMap(i);
                     }
+
                     GUILayout.EndHorizontal();
                 }
             }
@@ -105,25 +117,18 @@ public class ROSEImportWindow : EditorWindow
             dataPath = EditorPrefs.GetString(DataPathKey);
         }
 
-        if (EditorPrefs.HasKey(NPCShaderKey))
-        {
-            //  npcShader = GetNPCShader();
-        }
-
         ROSEImport.MaybeUpdate();
     }
 
     void OnLostFocus()
     {
         EditorPrefs.SetString(DataPathKey, dataPath);
-        EditorPrefs.SetString(NPCShaderKey, AssetDatabase.GetAssetPath(npcShader));
         ROSEImport.MaybeUpdate();
     }
 
     void OnDestroy()
     {
         EditorPrefs.SetString(DataPathKey, dataPath);
-        EditorPrefs.SetString(NPCShaderKey, AssetDatabase.GetAssetPath(npcShader));
         ROSEImport.MaybeUpdate();
     }
 
@@ -131,10 +136,4 @@ public class ROSEImportWindow : EditorWindow
     {
         return EditorPrefs.GetString(DataPathKey);
     }
-
-    public static Shader GetNPCShader()
-    {
-        return AssetDatabase.LoadAssetAtPath<Shader>(EditorPrefs.GetString(NPCShaderKey));
-    }
-
 }

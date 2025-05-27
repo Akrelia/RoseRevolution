@@ -65,7 +65,7 @@ namespace UnityRose.Game
                 // figure out row and column
                 char[] sep = { '_', '.' };
                 string[] tokens = assetDir.Name.Split(sep);
-                int col = int.Parse(tokens[0]);
+                int col = int.Parse(tokens[0]); // Kenji beach
                 int row = int.Parse(tokens[1]);
 
                 // figure out if the given name exists and this patch is valid
