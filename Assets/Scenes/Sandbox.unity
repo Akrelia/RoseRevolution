@@ -3086,8 +3086,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1ec9e88d1afb654a8c1dd9e7b938e4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  address: 127.0.0.1
-  port: 30000
+  address: 82.64.152.244
+  port: 27350
   playerName: Akima
   gender: 2
   hair: 30

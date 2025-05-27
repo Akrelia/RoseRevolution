@@ -77,6 +77,12 @@ public class SandboxManager : MonoBehaviour
 
         players.Add(guid, mainPlayer);
 
+
+        for (int i = 0; i < players.Count; i++)
+        {
+
+        }
+
         RoseDebug.Log("Main Character added");
     }
 
@@ -111,6 +117,50 @@ public class SandboxManager : MonoBehaviour
     /// </summary>
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
+    [PacketEvent(ServerCommands.SendWorld)]
+    private void WorldReceived(Client client, PacketIn packet)
+    {
+        var motd = packet.GetString();
+
+        var playerCount = packet.GetInt();
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            var guid = new Guid(packet.GetBytes(16));
+            var playerName = packet.GetString();
+
+            if (!players.ContainsKey(guid))
+            {
+                var playerGender = (GenderType)packet.GetByte();
+                var playerHair = packet.GetByte();
+                var playerFace = packet.GetByte();
+                var playerBack = packet.GetInt();
+                var playerBody = packet.GetInt();
+                var playerGloves = packet.GetInt();
+                var playerShoes = packet.GetInt();
+                var playerMask = packet.GetInt();
+                var playerHat = packet.GetInt();
+                var playerWeapon = packet.GetInt();
+                var playerSubweapon = packet.GetInt();
+
+                var x = packet.GetFloat();
+                var y = packet.GetFloat();
+                var z = packet.GetFloat();
+
+                var position = new Vector3(x, y, z);
+
+                var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat, playerWeapon, playerSubweapon, position);
+
+                players.Add(guid, player);
+            }
+        }
+    }
+
+    /// <summary>
+    /// When a player is connected.
+    /// </summary>
+    /// <param name="client">Client.</param>
+    /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.PlayerConnected)]
     private void PlayerConnected(Client client, PacketIn packet)
     {
@@ -131,7 +181,7 @@ public class SandboxManager : MonoBehaviour
             var playerWeapon = packet.GetInt();
             var playerSubweapon = packet.GetInt();
 
-            var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat,playerWeapon,playerSubweapon, spawnPosition);
+            var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat, playerWeapon, playerSubweapon, spawnPosition);
 
             players.Add(guid, player);
         }
@@ -139,6 +189,21 @@ public class SandboxManager : MonoBehaviour
         else
         {
             RoseDebug.LogWarning("Trying to add a player that's already exists !");
+        }
+    }
+
+    [PacketEvent(ServerCommands.PlayerDisconnected)]
+    private void PlayerDisonnected(Client client, PacketIn packet)
+    {
+        var guid = new Guid(packet.GetBytes(16));
+
+        var player = GetRosePlayer(guid);
+
+        if (player != null)
+        {
+            players.Remove(guid);
+
+            Destroy(player.player);
         }
     }
 
@@ -153,7 +218,22 @@ public class SandboxManager : MonoBehaviour
 
         Vector3 position = new Vector3(x, y, z);
 
-        players[guid].player.GetComponent<PlayerController>().destinationPosition = position;
+        var player = GetRosePlayer(guid);
+
+        if (player != null)
+        {
+            player.player.GetComponent<PlayerController>().destinationPosition = position;
+        }
+    }
+
+    public RosePlayer GetRosePlayer(Guid guid)
+    {
+        if (players.ContainsKey(guid))
+        {
+            return players[guid];
+        }
+
+        return null;
     }
 
 #if UNITY_EDITOR
