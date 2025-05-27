@@ -142,6 +142,20 @@ public class SandboxManager : MonoBehaviour
         }
     }
 
+    [PacketEvent(ServerCommands.PlayerMoved)]
+    private void PlayerMoved(Client client, PacketIn packet)
+    {
+        var guid = new Guid(packet.GetBytes(16));
+
+        var x = packet.GetFloat();
+        var y = packet.GetFloat();
+        var z = packet.GetFloat();
+
+        Vector3 position = new Vector3(x, y, z);
+
+        players[guid].player.GetComponent<PlayerController>().destinationPosition = position;
+    }
+
 #if UNITY_EDITOR
     /// <summary>
     /// Stop the client when exiting play mode.

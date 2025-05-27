@@ -23,7 +23,7 @@ namespace UnityRose
 
 		private int floorMask;
 		private float camRayLength = 500f;
-		private Vector3 destinationPosition;
+		public Vector3 destinationPosition;
 		private CharacterController controller;
 		private State animationStateMachine;
 		private bool isWalking = false;
@@ -165,7 +165,7 @@ namespace UnityRose
 		}
 
 
-		void LocatePosition()
+		public void LocatePosition()
 		{
 			Vector2 screenPoint;
 			bool fire = false;
@@ -205,12 +205,13 @@ namespace UnityRose
 
 					// Send a clicked on ground packet
 					//NetworkManager.Send(new GroundClick(gameObject.name, destinationPosition)); // TODO : Here send ours instead
+					Client.Instance.SendPacket(Packets.Move(destinationPosition));
 					//destinationPosition = transform.position; // TODO: restore this
 				}
 			}
 		}
 
-		void MoveToPosition()
+		public void MoveToPosition()
 		{
 			if (Vector3.Distance(transform.position, destinationPosition) > 0.5f)
 			{

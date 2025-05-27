@@ -3100,7 +3100,7 @@ MonoBehaviour:
   hat: 0
   weapon: 220
   shield: 0
-  spawnPosition: {x: 5263.329, y: 3.35, z: 5210.47}
+  spawnPosition: {x: 5830.309, y: 6.5, z: 5435.24}
   cameraController: {fileID: 330585548}
   worldManager: {fileID: 1866922962}
   guiController: {fileID: 395208670}

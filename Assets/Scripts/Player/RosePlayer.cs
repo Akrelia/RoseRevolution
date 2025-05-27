@@ -126,7 +126,6 @@ public class RosePlayer : IPointerClickHandler
                     charModel.equip.maskID);
     }
 
-
     private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, RigType rig, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield, int faceitem)
     {
 
@@ -232,7 +231,6 @@ public class RosePlayer : IPointerClickHandler
         player.name = name;
     }
 
-
     private Bounds LoadObject(BodyPartType bodyPart, int id)
     {
         Bounds objectBounds = new Bounds(skeleton.transform.position, Vector3.zero);
@@ -248,7 +246,6 @@ public class RosePlayer : IPointerClickHandler
         }
         return objectBounds;
     }
-
 
     private Bounds LoadPart(BodyPartType bodyPart, ZSC.DummyType dummy, string zmsPath, ZSC.Texture texture)
     {
