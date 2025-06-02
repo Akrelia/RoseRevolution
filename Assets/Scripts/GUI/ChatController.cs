@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Chat controller.
@@ -16,6 +18,7 @@ public class ChatController : MonoBehaviour
     [Header("Components")]
     public TextMeshProUGUI chatText;
     public TextMeshProUGUI logText;
+    public ScrollRect scrollRect;
     public TMP_InputField input;
 
     /// <summary>
@@ -27,23 +30,20 @@ public class ChatController : MonoBehaviour
     }
 
     /// <summary>
-    /// Append text in the chat.
-    /// </summary>
-    /// <param name="message">Message.</param>
-    private void AppendText(string message)
-    {
-        chatText.text += message + Environment.NewLine;
-    }
-
-    /// <summary>
     /// When submit the input.
     /// </summary>
     /// <param name="text">Text.</param>
     private void OnSubmit(string text)
     {
-        Client.Instance.SendPacket(Packets.SendChatMessage(input.text));
+        if (!string.IsNullOrEmpty(text))
+        {
+            Client.Instance.SendPacket(Packets.SendChatMessage(input.text));
 
-        input.text = "";
+            input.text = "";
+        }
+
+        input.Select();
+        input.ActivateInputField();
     }
 
     /// <summary>
@@ -63,6 +63,37 @@ public class ChatController : MonoBehaviour
     public void AddSystemMessage(string message)
     {
         AppendText(ColorizeText(message, announcementMessageColor));
+    }
+
+    /// <summary>
+    /// Append text in the chat.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    private void AppendText(string message)
+    {
+        int previousLineCount = chatText.textInfo.lineCount;
+
+        chatText.text += message + Environment.NewLine;
+
+        StartCoroutine(ScrollByNewLines(previousLineCount));
+    }
+
+    /// <summary>
+    /// Makes the chat scroll by x line(s)
+    /// </summary>
+    /// <param name="oldLineCount">Old line count.</param>
+    /// <returns>Coroutine.</returns>
+    private IEnumerator ScrollByNewLines(int oldLineCount)
+    {
+        yield return new WaitForEndOfFrame();
+
+        int newLineCount = chatText.textInfo.lineCount;
+        int addedLines = Mathf.Max(1, newLineCount - oldLineCount);
+
+        float lineHeight = chatText.textInfo.lineInfo[Mathf.Max(0, newLineCount - 1)].lineHeight;
+        float scrollStep = lineHeight * addedLines / (scrollRect.content.rect.height - scrollRect.viewport.rect.height);
+
+        scrollRect.verticalNormalizedPosition = Mathf.Clamp01(scrollRect.verticalNormalizedPosition - scrollStep);
     }
 
     /// <summary>

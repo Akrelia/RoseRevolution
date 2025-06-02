@@ -60,6 +60,8 @@ namespace UnityRose.Game
             this.m_isValid = false;
             this.center = new Vector2(0.0f, 0.0f);
 
+            Debug.Log(assetDir);
+
             if (assetDir.Exists)
             {
                 // figure out row and column

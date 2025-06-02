@@ -66,7 +66,6 @@ public class ROSEImportWindow : EditorWindow
         if (GUILayout.Button("Import PTL / EFT"))
             ROSEImport.ImportParticles();
 
-
         GUILayout.Label("Maps", EditorStyles.boldLabel);
 
         mapListShowUnnamed = GUILayout.Toggle(mapListShowUnnamed, "Show Unnamed Maps");
@@ -86,6 +85,11 @@ public class ROSEImportWindow : EditorWindow
                     if (GUILayout.Button("Import", GUILayout.Width(100)))
                     {
                         RoseTerrainWindow.ImportMap(i);
+                    }
+
+                    if (GUILayout.Button("Export Spawns", GUILayout.Width(100)))
+                    {
+                        RoseTerrainWindow.ExportSpawns(i);
                     }
 
                     GUILayout.EndHorizontal();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityRose;
 
@@ -17,7 +18,7 @@ public class WorldManager : MonoBehaviour
     public CameraController cameraController;
 
     /// <summary>
-    /// Spawn main player.
+    /// Spawn a character player.
     /// </summary>
     /// <param name="position">Position.</param>
     public RosePlayer SpawnPlayer(bool mainPlayer, GenderType gender, string playerName, byte hairID, byte faceID, int backID, int bodyID, int glovesID, int shoesID, int maskID, int hatID, int weaponID, int subWeaponID, Vector3 position)
@@ -48,7 +49,9 @@ public class WorldManager : MonoBehaviour
         //rosePlayer.equip(BodyPartType.SUBWEAPON, subWeaponID);
 
         if (mainPlayer)
+        {
             cameraController.target = rosePlayer.player;
+        }
 
         var gui = Instantiate(entityGUI, rosePlayer.player.transform).GetComponentInChildren<EntityGUIController>();
 
@@ -56,8 +59,53 @@ public class WorldManager : MonoBehaviour
 
         bubble.gameObject.transform.localScale = new Vector3(bubble.transform.localScale.x, bubble.transform.localScale.y, 0.1F); // WTF I NEED THAT ?
 
+        rosePlayer.changeName(playerName);
+
         gui.SetName(playerName);
 
         return rosePlayer;
+    }
+
+    /// <summary>
+    /// Spawn an entity.
+    /// </summary>
+    /// <param name="id">Id.</param>
+    /// <param name="dataId">Data id.</param>
+    /// <param name="position">Position.</param>
+    /// <returns>Entity spawned.</returns>
+    public RoseNpc SpawnEntity(int id, int dataId, Vector3 position)
+    {
+        ROSEImport.ImportNPC(dataId);
+
+        GameObject entity = new GameObject();
+
+        entity.name = "Entity_" + dataId;
+
+        entity.transform.localPosition = position / 100F;
+        entity.transform.rotation = Quaternion.identity; ;
+
+        var roseNpc = entity.AddComponent<RoseNpc>();
+
+        roseNpc.data = LoadNPCAssetStartingWith<RoseNpcData>($"[{dataId}]");
+
+        return roseNpc;
+    }
+
+    public static T LoadNPCAssetStartingWith<T>(string prefix) where T : ScriptableObject
+    {
+        string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}", new[] { "Assets/Npcs" });
+
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            string filename = System.IO.Path.GetFileNameWithoutExtension(path);
+
+            if (filename.StartsWith(prefix))
+            {
+                return AssetDatabase.LoadAssetAtPath<T>(path);
+            }
+        }
+
+        return null;
     }
 }

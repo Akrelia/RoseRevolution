@@ -34,6 +34,7 @@ public class SandboxManager : MonoBehaviour
     public GUIController guiController;
 
     Dictionary<Guid, RosePlayer> players;
+    Dictionary<int, RoseNpc> entities;
 
     /// <summary>
     /// Awake.
@@ -41,13 +42,11 @@ public class SandboxManager : MonoBehaviour
     private void Awake()
     {
         players = new Dictionary<Guid, RosePlayer>();
+        entities = new Dictionary<int, RoseNpc>();
 
 #if UNITY_EDITOR
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 #endif
-        //NetworkEvents.Subscribe(ServerCommands.SandboxConnectionResponse, Connected);
-        //NetworkEvents.Subscribe(ServerCommands.MessageReceived, MessageReceived);
-        //NetworkEvents.Subscribe(ServerCommands.PlayerConnected, PlayerConnected);
     }
 
     /// <summary>
@@ -113,7 +112,7 @@ public class SandboxManager : MonoBehaviour
     }
 
     /// <summary>
-    /// When a player is connected.
+    /// When the world is received.
     /// </summary>
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
@@ -192,6 +191,11 @@ public class SandboxManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// When a player is disconnected.
+    /// </summary>
+    /// <param name="client">Client.</param>
+    /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.PlayerDisconnected)]
     private void PlayerDisonnected(Client client, PacketIn packet)
     {
@@ -207,6 +211,11 @@ public class SandboxManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// When a player moved.
+    /// </summary>
+    /// <param name="client">Client.</param>
+    /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.PlayerMoved)]
     private void PlayerMoved(Client client, PacketIn packet)
     {
@@ -226,6 +235,37 @@ public class SandboxManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// When you received the surroundings.
+    /// </summary>
+    /// <param name="client">Client.</param>
+    /// <param name="packet">Packet.</param>
+    [PacketEvent(ServerCommands.AddEntities)]
+    private void SurroundingsReceived(Client client, PacketIn packet)
+    {
+        var count = packet.GetInt();
+
+        for (int i = 0; i < count; i++)
+        {
+            var id = packet.GetInt();
+            var dataId = packet.GetInt();
+            var x = packet.GetFloat();
+            var y = packet.GetFloat();
+            var z = packet.GetFloat();
+
+            var position = new Vector3(x, y, z);
+
+            var entity = worldManager.SpawnEntity(id, dataId, position);
+
+            entities.Add(id, entity);
+        }
+    }
+
+    /// <summary>
+    /// Get the rose player using its id.
+    /// </summary>
+    /// <param name="guid">GUID.</param>
+    /// <returns>Rose Player.</returns>
     public RosePlayer GetRosePlayer(Guid guid)
     {
         if (players.ContainsKey(guid))
@@ -251,6 +291,7 @@ public class SandboxManager : MonoBehaviour
         }
     }
 #endif
+
     /// <summary>
     /// Get the client.
     /// </summary>

@@ -11,6 +11,9 @@ using System.Collections.Generic;
 using UnityRose.Game;
 using UnityRose;
 using System.Linq;
+using System.Text;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 public class RoseTerrainWindow : EditorWindow
 {
@@ -48,7 +51,9 @@ public class RoseTerrainWindow : EditorWindow
         var stb = ResourceManager.Instance.stb_zone;
         var stl = ResourceManager.Instance.stl_zone_list;
 
-        var mapDirectory = Path.Combine(ROSEImport.GetDataPath(), Path.GetDirectoryName(stb.Cells[mapID][2].ToString())); // Get the ZON path to determine the whole path
+        var mapDirectory = Path.Combine(ROSEImport.GetDataPath(), Utils.FixPath(Path.GetDirectoryName(stb.Cells[mapID][2].ToString()))); // Get the ZON path to determine the whole path
+
+        Debug.Log(mapDirectory);
 
         DirectoryInfo dirs = new DirectoryInfo(mapDirectory);
 
@@ -185,7 +190,7 @@ public class RoseTerrainWindow : EditorWindow
 
         GameObject spawns = new GameObject();
         spawns.name = "Spawn Points";
-        spawns.transform.position = new Vector3(5200*2F, 0, 0); // Akima : took me almost an hour to find the correct offset, I guess its the origin of Rose Map + The -1 scale of every object
+        spawns.transform.position = new Vector3(5200 * 2F, 0, 0); // Akima : took me almost an hour to find the correct offset, I guess its the origin of Rose Map + The -1 scale of every object
         spawns.transform.Rotate(0, -90F, 0);
         spawns.transform.SetParent(map.transform);
 
@@ -214,7 +219,7 @@ public class RoseTerrainWindow : EditorWindow
         npcs.transform.Rotate(0, -90F, 0);
         npcs.transform.position = new Vector3(5200, 0, 5200);
 
-        for (int i = 0;i < patches.Count;i++)
+        for (int i = 0; i < patches.Count; i++)
         {
             var ifo = patches[i].m_IFO;
 
@@ -245,9 +250,124 @@ public class RoseTerrainWindow : EditorWindow
         else
             Debug.Log("!Map Import Failed");
 
-   
+
 
         // worldManager.spawnPosition = Utils.r2uScale(patches[0].m_ZON.SpawnPoints.FirstOrDefault(sp => sp.Name == "start").Position); // Akima : since ZON file is the same for every patch, just take the ref of the first one
+    }
+
+    public static void ExportSpawns(int mapID)
+    {
+        var stb = ResourceManager.Instance.stb_zone;
+        var stbNPC = ResourceManager.Instance.stb_npc_list;
+
+        string path = EditorUtility.SaveFilePanel("Export Spawns", Application.dataPath, $"{stb.Cells[mapID][1].ToString()}", "json");
+
+        if (!string.IsNullOrEmpty(path))
+        {
+            Debug.Log("Exporting spawns for map ID " + mapID + "...");
+
+            var mapDirectory = Path.Combine(ROSEImport.GetDataPath(), (Path.GetDirectoryName(Utils.FixPath(stb.Cells[mapID][2].ToString()))));
+
+            DirectoryInfo dirs = new DirectoryInfo(mapDirectory);
+
+            List<RosePatch> patches = new List<RosePatch>();
+
+            foreach (DirectoryInfo dir in dirs.GetDirectories())
+            {
+                if (!dir.Name.Contains("."))
+                {
+                    RosePatch patch = new RosePatch(dir);
+                    patch.Load(mapID);
+                    patches.Add(patch);
+                }
+            }
+
+            JObject root = new JObject();
+
+            JArray monstersArray = new JArray();
+
+            root["Spawns"] = monstersArray;
+            root["MapID"] = mapID;
+            root["MapName"] = stb.Cells[mapID][1];
+
+            for (int i = 0; i < patches.Count; i++)
+            {
+                JObject patchObj = new JObject();
+
+                var monsters = patches[i].m_IFO.Monsters;
+
+                for (int j = 0; j < monsters.Count; j++)
+                {
+                    JObject monsterObj = new JObject();
+
+                    JArray basicArray = new JArray();
+
+                    JObject spawnSettings = new JObject
+                    {
+                        ["Name"] = monsters[j].Name,
+                        ["MapX"] = monsters[j].MapPosition.x,
+                        ["MapY"] = monsters[j].MapPosition.y,
+                        ["ID"] = monsters[j].ObjectID,
+                        ["WorldX"] = (monsters[j].Position.x + 520000.0f) / 100F,
+                        ["WorldY"] = (monsters[j].Position.y + 520000.0f) / 100F,
+                        ["WorldZ"] = monsters[j].Position.z / -10000F,
+                        ["Interval"] = monsters[j].Interval,
+                        ["LimitCount"] = monsters[j].Limit,
+                        ["Range"] = monsters[j].Range,
+                        ["TacticPoints"] = monsters[j].TacticPoints,
+                    };
+
+                    foreach (var b in monsters[j].Basic)
+                    {
+                        JObject basicObj = new JObject
+                        {
+                            ["ID"] = b.ID,
+                            ["Count"] = b.Count,
+                            ["Description"] = stbNPC.Cells[b.ID][1]
+                        };
+
+                        basicArray.Add(basicObj);
+                    }
+
+                    JArray tacticArray = new JArray();
+
+                    foreach (var t in monsters[j].Tactic)
+                    {
+                        JObject tacticObj = new JObject
+                        {
+                            ["ID"] = t.ID,
+                            ["Count"] = t.Count,
+                            ["Description"] = stbNPC.Cells[t.ID][1]
+                        };
+                        tacticArray.Add(tacticObj);
+                    }
+
+                    monsterObj["Settings"] = spawnSettings;
+                    monsterObj["Basic"] = basicArray;
+                    monsterObj["Tactic"] = tacticArray;
+
+                    monstersArray.Add(monsterObj);
+                }
+
+                patchObj["Spawns"] = monstersArray;
+
+                if (monstersArray.Count != 0)
+                {
+                  //  patchesArray.Add(patchObj);
+                }
+            }
+
+            string jsonString = root.ToString(Formatting.Indented);
+
+
+
+            File.WriteAllText(path, jsonString, Encoding.Unicode);
+
+        }
+        else
+        {
+            Debug.Log("Save operation cancelled.");
+        }
     }
 
     public static T LoadNPCAssetStartingWith<T>(string prefix) where T : ScriptableObject

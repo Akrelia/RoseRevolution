@@ -677,7 +677,7 @@ namespace UnityRose.Formats
         {
             FileName = Path.GetFileName(filePath);
 
-            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, Encoding.UTF8);
+            FileHandler fh = new FileHandler(FilePath = filePath, FileHandler.FileOpenMode.Reading, Encoding.GetEncoding("ks_c_5601-1987"));
 
             int blockCount = fh.Read<int>();
 
