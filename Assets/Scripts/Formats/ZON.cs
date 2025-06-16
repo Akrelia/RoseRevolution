@@ -590,7 +590,10 @@ namespace UnityRose.Formats
 
                                 else
                                 {
-                                    Debug.Log("Missing ZON Texture : " + path);
+                                    if (path != "end")
+                                    {
+                                        Debug.Log("Missing ZON Texture : " + path);
+                                    }
                                 }
 
                                 tex.TexPath = path;

@@ -11,5 +11,6 @@ public class GUIController : MonoBehaviour
 {
     [Header("Components")]
     public ChatController chatController;
+    public CharacterPreview characterPreview;
     public DebugConsole debugConsole;
 }

@@ -60,24 +60,31 @@ namespace UnityRose.Game
             this.m_isValid = false;
             this.center = new Vector2(0.0f, 0.0f);
 
-            Debug.Log(assetDir);
-
             if (assetDir.Exists)
             {
                 // figure out row and column
                 char[] sep = { '_', '.' };
                 string[] tokens = assetDir.Name.Split(sep);
-                int col = int.Parse(tokens[0]); // Kenji beach
-                int row = int.Parse(tokens[1]);
 
-                // figure out if the given name exists and this patch is valid
-                if (row > 0 && row < 100 && col > 0 && col < 100)
-                    m_isValid = true;
-
-                if (m_isValid)
+                if (tokens.Length > 1) // Akima : lazy way to check if this is about a legit patch folder
                 {
-                    m_Row = row;
-                    m_Col = col;
+                    int col = int.Parse(tokens[0]);
+                    int row = int.Parse(tokens[1]);
+
+                    // figure out if the given name exists and this patch is valid
+                    if (row > 0 && row < 100 && col > 0 && col < 100)
+                        m_isValid = true;
+
+                    if (m_isValid)
+                    {
+                        m_Row = row;
+                        m_Col = col;
+                    }
+                }
+
+                else
+                {
+                    m_isValid = false;
                 }
             }
             else

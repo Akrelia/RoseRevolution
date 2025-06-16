@@ -1,0 +1,2328 @@
+fileFormatVersion: 2
+guid: f4d385c4a1e02d248935752d33a07356
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: GLASSUI_02_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 488
+        width: 197
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bb9629092fa08d24387296057e8c157c
+      internalID: -662017467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_1
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 496
+        width: 195
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 17908872e82a85340bdc9ab305dd1560
+      internalID: 202559275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_2
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 453
+        width: 36
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fc61363a0ef9aff47826b2e58eb840a6
+      internalID: 1429449576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_3
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 453
+        width: 36
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 223fbfe7e31a60a4a9a45741dbe3f491
+      internalID: 2040014315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_4
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 473
+        width: 195
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cd9126a59dcd56147aa86bdebca53433
+      internalID: 711554709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_5
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 445
+        width: 196
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eb1c2028293d8274aba49fe4470d58c2
+      internalID: 845213938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_6
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 439
+        width: 195
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ba5e171e84ebf248bdf1a3aa697773f
+      internalID: -1268921755
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_7
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 386
+        width: 36
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10a46dcdae0a95f43b886791bdfc8f5e
+      internalID: 650784179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_8
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 386
+        width: 36
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 762f820c6ee42894eba42d9016fe14c2
+      internalID: 2133061946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_9
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 400
+        width: 196
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 552b5ae791a25b84db2048c78d95acaf
+      internalID: -1027233847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_10
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 396
+        width: 195
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9de4a1b736cc9dc49864f1438aea26ec
+      internalID: 48132819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_11
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 352
+        width: 192
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eedcf130039d08f4aa2af9549a445779
+      internalID: -2023385891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_12
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 351
+        width: 195
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 106f22db4a072cc4ba867a1b7666815f
+      internalID: -1881791423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_13
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 321
+        width: 36
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5d9826bdc50afc041aff33a6444e988d
+      internalID: 712978092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_14
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 321
+        width: 36
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aeef6d4d1c2c19d4f9b928b9ed1ba163
+      internalID: -1997636570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_15
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 314
+        width: 21
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82291a7c449035c42bd48582b4ca34fa
+      internalID: 877748701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_16
+      rect:
+        serializedVersion: 2
+        x: 43
+        y: 309
+        width: 31
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cfbebbf8e3801104e9c26101e70469da
+      internalID: 1341805754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_17
+      rect:
+        serializedVersion: 2
+        x: 87
+        y: 309
+        width: 31
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0718b2c1e232b374eb56e04cb95ed1ff
+      internalID: 496342467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_18
+      rect:
+        serializedVersion: 2
+        x: 136
+        y: 314
+        width: 21
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 16cdf44971264144ea8b046cd88eabd6
+      internalID: -1139049887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_19
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 309
+        width: 31
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc8fa4d31380bd9419ffb9f40a6c5a2e
+      internalID: -682751445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_20
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 309
+        width: 31
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9ef038ee7855d5f42b7dcd6e64f62d4d
+      internalID: -1157607042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_21
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 314
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5bafc6ee30b52954e88da992eda97b0a
+      internalID: 1894447978
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_22
+      rect:
+        serializedVersion: 2
+        x: 308
+        y: 309
+        width: 31
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cf7d4b3132f36fb4ab0c460cbb05ecbf
+      internalID: -1757380994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_23
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 309
+        width: 31
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 62dd1df33e138e448a1aa6ea7dd1d210
+      internalID: -1790617894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_24
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 270
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: df468717d6a14784cac82275cb3eaece
+      internalID: 2047251924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_25
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 265
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2c276d3495434ed42a3fbf341e31853e
+      internalID: -1080475744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_26
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 265
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60ac40d7fb9cc4545a128edad5c0ce02
+      internalID: -553945243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_27
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 270
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1fee932d3a017e34dbbad0431394715b
+      internalID: 1767047246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_28
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 265
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d18b1cf0b7ebcf42bced424260659c5
+      internalID: -1546931408
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_29
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 265
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cc5bed59ed584944a9d1c2ac07d9252f
+      internalID: 1561919856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_30
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 270
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02bcb518ab7d7324bb180aab493313a1
+      internalID: -1800773439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_31
+      rect:
+        serializedVersion: 2
+        x: 308
+        y: 265
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e7a1dc34b183ad84cb7afec69ea78cd4
+      internalID: 849026888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_32
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 265
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3979fa0b0936b654e90253d52d8792bd
+      internalID: 1269782963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_33
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 261
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 885beeb6df188ea4484dbdcb280b1c7c
+      internalID: 2025031187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_34
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 261
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4ac63aca4027c44c92fa286cbc90c78
+      internalID: -1114924200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_35
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 226
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: befbe1578bd0b6545b9b16c3327afacc
+      internalID: -268785307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_36
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 221
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 83cd129702071c144a7adc2b69476471
+      internalID: -850062694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_37
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 221
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 46ea9639fa903c24f8ad4c4296fd3eda
+      internalID: 1076185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_38
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 226
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7e32f0b5088b39b4c96aa2b2bec36794
+      internalID: 717070700
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_39
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 221
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 00e148a5e3ab5f44ba531dda268d0293
+      internalID: -919664693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_40
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 221
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 46c4c411aa7160a4fa32a0052dd683ab
+      internalID: -672070873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_41
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 217
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a0f358d5501d95b4ea750f9250257026
+      internalID: -696394508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_42
+      rect:
+        serializedVersion: 2
+        x: 310
+        y: 217
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 445a53af1d3f7a64b81a78e71077a4d6
+      internalID: 1561842275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_43
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 218
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b80d046170e310f44930b053a0d1f65c
+      internalID: -582772410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_44
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 217
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 995a554f9c04d5747a5fb5cf859b163b
+      internalID: 266300071
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_45
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 217
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4f36531f0c6d104cbea389be4d158e3
+      internalID: -1453804897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_46
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 182
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 229f9c1e752e0934187eda3552977d59
+      internalID: 29161549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_47
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 177
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2662369beaa9f57409dfa8ed3fa40a9e
+      internalID: -313927113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_48
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 177
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b3bbac94a6dbf06489b8cc6890a8d85e
+      internalID: -2062936068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_49
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 182
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63fa71b71300fc94eb84e324684d2df3
+      internalID: 1499049055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_50
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 177
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d420d00bb5aca234b928b04714f66038
+      internalID: -687382756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_51
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 177
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3dd52aeb912b5ed47bc629a2282db303
+      internalID: 303605615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_52
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 173
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a65e6a41f8698d43851a10155db7ad3
+      internalID: -610965329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_53
+      rect:
+        serializedVersion: 2
+        x: 310
+        y: 173
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ee9d20ea845181a4b877ea31d8c52617
+      internalID: -1990572316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_54
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 174
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc89d0f4b6589b94591703579922375c
+      internalID: 1626464724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_55
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 173
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5869a0c461a477e489f32176d5b606b2
+      internalID: 407267850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_56
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 173
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: faea159defff84e4cb9103371f8347c1
+      internalID: 1862002032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_57
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 138
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 607c1f5e016eb36428b3a04e468ac701
+      internalID: 369119504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_58
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 133
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 202afdf4d99919d44967f922e92636f2
+      internalID: 1661573789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_59
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 133
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 18bc8d3974353af4f80279ad58f47187
+      internalID: -166769940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_60
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 138
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d6a68a4ff69859b41955a35e5b25e70c
+      internalID: 2124178310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_61
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 133
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da95980a77d0d1d42b391f4cac23a1c0
+      internalID: 469699150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_62
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 133
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0f6e0c1ba7f45c549815a4afcdbd238c
+      internalID: 851529107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_63
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 129
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b8211dfa181483340890d0f8ba86c9b3
+      internalID: 1814320917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_64
+      rect:
+        serializedVersion: 2
+        x: 310
+        y: 129
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 12e65ea74f4c6b04d851f760e9edd234
+      internalID: -1498851594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_65
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 130
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 85368113106310d4d805c55009302da1
+      internalID: 2061233560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_66
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 129
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 22c9e0269dc91d749b31828b435a2e5b
+      internalID: -979125486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_67
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 129
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 66706bff90b4d2e488374a26a7c8f6ff
+      internalID: -302733907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_68
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 94
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0064b9ad708f7b34a8ca16b84dc300d2
+      internalID: 1962470729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_69
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 89
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a6b35e4b085e1be438da7cb3a74d3cd8
+      internalID: -1328276641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_70
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 89
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 76f84f25d8273a44a9f5338e9e83d356
+      internalID: -372458691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_71
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 94
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 99f3bb97708a11444a1add584813ef3e
+      internalID: -672883358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_72
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 89
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9afeb659669c374f865fb39ecdcc334
+      internalID: 1233317758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_73
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 89
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3642edf6dc5c711488f623977b3e64a4
+      internalID: 588275829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_74
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 85
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9095363449e7bc84c936e863004b7ac4
+      internalID: 49481405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_75
+      rect:
+        serializedVersion: 2
+        x: 310
+        y: 85
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5893c0980dd855a4299d774d0f0918d9
+      internalID: -1803395725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_76
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 86
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e1f04ff5a2d7cb94590974557cbf9466
+      internalID: -455014830
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_77
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 85
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d5c5489df41bd2b449279cafdfa25038
+      internalID: -1667545185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_78
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 85
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57e6603727f5a61498008819d36feb17
+      internalID: 78403947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_79
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 50
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 13fc90b9a5e918e4b9f0802b9b9bcc15
+      internalID: 479114329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_80
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 45
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 282a28d4f63e9764abdf40b5947f55ec
+      internalID: 1982829830
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_81
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 45
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a1cec9a86fefb24e814c8ab1ece09f6
+      internalID: -710732421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_82
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 50
+        width: 19
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b8089eabd1598345885a9d90c0f7db7
+      internalID: -1279374216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_83
+      rect:
+        serializedVersion: 2
+        x: 176
+        y: 45
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 19e58440144f13148a5e13d7f6464e2d
+      internalID: 2043947803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_84
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 45
+        width: 30
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 047916b211246844382979f47aa3dc5c
+      internalID: -903395551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_85
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 41
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f01fd0d2707a30d48901ff2928902ac8
+      internalID: 1671820414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_86
+      rect:
+        serializedVersion: 2
+        x: 310
+        y: 41
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 745e6b4cb15e58144953c43a4c8d9ba9
+      internalID: 1620183104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_87
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 42
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c4cf87759609c5642b4b85e12d261dc4
+      internalID: 352154485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_88
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 41
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f4cc6780b114e8b4abfea19f453524be
+      internalID: -481199282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_89
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 41
+        width: 37
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 550c2ac9207b73749b74874d8fcf0689
+      internalID: -380623666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_90
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 3
+        width: 22
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10b452022fe6460488220c9cb318571a
+      internalID: -1789237372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_91
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 3
+        width: 22
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5aa25dfbc8740f94aa650f8a69e87dcf
+      internalID: 365791057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_92
+      rect:
+        serializedVersion: 2
+        x: 222
+        y: 0
+        width: 52
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 511ad3327b4388e4cabda67c70516deb
+      internalID: 1537544029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_93
+      rect:
+        serializedVersion: 2
+        x: 310
+        y: 0
+        width: 55
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 69be9f8f81ce88044917bf19e1c0f23e
+      internalID: -2134592884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GLASSUI_02_94
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 0
+        width: 55
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7af3ef3dbd9600c418116439f726b5f0
+      internalID: 724462930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: ef876b2cb6e28b645a686c3c6227b73d
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      GLASSUI_02_0: -662017467
+      GLASSUI_02_1: 202559275
+      GLASSUI_02_10: 48132819
+      GLASSUI_02_11: -2023385891
+      GLASSUI_02_12: -1881791423
+      GLASSUI_02_13: 712978092
+      GLASSUI_02_14: -1997636570
+      GLASSUI_02_15: 877748701
+      GLASSUI_02_16: 1341805754
+      GLASSUI_02_17: 496342467
+      GLASSUI_02_18: -1139049887
+      GLASSUI_02_19: -682751445
+      GLASSUI_02_2: 1429449576
+      GLASSUI_02_20: -1157607042
+      GLASSUI_02_21: 1894447978
+      GLASSUI_02_22: -1757380994
+      GLASSUI_02_23: -1790617894
+      GLASSUI_02_24: 2047251924
+      GLASSUI_02_25: -1080475744
+      GLASSUI_02_26: -553945243
+      GLASSUI_02_27: 1767047246
+      GLASSUI_02_28: -1546931408
+      GLASSUI_02_29: 1561919856
+      GLASSUI_02_3: 2040014315
+      GLASSUI_02_30: -1800773439
+      GLASSUI_02_31: 849026888
+      GLASSUI_02_32: 1269782963
+      GLASSUI_02_33: 2025031187
+      GLASSUI_02_34: -1114924200
+      GLASSUI_02_35: -268785307
+      GLASSUI_02_36: -850062694
+      GLASSUI_02_37: 1076185
+      GLASSUI_02_38: 717070700
+      GLASSUI_02_39: -919664693
+      GLASSUI_02_4: 711554709
+      GLASSUI_02_40: -672070873
+      GLASSUI_02_41: -696394508
+      GLASSUI_02_42: 1561842275
+      GLASSUI_02_43: -582772410
+      GLASSUI_02_44: 266300071
+      GLASSUI_02_45: -1453804897
+      GLASSUI_02_46: 29161549
+      GLASSUI_02_47: -313927113
+      GLASSUI_02_48: -2062936068
+      GLASSUI_02_49: 1499049055
+      GLASSUI_02_5: 845213938
+      GLASSUI_02_50: -687382756
+      GLASSUI_02_51: 303605615
+      GLASSUI_02_52: -610965329
+      GLASSUI_02_53: -1990572316
+      GLASSUI_02_54: 1626464724
+      GLASSUI_02_55: 407267850
+      GLASSUI_02_56: 1862002032
+      GLASSUI_02_57: 369119504
+      GLASSUI_02_58: 1661573789
+      GLASSUI_02_59: -166769940
+      GLASSUI_02_6: -1268921755
+      GLASSUI_02_60: 2124178310
+      GLASSUI_02_61: 469699150
+      GLASSUI_02_62: 851529107
+      GLASSUI_02_63: 1814320917
+      GLASSUI_02_64: -1498851594
+      GLASSUI_02_65: 2061233560
+      GLASSUI_02_66: -979125486
+      GLASSUI_02_67: -302733907
+      GLASSUI_02_68: 1962470729
+      GLASSUI_02_69: -1328276641
+      GLASSUI_02_7: 650784179
+      GLASSUI_02_70: -372458691
+      GLASSUI_02_71: -672883358
+      GLASSUI_02_72: 1233317758
+      GLASSUI_02_73: 588275829
+      GLASSUI_02_74: 49481405
+      GLASSUI_02_75: -1803395725
+      GLASSUI_02_76: -455014830
+      GLASSUI_02_77: -1667545185
+      GLASSUI_02_78: 78403947
+      GLASSUI_02_79: 479114329
+      GLASSUI_02_8: 2133061946
+      GLASSUI_02_80: 1982829830
+      GLASSUI_02_81: -710732421
+      GLASSUI_02_82: -1279374216
+      GLASSUI_02_83: 2043947803
+      GLASSUI_02_84: -903395551
+      GLASSUI_02_85: 1671820414
+      GLASSUI_02_86: 1620183104
+      GLASSUI_02_87: 352154485
+      GLASSUI_02_88: -481199282
+      GLASSUI_02_89: -380623666
+      GLASSUI_02_9: -1027233847
+      GLASSUI_02_90: -1789237372
+      GLASSUI_02_91: 365791057
+      GLASSUI_02_92: 1537544029
+      GLASSUI_02_93: -2134592884
+      GLASSUI_02_94: 724462930
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -10,40 +10,43 @@ public class RoseNpc : RoseCharacter
 	{
 		UpdateModels(); // Akima : added here to trigger the generate stuff
 
-		GetComponent<Animation>().Play(); // Akima : play the first animation by default (the Idle one seems to be by default)
+		GetComponent<Animation>()?.Play(); // Akima : play the first animation by default (the Idle one seems to be by default)
 	}
 
 	public void UpdateModels()
 	{
 		parts.Clear();
 
-		for (var i = 0; i < data.parts.Count; ++i)
+		if (data != null)
 		{
-			parts.Add(data.parts[i]);
-		}
-
-		skeleton = data.skeleton;
-
-		UpdateData();
-
-		var animator = gameObject.GetComponent<Animation>();
-
-		if (animator == null)
-		{
-			animator = gameObject.AddComponent<Animation>();
-			animator.wrapMode = WrapMode.Loop;
-			animator.Play();
-		}
-
-		for (var i = 0; i < data.animations.Count; ++i)
-		{
-			var anim = data.animations[i];
-			if (anim != null)
+			for (var i = 0; i < data.parts.Count; ++i)
 			{
-				animator.AddClip(anim, anim.name);
-				if (animator.clip == null)
+				parts.Add(data.parts[i]);
+			}
+
+			skeleton = data.skeleton;
+
+			UpdateData();
+
+			var animator = gameObject.GetComponent<Animation>();
+
+			if (animator == null)
+			{
+				animator = gameObject.AddComponent<Animation>();
+				animator.wrapMode = WrapMode.Loop;
+				animator.Play();
+			}
+
+			for (var i = 0; i < data.animations.Count; ++i)
+			{
+				var anim = data.animations[i];
+				if (anim != null)
 				{
-					animator.clip = anim;
+					animator.AddClip(anim, anim.name);
+					if (animator.clip == null)
+					{
+						animator.clip = anim;
+					}
 				}
 			}
 		}

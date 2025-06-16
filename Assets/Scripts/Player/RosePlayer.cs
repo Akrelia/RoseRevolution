@@ -315,9 +315,21 @@ public class RosePlayer : IPointerClickHandler
                 break;
             case BodyPartType.WEAPON:
                 if (charModel.weapon == WeaponType.DSW || charModel.weapon == WeaponType.KATAR)
-                    modelObject.transform.parent = Utils.findChild(skeleton, dummy == ZSC.DummyType.RightHand ? "p_00" : "p_01");
+                {
+                    modelObject.transform.parent = Utils.findChild(skeleton, dummy == ZSC.DummyType.RightHand ? "p_00" : "p_01"); // Akima : reference the anchors instead of a costly findChild
+                }
                 else
-                    modelObject.transform.parent = Utils.findChild(skeleton, "p_01");
+                {
+                    if (charModel.weapon == WeaponType.BOW) // Akima : Use ZSC file instead of just guessing
+                    {
+                        modelObject.transform.parent = Utils.findChild(skeleton, "p_01");
+                    }
+
+                    else
+                    {
+                        modelObject.transform.parent = Utils.findChild(skeleton, "p_00");
+                    }
+                }
                 break;
             case BodyPartType.SUBWEAPON:
                 modelObject.transform.parent = Utils.findChild(skeleton, "p_02");

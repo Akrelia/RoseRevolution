@@ -143,7 +143,6 @@ namespace UnityRose
 			this.equip = equip;
 			this.rig = RigType.FOOT;
 			this.state = States.STANDING;
-			this.map = "zantCity"; // TODO: change to the default new player map
 		}
 
 		public void changeID(BodyPartType bodyPart, int id)

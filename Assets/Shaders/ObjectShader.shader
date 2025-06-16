@@ -17,6 +17,7 @@ Shader "Custom/ObjectShader" {
 				AlphaToMask True
 				ColorMask RGB
 
+
 				BindChannels {
 					Bind "Vertex", vertex
 					Bind "normal", normal

@@ -78,9 +78,9 @@ namespace UnityRose.Formats
         {
             asset = Resources.Load(filePath) as TextAsset;
             if (asset != null)
-                fh = new FileHandler(asset, Encoding.UTF8);
+                fh = new FileHandler(asset, Encoding.GetEncoding("ks_c_5601-1987"));
             else
-                fh = new FileHandler(filePath, FileHandler.FileOpenMode.Reading, Encoding.UTF8);
+                fh = new FileHandler(filePath, FileHandler.FileOpenMode.Reading, Encoding.GetEncoding("ks_c_5601-1987"));
 
             Load();
         }

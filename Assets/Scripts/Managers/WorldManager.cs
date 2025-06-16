@@ -81,7 +81,10 @@ public class WorldManager : MonoBehaviour
 
         entity.name = "Entity_" + dataId;
 
+        entity.transform.parent = mobSpawner.transform;
+
         entity.transform.localPosition = position / 100F;
+        entity.transform.localPosition -= new Vector3(5200, 0, 5200);
         entity.transform.rotation = Quaternion.identity; ;
 
         var roseNpc = entity.AddComponent<RoseNpc>();

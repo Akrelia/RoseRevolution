@@ -69,18 +69,14 @@ public class SandboxManager : MonoBehaviour
     {
         var mainPlayer = worldManager.SpawnPlayer(true, gender, playerName, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield, spawnPosition);
 
+        guiController.characterPreview.SetCharacterInformations(playerName, 1200, 1200, 960, 960, 1, "Visitor");
+
         var guid = new Guid(packet.GetBytes(16));
         var name = packet.GetString();
 
         mainPlayer.charModel.name = name;
 
         players.Add(guid, mainPlayer);
-
-
-        for (int i = 0; i < players.Count; i++)
-        {
-
-        }
 
         RoseDebug.Log("Main Character added");
     }

@@ -25,7 +25,6 @@ public class RoseTerrainWindow : EditorWindow
     GameObject playerObject;
 
     // Add menu named "My Window" to the Window menu
-    [MenuItem("ROSE Online/Player Generation")]
     static void Init()
     {
         // Get existing open window or if none, make a new one:
@@ -59,6 +58,8 @@ public class RoseTerrainWindow : EditorWindow
 
         GameObject map = new GameObject();
         map.name = stb.Cells[mapID][1].ToString();
+
+        var roseMap = map.AddComponent<RoseMap>();
 
         GameObject terrain = new GameObject();
         terrain.name = "Ground";
@@ -233,8 +234,6 @@ public class RoseTerrainWindow : EditorWindow
 
                 npc.transform.parent = npcs.transform;
 
-                Debug.Log(ifo.NPCs[j].Position);
-
                 npc.transform.localPosition = ifo.NPCs[j].Position / 100F;
                 npc.transform.rotation = Quaternion.identity; ;
 
@@ -243,7 +242,17 @@ public class RoseTerrainWindow : EditorWindow
                 roseNpc.data = LoadNPCAssetStartingWith<RoseNpcData>($"[{ifo.NPCs[j].ObjectID}]");
             }
         }
+        GameObject monsters = new GameObject();
+        monsters.name = "Monsters";
+        monsters.transform.SetParent(map.transform);
+        monsters.transform.localScale = new Vector3(1.0f, 1.0f, -1.0f);
+        monsters.transform.Rotate(0, -90F, 0);
+        monsters.transform.position = new Vector3(5200, 0, 5200);
 
+        worldManager.worldManager.mobSpawner = monsters;
+
+        roseMap.patches.AddRange(patches);
+        roseMap.mapName = map.name;
 
         if (success)
             Debug.Log("Map Import Complete");

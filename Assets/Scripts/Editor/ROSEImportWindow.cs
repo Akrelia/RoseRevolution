@@ -12,13 +12,11 @@ public class ROSEImportWindow : EditorWindow
     private bool wasEditing = false;
     private int indexNPC = 0;
     private string dataPath = "";
-    private Shader npcShader;
-    private Shader mapShader;
 
-    [MenuItem("ROSE Online/Models Importer")]
+    [MenuItem("ROSE Online/Data Importer")]
     static void Init()
     {
-        var window = GetWindow<ROSEImportWindow>(true, "ROSE NPC/Map Importer");
+        var window = GetWindow<ROSEImportWindow>(true, "ROSE Data Import");
         window.Show();
     }
 
@@ -29,13 +27,13 @@ public class ROSEImportWindow : EditorWindow
     {
         GUILayout.Label("Settings", EditorStyles.boldLabel);
         dataPath = EditorGUILayout.TextField("Uncompressed VFS folder path", dataPath);
-        npcShader = (Shader)EditorGUILayout.ObjectField("Shader for NPC", npcShader, typeof(Shader), false);
-        mapShader = (Shader)EditorGUILayout.ObjectField("Shader for Map", mapShader, typeof(Shader), false);
 
         GUILayout.Label("Importing", EditorStyles.boldLabel);
         GUILayout.Label("Current Path: " + ROSEImport.GetCurrentPath());
-        if (GUILayout.Button("Import the first 30 NPC"))
-            ROSEImport.ImportNPCs(30);
+
+        if (GUILayout.Button("Initialize ROSE Data"))
+            ResourceManager.Instance.GenerateAnimationAssets();
+
         if (GUILayout.Button("Import ALL NPC"))
         {
             bool confirm = EditorUtility.DisplayDialog("Confirmation", "This will take a lot of time, are you sure ?", "Yes", "No");
@@ -57,13 +55,10 @@ public class ROSEImportWindow : EditorWindow
 
         GUILayout.EndHorizontal();
 
-        if (GUILayout.Button("Clear Generated ROSE Data"))
+        if (GUILayout.Button("Clear ROSE Data"))
             ROSEImport.ClearData();
 
-        if (GUILayout.Button("Generate Character Player Animations"))
-            ResourceManager.Instance.GenerateAnimationAssets();
-
-        if (GUILayout.Button("Import PTL / EFT"))
+        if (GUILayout.Button("Import PTL / EFT (Debug)"))
             ROSEImport.ImportParticles();
 
         GUILayout.Label("Maps", EditorStyles.boldLabel);

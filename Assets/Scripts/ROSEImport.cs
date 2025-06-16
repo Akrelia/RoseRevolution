@@ -74,7 +74,7 @@ public class ROSEImport
 
     public static string GetCurrentPath()
     {
-        return dataPath;
+        return string.IsNullOrEmpty(dataPath) ? GetDataPath() : dataPath;
     }
 
     public static MapListData GetMapListData()
@@ -117,7 +117,7 @@ public class ROSEImport
 
         catch (Exception ex)
         {
-            Debug.Log("Something went wrong while importing 30 NPC :" + ex.Message + " - " + ex.StackTrace);
+            Debug.Log("Something went wrong while importing NPC :" + ex.Message + " - " + ex.StackTrace);
         }
 
         finally 
