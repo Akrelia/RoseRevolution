@@ -581,18 +581,20 @@ namespace UnityRose.Formats
                                 //     string path = RootPath + fh.Read<BString>();
                                 string path = fh.Read<BString>();
 
-                                if (System.IO.File.Exists(Path.Combine(ROSEImport.GetDataPath(), path)))
+                                // Use case-insensitive path resolution for macOS compatibility
+                                string resolvedPath = Utils.ResolvePathWithCorrectCase(ROSEImport.GetDataPath(), path);
+                                
+                                if (System.IO.File.Exists(resolvedPath))
                                 {
-                                    //tex.Tex = ROSEImport.ImportTexture(path, false); 
-                                    tex.Tex = Utils.duplicateTexture(ROSEImport.ImportTexture(path, false)); // Akima : Duplicate it, so it become readable
+                                    // Get relative path for ImportTexture
+                                    string relativePath = Path.GetRelativePath(ROSEImport.GetDataPath(), resolvedPath);
+                                    tex.Tex = Utils.duplicateTexture(ROSEImport.ImportTexture(relativePath, false)); // Akima : Duplicate it, so it become readable
                                 }
-
-
                                 else
                                 {
                                     if (path != "end")
                                     {
-                                        Debug.Log("Missing ZON Texture : " + path);
+                                        Debug.Log("Missing ZON Texture : " + path + " (resolved to: " + resolvedPath + ")");
                                     }
                                 }
 

@@ -50,9 +50,14 @@ public class RoseTerrainWindow : EditorWindow
         var stb = ResourceManager.Instance.stb_zone;
         var stl = ResourceManager.Instance.stl_zone_list;
 
-        var mapDirectory = Path.Combine(ROSEImport.GetDataPath(), Utils.FixPath(Path.GetDirectoryName(stb.Cells[mapID][2].ToString()))); // Get the ZON path to determine the whole path
+        // Fix the path separators first before getting directory name
+        string zonPath = Utils.FixPath(stb.Cells[mapID][2].ToString());
+        string mapDirectoryRelative = Path.GetDirectoryName(zonPath);
+        var mapDirectory = Path.Combine(ROSEImport.GetDataPath(), mapDirectoryRelative);
 
-        Debug.Log(mapDirectory);
+        Debug.Log("Fixed ZON path: " + zonPath);
+        Debug.Log("Map directory relative: " + mapDirectoryRelative); 
+        Debug.Log("Final mapDirectory: " + mapDirectory);
 
         DirectoryInfo dirs = new DirectoryInfo(mapDirectory);
 

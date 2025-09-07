@@ -279,6 +279,11 @@ public class ROSEImport
         {
             fullPath = path; // Akima  : Lazy way to handle relative path and fixed path
         }
+        else
+        {
+            // Try case-insensitive path resolution for macOS compatibility
+            fullPath = Utils.ResolvePathWithCorrectCase(dataPath, path);
+        }
 
         if (!File.Exists(fullPath))
         {

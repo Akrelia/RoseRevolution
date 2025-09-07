@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Resources;
 using UnityEngine;
 using UnityEngine.UI;
@@ -672,6 +673,59 @@ public class Utils
         // We're done.  Restore the GUI matrix and GUI color to whatever they were before.
         GUI.matrix = matrix;
         GUI.color = savedColor;
+    }
+
+    // Resolves a path with correct case sensitivity for macOS/Linux filesystems
+    public static string ResolvePathWithCorrectCase(string basePath, string relativePath)
+    {
+        // Fix path separators first
+        string fixedPath = FixPath(relativePath);
+        string[] pathParts = fixedPath.Split('/');
+        
+        string currentPath = basePath;
+        
+        foreach (string part in pathParts)
+        {
+            if (string.IsNullOrEmpty(part)) continue;
+            
+            if (Directory.Exists(currentPath))
+            {
+                // Find the directory with case-insensitive match
+                string[] directories = Directory.GetDirectories(currentPath);
+                string foundDir = directories.FirstOrDefault(d => 
+                    Path.GetFileName(d).Equals(part, StringComparison.OrdinalIgnoreCase));
+                
+                if (foundDir != null)
+                {
+                    currentPath = foundDir;
+                    continue;
+                }
+                
+                // If not found as directory, check files
+                string[] files = Directory.GetFiles(currentPath);
+                string foundFile = files.FirstOrDefault(f => 
+                    Path.GetFileName(f).Equals(part, StringComparison.OrdinalIgnoreCase));
+                
+                if (foundFile != null)
+                {
+                    return foundFile;
+                }
+                
+                // Also try with underscore prefix (common in ROSE files)
+                foundFile = files.FirstOrDefault(f => 
+                    Path.GetFileName(f).Equals("_" + part, StringComparison.OrdinalIgnoreCase));
+                
+                if (foundFile != null)
+                {
+                    return foundFile;
+                }
+            }
+            
+            // If we can't find the path, fall back to original
+            return Path.Combine(basePath, relativePath.Replace('\\', '/'));
+        }
+        
+        return currentPath;
     }
 
 #endif
