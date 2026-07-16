@@ -13,4 +13,5 @@ public class GUIController : MonoBehaviour
     public ChatController chatController;
     public CharacterPreview characterPreview;
     public DebugConsole debugConsole;
+    public GMPanel gmPanel;
 }

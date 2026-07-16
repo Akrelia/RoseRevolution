@@ -102,7 +102,6 @@ namespace UnityRose
 			SetAnimationStateMachine(rosePlayer.charModel.rig, animationStateMachine.state);
 		}
 
-
 		public void OnChangeEquip(BodyPartType bodyPart, int id)
 		{
 			rosePlayer.equip(bodyPart, id);
@@ -112,24 +111,14 @@ namespace UnityRose
 		// Update is called once per frame
 		void Update()
 		{
-			base.ProcessPackets();
-
 			// Only handle walking movement if the correct rig is used
 			if (rosePlayer.charModel.rig == RigType.FOOT)
 			{
-
 				// Only take input if this player is the main player
 				if (this.isMainPlayer)
 				{
-					// TODO: remove this after debugging is over
-					if (Input.GetKeyDown(KeyCode.J))
-					{
-						// this packet is reflected to all clients by server (for debugging only)
-						//NetworkManager.Send(new InstantiateChar(false, gameObject.transform.position, gameObject.transform.rotation, playerInfo)); //gameObject.name, gameObject.transform.position, gameObject.transform.rotation ));
-					}
-
-
 					bool locate = false;
+
 					switch (Application.platform)
 					{
 						case RuntimePlatform.IPhonePlayer:
@@ -161,7 +150,6 @@ namespace UnityRose
 			// Evaluate the animation state machine
 			if (animationStateMachine != null)
 				animationStateMachine.Evaluate(state);
-
 		}
 
 

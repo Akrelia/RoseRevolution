@@ -2,6 +2,7 @@
 
 using UnityEngine;
 using UnityEditor;
+using UnityEditor;
 using UnityRose.Formats;
 using System.Collections;
 using System.IO;
@@ -120,11 +121,85 @@ public class ROSEImport
             Debug.Log("Something went wrong while importing NPC :" + ex.Message + " - " + ex.StackTrace);
         }
 
-        finally 
+        finally
         {
             AssetHelper.StopAssetEditing();
 
         }
+    }
+
+    public static void ImportIcons()
+    {
+        AssetDatabase.StartAssetEditing();
+
+        var iconsPath = Path.Combine(dataPath, "3DDATA", "CONTROL", "RES");
+        var destFolder = "Assets/Resources/Icons";
+
+        if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+        {
+            AssetDatabase.CreateFolder("Assets", "Resources");
+        }
+        if (!AssetDatabase.IsValidFolder(destFolder))
+        {
+            AssetDatabase.CreateFolder("Assets/Resources", "Icons");
+        }
+
+        List<Texture2D> textures = new List<Texture2D>();
+
+        var files = Directory.GetFiles(iconsPath);
+        for (int i = 0; i < files.Length; i++)
+        {
+            var fileName = Path.GetFileName(files[i]);
+            var extension = Path.GetExtension(files[i]).ToLower();
+
+            if (fileName.StartsWith("ICON") && extension == ".dds")
+            {
+                var destPath = Path.Combine(destFolder, fileName).Replace("\\", "/");
+
+                File.Copy(files[i], destPath, overwrite: true);
+                AssetDatabase.ImportAsset(destPath, ImportAssetOptions.ForceUpdate);
+
+                var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(destPath);
+                if (tex != null)
+                {
+                    textures.Add(tex);
+                }
+                else
+                {
+                    Debug.LogWarning($"Impossible de charger {destPath} en tant que Texture2D.");
+                }
+            }
+        }
+
+        AssetDatabase.StopAssetEditing();
+        AssetDatabase.Refresh();
+
+        // Crée ou remplace le ScriptableObject
+        var dbPath = "Assets/Resources/IconsDatabase.asset";
+        IconsDatabase db = AssetDatabase.LoadAssetAtPath<IconsDatabase>(dbPath);
+        if (db == null)
+        {
+            db = ScriptableObject.CreateInstance<IconsDatabase>();
+            AssetDatabase.CreateAsset(db, dbPath);
+        }
+
+        db.icons = textures;
+        EditorUtility.SetDirty(db);
+        AssetDatabase.SaveAssets();
+
+        Debug.Log($"Import terminé : {textures.Count} icônes importées dans la base.");
+    }
+
+    public static void ImportSTBs()
+    {
+
+    }
+
+    public static void CreatePlayerPrefabs()
+    {
+        RosePlayer player = new RosePlayer();
+
+        PrefabUtility.SaveAsPrefabAsset(player.player, "Assets/Prefabs/Player/Player.prefab");
     }
 
     /// <summary>
@@ -357,7 +432,7 @@ public class ROSEImport
                     var zscPart = chrObj.Objects[i];
 
                     zsc.ImportPart(zscPart.Object, (partData) =>
-                    { 
+                    {
                         npc.parts.Add(partData);
                     });
                 }
@@ -412,7 +487,7 @@ public class ROSEImport
             for (int i = 0; i < LoadedParticles.Count; i++)
             {
                 string importFolder = "Assets/GameData/PTLTextures";
-                Directory.CreateDirectory(importFolder); 
+                Directory.CreateDirectory(importFolder);
 
                 string sourceDdsPath = Path.Combine(dataPath, LoadedParticles[i].Emitters[0].Texture);
                 string targetDdsPath = Path.Combine(importFolder, Path.GetFileName(LoadedParticles[i].Emitters[0].Texture));
@@ -496,6 +571,8 @@ public class ROSEImport
             //    zsc = new ZSC(Utils.CombinePath(dataPath, path));
             zsc = new ZSC(path); // TODO : Check here if we have to handle Map & NPC differently
         }
+
+       
 
         public void ImportPart(int partIdx, Action<RoseCharPartData> onComplete)
         {

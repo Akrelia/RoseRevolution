@@ -73,7 +73,9 @@ crashlytics-build.properties
 
 # Exclude specified Assets subfolders
 Assets/GameData/
+Assets/Data/*/
 Assets/NpcParts/
+Assets/Prefabs/Test/
 Assets/Npcs/
 Assets/resources/
 Assets/Terrain/
@@ -83,5 +85,7 @@ Assets/Npcs.meta
 Assets/NpcParts.meta
 Assets/GameData.meta
 Assets/Animations.meta
-/Assets/Scenes/Dev
+Assets/Scenes/Dev
 Assets/Scenes/Dev.meta
+/Assets/AddressableAssetsData
+/Assets/Prefabs/Test

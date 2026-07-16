@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     public Material itemMaterial;
     public static GameManager Instance { get; private set; }
 
-    void Awake()
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -22,5 +22,8 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        AssetManager.Instance.Load();
+
     }
 }

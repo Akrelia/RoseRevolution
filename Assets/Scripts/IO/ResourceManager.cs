@@ -334,6 +334,7 @@ namespace UnityRose
 
             return names.ToArray();
         }
+
         /// <summary>
         /// Generate an animation prefab for the given gender and weapon
         /// </summary>

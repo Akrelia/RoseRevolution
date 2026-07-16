@@ -26,6 +26,7 @@ public class RosePlayer : IPointerClickHandler
     public RosePlayer()
     {
         charModel = new CharModel();
+
         LoadPlayer(charModel);
     }
 
@@ -33,14 +34,15 @@ public class RosePlayer : IPointerClickHandler
     {
         charModel = new CharModel();
         charModel.gender = gender;
+
         LoadPlayer(charModel);
     }
 
     public RosePlayer(CharModel charModel)
     {
         this.charModel = charModel;
-        LoadPlayer(charModel);
 
+        LoadPlayer(charModel);
     }
 
     public RosePlayer(Vector3 position)
@@ -49,6 +51,7 @@ public class RosePlayer : IPointerClickHandler
         charModel.pos = position;
         LoadPlayer(charModel);
     }
+
     private void LoadPlayer(CharModel charModel)
     {
         // Get the correct resources
@@ -66,6 +69,7 @@ public class RosePlayer : IPointerClickHandler
         //add PlayerController script
         PlayerController controller = player.AddComponent<PlayerController>(); // Akima : Reference it somewhere
         controller.rosePlayer = this;
+
         controller.playerInfo.tMovS = charModel.stats.movSpd;
 
         //add Character controller
@@ -86,19 +90,9 @@ public class RosePlayer : IPointerClickHandler
         c.radius = radius;
         c.direction = 1; // direction y
 
-        /*
-        //add event trigger
-        EventTrigger eventTrigger = player.AddComponent<EventTrigger>();
-        EventTrigger.Entry entry = new EventTrigger.Entry();
-        entry.eventID = EventTriggerType.PointerClick;
-        BaseEventData eventData = new BaseEventData(eventSystem);
-        eventData.selectedObject
-        entry.callback.AddListener( (eventData) => { controller.})
-        */
-
-
         player.transform.position = charModel.pos;
         controller.SetAnimationStateMachine(charModel.rig, charModel.state);
+
     }
 
     public void Destroy()
@@ -150,8 +144,10 @@ public class RosePlayer : IPointerClickHandler
 
         // If player has already been initialized, make sure it knows that the skeleton has changed in order to restart its state machine with new animations
         PlayerController controller = player.GetComponent<PlayerController>();
+
         if (controller != null)
             controller.OnSkeletonChange();
+
 
         //load all objects
         playerBounds = new Bounds(player.transform.position, Vector3.zero);

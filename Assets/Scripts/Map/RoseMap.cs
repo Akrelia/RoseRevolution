@@ -9,7 +9,7 @@ namespace UnityRose.Game
     {
         [Header("Data")]
         public string mapName;
-        public List<RosePatch> patches = new List<RosePatch>();
+  //      public List<RosePatch> patches = new List<RosePatch>();
         public DirectoryInfo assetDir;
         [Header("Colors")]
         public Color dawn = Color.white;

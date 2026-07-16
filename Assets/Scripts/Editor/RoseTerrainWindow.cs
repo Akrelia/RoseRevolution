@@ -256,7 +256,9 @@ public class RoseTerrainWindow : EditorWindow
 
         worldManager.worldManager.mobSpawner = monsters;
 
-        roseMap.patches.AddRange(patches);
+        Debug.Log("Test");
+
+       // roseMap.patches.AddRange(patches);
         roseMap.mapName = map.name;
 
         if (success)

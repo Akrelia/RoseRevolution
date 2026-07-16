@@ -193,7 +193,7 @@ public class SandboxManager : MonoBehaviour
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.PlayerDisconnected)]
-    private void PlayerDisonnected(Client client, PacketIn packet)
+    private void PlayerDisconnected(Client client, PacketIn packet)
     {
         var guid = new Guid(packet.GetBytes(16));
 

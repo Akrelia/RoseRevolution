@@ -102,4 +102,21 @@ namespace UnityRose
         WEAPON = 9,
         SUBWEAPON = 10,
     }
+
+    public enum ItemType : byte
+    {
+        FACEITEM = 1,
+        HAT = 2,
+        BODY = 3,
+        GLOVES = 4,
+        BOOTS = 5,
+        BACK = 6,
+        JEWEL = 7,
+        WEAPON = 8,
+        SUBWEAPON = 9,
+        USEITEM = 10,
+        GEMS = 11,
+        MATERIAL = 12,
+        PAT = 14
+    }
 }
