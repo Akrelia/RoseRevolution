@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 /// <summary>
 /// Camera controller.
@@ -24,21 +23,31 @@ public class CameraController : MonoBehaviour
     public bool allowMouseInputX = true;                // Allow player to control camera angle on the X axis (Left/Right)
     public bool allowMouseInputY = true;                // Allow player to control camera angle on the Y axis (Up/Down)
 
-    private float xDeg = 0.0f;
-    private float yDeg = 0.0f;
+    public float settleTimeMs = 200f;
+
+    private const float EpsilonYaw = 0.05f;
+    private const float EpsilonPitch = 0.05f;
+    private const float EpsilonDistance = 0.05f;
+
+    private float targetYaw;
+    private float targetPitch;
+    private float currentYaw;
+    private float currentPitch;
     private float currentDistance;
     private float desiredDistance;
     private float correctedDistance;
     private bool rotateBehind = false;
-    private bool mouseSideButton = false;
+    private bool cameraDirty = true;
     private float pbuffer = 0.0f;       //Cooldownpuffer for SideButtons
     private float coolDown = 0.5f;      //Cooldowntime for SideButtons 
+    private Vector2 lastMousePosition;
 
     void Start()
     {
         Vector3 angles = transform.eulerAngles;
-        xDeg = angles.x;
-        yDeg = angles.y;
+        targetYaw = currentYaw = angles.y;
+        targetPitch = currentPitch = NormalizePitch(angles.x);
+
         currentDistance = distance;
         desiredDistance = distance;
         correctedDistance = distance;
@@ -51,12 +60,13 @@ public class CameraController : MonoBehaviour
         if (lockToRearOfTarget)
             rotateBehind = true;
     }
+
     void Update()
     {
         if (target == null)
         {
             target = GameObject.FindGameObjectWithTag("Player") as GameObject;
-           // Debug.Log("Looking for Player");
+            // Debug.Log("Looking for Player");
         }
 
     }
@@ -72,48 +82,75 @@ public class CameraController : MonoBehaviour
             pbuffer -= Time.deltaTime;
         if (pbuffer < 0) pbuffer = 0;
 
+        HandleOrbitInput();
 
-        Vector3 vTargetOffset;
+        targetPitch = ClampAngle(targetPitch, yMinLimit, yMaxLimit);
 
-        switch (Application.platform)
+        desiredDistance = Mathf.Clamp(desiredDistance, minDistance, maxDistance);
+        correctedDistance = desiredDistance;
+
+        Quaternion rotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
+        Vector3 targetOffset = new Vector3(0f, -targetHeight, 0f);
+        Vector3 trueTargetPosition = new Vector3(
+            target.transform.position.x,
+            target.transform.position.y + targetHeight,
+            target.transform.position.z);
+
+        Vector3 desiredPosition = target.transform.position - (rotation * Vector3.forward * correctedDistance + targetOffset);
+
+        bool isCorrected = false;
+        if (Physics.Linecast(trueTargetPosition, desiredPosition, out RaycastHit collisionHit, collisionLayers))
         {
-            case RuntimePlatform.IPhonePlayer:
-            case RuntimePlatform.Android:
-                if ((Input.touchCount == 1) && (Input.GetTouch(0).phase == TouchPhase.Moved))
-                {
-                    xDeg += Input.touches[0].deltaPosition.x * xSpeed * 0.004f;
-                    yDeg -= Input.touches[0].deltaPosition.y * ySpeed * 0.004f;
-                }
-                break;
-            default:
-                if ((GUIUtility.hotControl == 0) && (Input.GetMouseButton(1)))
-                {
-                    //Check to see if mouse input is allowed on the axis
-                    if (allowMouseInputX)
-                        xDeg += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
-                    else
-                        RotateBehindTarget();
-                    if (allowMouseInputY)
-                        yDeg -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
-
-                    //Interrupt rotating behind if mouse wants to control rotation
-                    if (!lockToRearOfTarget)
-                        rotateBehind = false;
-                }
-                break;
+            correctedDistance = Vector3.Distance(trueTargetPosition, collisionHit.point) - offsetFromWall;
+            isCorrected = true;
         }
 
+        correctedDistance = Mathf.Clamp(correctedDistance, minDistance, maxDistance);
 
-        yDeg = ClampAngle(yDeg, yMinLimit, yMaxLimit);
+        if (cameraDirty || !IsSettled(isCorrected))
+        {
+            float timeWeight = GetRoseTimeWeight();
 
-        // Set camera rotation
-        Quaternion rotation = Quaternion.Euler(yDeg, xDeg, 0);
+            currentYaw = Mathf.LerpAngle(currentYaw, targetYaw, timeWeight);
+            currentPitch = Mathf.Lerp(currentPitch, targetPitch, timeWeight);
 
+            // snap distance on collision; otherwise eases like yaw/pitch
+            if (isCorrected)
+                currentDistance = correctedDistance;
+            else
+                currentDistance += timeWeight * (correctedDistance - currentDistance);
+
+            currentDistance = Mathf.Clamp(currentDistance, minDistance, maxDistance);
+
+            if (IsSettled(isCorrected))
+                cameraDirty = false;
+        }
+        else if (isCorrected)
+        {
+            currentDistance = correctedDistance;
+        }
+
+        rotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
+        Vector3 position = target.transform.position - (rotation * Vector3.forward * currentDistance + targetOffset);
+
+        transform.rotation = rotation;
+        transform.position = position;
+    }
+
+    void HandleOrbitInput()
+    {
         // Calculate the desired distance
         switch (Application.platform)
         {
             case RuntimePlatform.IPhonePlayer:
             case RuntimePlatform.Android:
+                if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved)
+                {
+                    Touch touch = Input.GetTouch(0);
+                    ApplyYawDelta(touch.deltaPosition.x);
+                    ApplyPitchDelta(-touch.deltaPosition.y);
+                }
+
                 if ((Input.touchCount == 2) && ((Input.GetTouch(0).phase == TouchPhase.Moved) || (Input.GetTouch(1).phase == TouchPhase.Moved)))
                 {
                     // Store both touches.
@@ -133,69 +170,93 @@ public class CameraController : MonoBehaviour
 
                     //float dist = Vector2.Distance( Input.touches[0].deltaPosition, Input.touches[1].deltaPosition);
                     desiredDistance += dist * Time.deltaTime * (zoomRate / 50.0f) * Mathf.Abs(desiredDistance);
+                    cameraDirty = true;
                 }
                 break;
+
             default:
-                desiredDistance -= Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * zoomRate * Mathf.Abs(desiredDistance);
+                if (GUIUtility.hotControl == 0 && Input.GetMouseButtonDown(1))
+                    lastMousePosition = Input.mousePosition;
+
+                if (GUIUtility.hotControl == 0 && Input.GetMouseButton(1))
+                {
+                    Vector2 mousePos = Input.mousePosition;
+                    Vector2 delta = mousePos - lastMousePosition;
+                    lastMousePosition = mousePos;
+
+                    if (allowMouseInputX)
+                        ApplyYawDelta(delta.x);
+                    else
+                        RotateBehindTarget();
+
+                    if (allowMouseInputY)
+                        ApplyPitchDelta(-delta.y);
+
+                    if (!lockToRearOfTarget)
+                        rotateBehind = false;
+                }
+
+                if (Mathf.Abs(Input.GetAxis("Mouse ScrollWheel")) > 0.0001f)
+                {
+                    desiredDistance -= Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * zoomRate * Mathf.Abs(desiredDistance);
+                    cameraDirty = true;
+                }
                 break;
         }
+    }
 
+    void ApplyYawDelta(float pixelOrAxisDelta)
+    {
+        targetYaw += 480f * pixelOrAxisDelta / Mathf.Max(Screen.width, 1f);
+        cameraDirty = true;
+    }
 
+    void ApplyPitchDelta(float pixelOrAxisDelta)
+    {
+        targetPitch += (pixelOrAxisDelta / Mathf.Max(Screen.height, 1f)) * ySpeed;
+        cameraDirty = true;
+    }
 
-        desiredDistance = Mathf.Clamp(desiredDistance, minDistance, maxDistance);
-        correctedDistance = desiredDistance;
+    float GetRoseTimeWeight()
+    {
+        float ms = settleTimeMs > 1f ? settleTimeMs : 200f;
+        return Mathf.Clamp01(Time.deltaTime * (1000f / ms));
+    }
 
-        // Calculate desired camera position
-        vTargetOffset = new Vector3(0, -targetHeight, 0);
-        Vector3 position = target.transform.position - (rotation * Vector3.forward * desiredDistance + vTargetOffset);
-
-        // Check for collision using the true target's desired registration point as set by user using height
-        RaycastHit collisionHit;
-        Vector3 trueTargetPosition = new Vector3(target.transform.position.x, target.transform.position.y + targetHeight, target.transform.position.z);
-
-        // If there was a collision, correct the camera position and calculate the corrected distance
-        var isCorrected = false;
-        if (Physics.Linecast(trueTargetPosition, position, out collisionHit, collisionLayers))
-        {
-            // Calculate the distance from the original estimated position to the collision location,
-            // subtracting out a safety "offset" distance from the object we hit.  The offset will help
-            // keep the camera from being right on top of the surface we hit, which usually shows up as
-            // the surface geometry getting partially clipped by the camera's front clipping plane.
-            correctedDistance = Vector3.Distance(trueTargetPosition, collisionHit.point) - offsetFromWall;
-            isCorrected = true;
-        }
-
-        // For smoothing, lerp distance only if either distance wasn't corrected, or correctedDistance is more than currentDistance
-        currentDistance = !isCorrected || correctedDistance > currentDistance ? Mathf.Lerp(currentDistance, correctedDistance, Time.deltaTime * zoomDampening) : correctedDistance;
-
-        // Keep within limits
-        currentDistance = Mathf.Clamp(currentDistance, minDistance, maxDistance);
-
-        // Recalculate position based on the new currentDistance
-        position = target.transform.position - (rotation * Vector3.forward * currentDistance + vTargetOffset);
-
-        //Finally Set rotation and position of camera
-        transform.rotation = rotation;
-        transform.position = position;
+    bool IsSettled(bool isCorrected)
+    {
+        if (Mathf.Abs(Mathf.DeltaAngle(currentYaw, targetYaw)) > EpsilonYaw)
+            return false;
+        if (Mathf.Abs(currentPitch - targetPitch) > EpsilonPitch)
+            return false;
+        if (!isCorrected && Mathf.Abs(currentDistance - correctedDistance) > EpsilonDistance)
+            return false;
+        return true;
     }
 
     private void RotateBehindTarget()
     {
         float targetRotationAngle = target.transform.eulerAngles.y;
-        float currentRotationAngle = transform.eulerAngles.y;
-        xDeg = Mathf.LerpAngle(currentRotationAngle, targetRotationAngle, rotationDampening * Time.deltaTime);
+        targetYaw = Mathf.LerpAngle(currentYaw, targetRotationAngle, rotationDampening * Time.deltaTime);
+        cameraDirty = true;
 
-        // Stop rotating behind if not completed
-        if (targetRotationAngle == currentRotationAngle)
+        if (Mathf.Abs(Mathf.DeltaAngle(currentYaw, targetRotationAngle)) < EpsilonYaw)
         {
             if (!lockToRearOfTarget)
                 rotateBehind = false;
         }
         else
+        {
             rotateBehind = true;
-
+        }
     }
 
+    private float NormalizePitch(float angle)
+    {
+        if (angle > 180f)
+            angle -= 360f;
+        return angle;
+    }
 
     private float ClampAngle(float angle, float min, float max)
     {
@@ -205,5 +266,4 @@ public class CameraController : MonoBehaviour
             angle -= 360f;
         return Mathf.Clamp(angle, min, max);
     }
-
 }
