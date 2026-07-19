@@ -15,5 +15,5 @@ public class Model
 {
     public Mesh mesh;
     public Material material;
-    public short boneIndex; // -1 skinned, 0 - 1000 character bones, 1000+ dummy bones
+    public short boneIndex; // -1 skinned, 0-1000 character bones, 1000+ dummy bones
 }

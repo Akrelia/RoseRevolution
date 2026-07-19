@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace UnityRose.File
+namespace UnityRose.RoseFile
 {
     #region New Value Types
 

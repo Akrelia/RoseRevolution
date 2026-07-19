@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using UnityRose.File;
+using UnityRose.RoseFile;
 
 namespace UnityRose.Formats
 {

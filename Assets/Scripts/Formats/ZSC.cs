@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
-using UnityRose.File;
+using UnityRose.RoseFile;
 
 namespace UnityRose.Formats
 {

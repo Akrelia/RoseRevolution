@@ -5,12 +5,16 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityRose;
+using UnityRose.Import;
+using static RevolutionShared.Rose.Data.RoseEnums;
 
 /// <summary>
 /// Sandbox manager.
 /// </summary>
 public class SandboxManager : MonoBehaviour
 {
+    [Header("Data")]
+    public RoseMapDatabase mapDatabase;
     [Header("Server")]
     public string address;
     public short port;
@@ -33,7 +37,7 @@ public class SandboxManager : MonoBehaviour
     public WorldManager worldManager;
     public GUIController guiController;
 
-    Dictionary<Guid, RosePlayer> players;
+    Dictionary<long, RosePlayer> players;
     Dictionary<int, RoseNpc> entities;
 
     /// <summary>
@@ -41,7 +45,7 @@ public class SandboxManager : MonoBehaviour
     /// </summary>
     private void Awake()
     {
-        players = new Dictionary<Guid, RosePlayer>();
+        players = new Dictionary<long, RosePlayer>();
         entities = new Dictionary<int, RoseNpc>();
 
 #if UNITY_EDITOR
@@ -65,20 +69,35 @@ public class SandboxManager : MonoBehaviour
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.SandboxConnectionResponse)]
-    private void Connected(Client client, PacketIn packet)
+    public void Connected(Client client, PacketIn packet)
     {
         var mainPlayer = worldManager.SpawnPlayer(true, gender, playerName, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield, spawnPosition);
 
         guiController.characterPreview.SetCharacterInformations(playerName, 1200, 1200, 960, 960, 1, "Visitor");
 
-        var guid = new Guid(packet.GetBytes(16));
+        var id = packet.GetLong();
         var name = packet.GetString();
+        var mapID = packet.GetInt();
 
         mainPlayer.charModel.name = name;
 
-        players.Add(guid, mainPlayer);
+        players.Add(id, mainPlayer);
 
-        RoseDebug.Log("Main Character added");
+        RoseDebug.Log("Character for the player has been added");
+
+        try
+        {
+            var map = mapDatabase.GetMapById(mapID);
+
+            Instantiate(map.prefab);
+
+            RoseDebug.Log($"{map.name} has been loaded");
+        }
+
+        catch (Exception ex)
+        {
+            Debug.Log(ex.Message);
+        }
     }
 
     /// <summary>
@@ -87,14 +106,14 @@ public class SandboxManager : MonoBehaviour
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.MessageReceived)]
-    private void MessageReceived(Client client, PacketIn packet)
+    public void MessageReceived(Client client, PacketIn packet)
     {
-        var guid = new Guid(packet.GetBytes(16));
+        var id = packet.GetLong();
         var message = packet.GetString();
 
-        if (players.ContainsKey(guid))
+        if (players.ContainsKey(id))
         {
-            var author = players[guid];
+            var author = players[id];
 
             guiController.chatController.AddPlayerMessage(author.charModel.name, message);
 
@@ -113,7 +132,7 @@ public class SandboxManager : MonoBehaviour
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.SendWorld)]
-    private void WorldReceived(Client client, PacketIn packet)
+    public void WorldReceived(Client client, PacketIn packet)
     {
         var motd = packet.GetString();
 
@@ -121,10 +140,10 @@ public class SandboxManager : MonoBehaviour
 
         for (int i = 0; i < playerCount; i++)
         {
-            var guid = new Guid(packet.GetBytes(16));
+            var id = packet.GetLong();
             var playerName = packet.GetString();
 
-            if (!players.ContainsKey(guid))
+            if (!players.ContainsKey(id))
             {
                 var playerGender = (GenderType)packet.GetByte();
                 var playerHair = packet.GetByte();
@@ -146,7 +165,7 @@ public class SandboxManager : MonoBehaviour
 
                 var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat, playerWeapon, playerSubweapon, position);
 
-                players.Add(guid, player);
+                players.Add(id, player);
             }
         }
     }
@@ -157,12 +176,12 @@ public class SandboxManager : MonoBehaviour
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.PlayerConnected)]
-    private void PlayerConnected(Client client, PacketIn packet)
+    public void PlayerConnected(Client client, PacketIn packet)
     {
-        var guid = new Guid(packet.GetBytes(16));
+        var id = packet.GetLong();
         var playerName = packet.GetString();
 
-        if (!players.ContainsKey(guid))
+        if (!players.ContainsKey(id))
         {
             var playerGender = (GenderType)packet.GetByte();
             var playerHair = packet.GetByte();
@@ -178,7 +197,7 @@ public class SandboxManager : MonoBehaviour
 
             var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat, playerWeapon, playerSubweapon, spawnPosition);
 
-            players.Add(guid, player);
+            players.Add(id, player);
         }
 
         else
@@ -193,15 +212,15 @@ public class SandboxManager : MonoBehaviour
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.PlayerDisconnected)]
-    private void PlayerDisconnected(Client client, PacketIn packet)
+    public void PlayerDisconnected(Client client, PacketIn packet)
     {
-        var guid = new Guid(packet.GetBytes(16));
+        var id = packet.GetLong();
 
-        var player = GetRosePlayer(guid);
+        var player = GetRosePlayer(id);
 
         if (player != null)
         {
-            players.Remove(guid);
+            players.Remove(id);
 
             Destroy(player.player);
         }
@@ -213,9 +232,9 @@ public class SandboxManager : MonoBehaviour
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.PlayerMoved)]
-    private void PlayerMoved(Client client, PacketIn packet)
+    public void PlayerMoved(Client client, PacketIn packet)
     {
-        var guid = new Guid(packet.GetBytes(16));
+        var id = packet.GetLong();
 
         var x = packet.GetFloat();
         var y = packet.GetFloat();
@@ -223,7 +242,7 @@ public class SandboxManager : MonoBehaviour
 
         Vector3 position = new Vector3(x, y, z);
 
-        var player = GetRosePlayer(guid);
+        var player = GetRosePlayer(id);
 
         if (player != null)
         {
@@ -237,7 +256,7 @@ public class SandboxManager : MonoBehaviour
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.AddEntities)]
-    private void SurroundingsReceived(Client client, PacketIn packet)
+    public void SurroundingsReceived(Client client, PacketIn packet)
     {
         var count = packet.GetInt();
 
@@ -260,13 +279,13 @@ public class SandboxManager : MonoBehaviour
     /// <summary>
     /// Get the rose player using its id.
     /// </summary>
-    /// <param name="guid">GUID.</param>
+    /// <param name="id">ID.</param>
     /// <returns>Rose Player.</returns>
-    public RosePlayer GetRosePlayer(Guid guid)
+    public RosePlayer GetRosePlayer(long id)
     {
-        if (players.ContainsKey(guid))
+        if (players.ContainsKey(id))
         {
-            return players[guid];
+            return players[id];
         }
 
         return null;

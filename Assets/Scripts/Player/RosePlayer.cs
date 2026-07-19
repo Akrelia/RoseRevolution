@@ -13,6 +13,8 @@ using UnityRose;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEditor;
+using UnityRose.Import;
+using static RevolutionShared.Rose.Data.RoseEnums;
 
 public class RosePlayer : IPointerClickHandler
 {
@@ -245,14 +247,14 @@ public class RosePlayer : IPointerClickHandler
 
     private Bounds LoadPart(BodyPartType bodyPart, ZSC.DummyType dummy, string zmsPath, ZSC.Texture texture)
     {
-        zmsPath = Utils.FixPath(Path.Combine(ROSEImport.GetDataPath(), Utils.FixPath(zmsPath)));
-        texture.Path = Utils.FixPath(Path.Combine(ROSEImport.GetDataPath(), Utils.FixPath(texture.Path)));
+        zmsPath = Utils.FixPath(Path.Combine(RoseDataSource.DataPath, Utils.FixPath(zmsPath)));
+        texture.Path = Utils.FixPath(Path.Combine(RoseDataSource.DataPath, Utils.FixPath(texture.Path)));
 
         // Cached load of ZMS and texture
         ResourceManager rm = ResourceManager.Instance;
         ZMS zms = (ZMS)rm.cachedLoad(zmsPath);
         //	 Texture2D tex = (Texture2D)rm.cachedLoad(texPath);
-        Texture2D tex = ROSEImport.ImportTexture(texture.Path, true);
+        Texture2D tex = RoseTextureImporter.Import(texture.Path); // True
 
         // Create material
         string shader = "Universal Render Pipeline/Unlit";

@@ -13,6 +13,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityRose;
+using static RevolutionShared.Rose.Data.RoseEnums;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -290,6 +292,44 @@ public class Utils
 		return Resources.Load<Texture2D>(pngPath);
 	}
 #endif
+
+    public static int ParseRgbColor(string value)
+    {
+        if (string.IsNullOrEmpty(value) || value.Length != 9)
+            return 0xFFFFFF;
+
+        if (!byte.TryParse(value.Substring(0, 3), out var r))
+            return 0xFFFFFF;
+
+        if (!byte.TryParse(value.Substring(3, 3), out var g))
+            return 0xFFFFFF;
+
+        if (!byte.TryParse(value.Substring(6, 3), out var b))
+            return 0xFFFFFF;
+
+        return (r << 16) | (g << 8) | b;
+    }
+
+    public static int ParseInt(object value, int defaultValue = 0)
+    {
+        if (value == null)
+            return defaultValue;
+
+        var str = value.ToString().Trim();
+
+        if (string.IsNullOrEmpty(str))
+            return defaultValue;
+
+        return int.TryParse(str, out var result) ? result : defaultValue;
+    }
+
+    public static bool ParseBool(object value)
+    {
+        if (value == null)
+            return false;
+
+        return value.ToString().Trim() == "1";
+    }
 
 #if UNITY_EDITOR
 

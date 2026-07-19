@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Network.Packets;
 using Network;
 using UnityEngine.EventSystems;
+using static RevolutionShared.Rose.Data.RoseEnums;
 
 namespace UnityRose
 {

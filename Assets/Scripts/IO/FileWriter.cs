@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 
-namespace UnityRose.File
+namespace UnityRose.RoseFile
 {
     public class FileWriter : BinaryWriter
     {

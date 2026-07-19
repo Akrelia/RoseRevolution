@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityRose;
+using static RevolutionShared.Rose.Data.RoseEnums;
 
 /// <summary>
 /// World manager.
@@ -75,7 +76,7 @@ public class WorldManager : MonoBehaviour
     /// <returns>Entity spawned.</returns>
     public RoseNpc SpawnEntity(int id, int dataId, Vector3 position)
     {
-        ROSEImport.ImportNPC(dataId);
+        // RoseImport.ImportNPC(dataId);
 
         GameObject entity = new GameObject();
 
@@ -89,7 +90,7 @@ public class WorldManager : MonoBehaviour
 
         var roseNpc = entity.AddComponent<RoseNpc>();
 
-        roseNpc.data = LoadNPCAssetStartingWith<RoseNpcData>($"[{dataId}]");
+        roseNpc.data = LoadNPCAssetStartingWith<RoseNPCInfos>($"[{dataId}]");
 
         return roseNpc;
     }

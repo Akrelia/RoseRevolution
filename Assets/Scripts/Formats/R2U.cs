@@ -2,16 +2,12 @@
 using UnityEngine;
 using System.Collections;
 using System.IO;
+using UnityEditor;
 
 namespace UnityRose.Formats
 {
     public class R2U
     {
-        // The following Get[Asset] functions will perform the following sequence:
-        // 1. Determine if the unity asset is available, load it from Asset DB, then return a pointer to the asset
-        // 2. If not present, create one from the corresponding rose files then place it in the same directory tree but GameData instead of 3DDATA
-        // 3. Reload the asset from the Asset DB and return a pointer to it
-
         public static AnimationClip GetClip(string zmoPath, ZMD skeleton, string name)
         {
             DirectoryInfo zmoDir = new DirectoryInfo(zmoPath);
@@ -19,11 +15,22 @@ namespace UnityRose.Formats
 
             AnimationClip clip = (AnimationClip)Utils.LoadAsset(unityPath, ".anim");
 
+            if (clip != null && clip.legacy)
+            {
+                Debug.Log($"Deleting legacy clip: {clip.name}");
+
+                AssetDatabase.DeleteAsset(unityPath);
+                clip = null;
+            }
+
             if (clip == null)
             {
                 clip = new ZMO(zmoPath).buildAnimationClip(skeleton);
                 clip.name = name;
-                clip.legacy = true;
+                clip.legacy = false;
+
+                Debug.Log($"Before save: {clip.name} legacy={clip.legacy}");
+
                 clip = (AnimationClip)Utils.SaveReloadAsset(clip, unityPath, ".anim");
             }
 

@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace UnityRose.File
+namespace UnityRose.RoseFile
 {
     public class FileReader : BinaryReader
     {

@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityRose.Formats;
 using System.Linq;
+using UnityRose.Import;
 
 namespace UnityRose.Game
 {
@@ -14,12 +15,16 @@ namespace UnityRose.Game
     {
         private const bool realTimeBaking = false;
         private const bool blendNormals = false;
+
+        private const string DataRoot = "Assets/Data/Patchs";
+
         public DirectoryInfo m_assetDir { get; set; }
         public DirectoryInfo m_unityAssetDir { get; set; }
         public DirectoryInfo m_3dDataDir { get; set; }
         public string m_name { get; set; }
         public bool m_isValid { get; set; }
         public Vector2 center { get; set; }
+        private string mapName;
 
         public HIM m_HIM { get; set; }
         public TIL m_TIL { get; set; }
@@ -39,9 +44,15 @@ namespace UnityRose.Game
 
         public Dictionary<String, List<int>> edgeVertexLookup { get; set; }
 
-        private string groundLight;
+        private static readonly Dictionary<string, Texture2D> TextureCache = new();
+        private static readonly Dictionary<string, Mesh> MeshCache = new();
+        private static readonly Dictionary<string, Material> MaterialCache = new();
+        private static readonly Dictionary<string, AnimationClip> AnimationCache = new();
+        private static readonly HashSet<string> createdFolders = new HashSet<string>();
 
-        // Default contsructor
+        private string groundLight;
+        private string patchFolder; // Assets/Data/Patchs/<mapName_or_dir>/<patchName>
+
         public RosePatch()
         {
             this.m_Col = 0;
@@ -49,7 +60,6 @@ namespace UnityRose.Game
             this.m_isValid = false;
         }
 
-        // Functional constructor 1
         public RosePatch(DirectoryInfo assetDir)
         {
             this.m_assetDir = assetDir;
@@ -60,13 +70,14 @@ namespace UnityRose.Game
             this.m_isValid = false;
             this.center = new Vector2(0.0f, 0.0f);
 
+
             if (assetDir.Exists)
             {
                 // figure out row and column
                 char[] sep = { '_', '.' };
                 string[] tokens = assetDir.Name.Split(sep);
 
-                if (tokens.Length > 1) // Akima : lazy way to check if this is about a legit patch folder
+                if (tokens.Length > 1) // Akima : lazy way to check if this is about a legit patch folder, if you need proper customization, it's here
                 {
                     int col = int.Parse(tokens[0]);
                     int row = int.Parse(tokens[1]);
@@ -90,9 +101,12 @@ namespace UnityRose.Game
             else
                 m_isValid = false;
 
+            // e.g. Assets/Data/Patchs/EJT01/1_1
+            mapName = assetDir.Parent != null ? assetDir.Parent.Name : "UnknownMap";
+
+            patchFolder = $"{DataRoot}/{mapName}/{m_name}";
         }
 
-        // Functional constrcutor 2
         public RosePatch(DirectoryInfo assetDir, ZON zon)
             : this(assetDir)
         {
@@ -104,6 +118,7 @@ namespace UnityRose.Game
             if (!m_isValid)
             {
                 Debug.LogError("Cannot load patch at path " + this.m_assetDir);
+
                 return false;
             }
 
@@ -117,11 +132,11 @@ namespace UnityRose.Game
             string litPath = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\BUILDINGLIGHTMAPDATA.LIT");
             groundLight = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\" + this.m_name + "_PLANELIGHTINGMAP.DDS");
 
-            string zscPathDeco = Utils.FixPath(ROSEImport.GetDataPath() + "/" +  ResourceManager.Instance.stb_zone.Cells[mapID][12]);
-            string zscPathCnst = Utils.FixPath(ROSEImport.GetDataPath() + "/" + ResourceManager.Instance.stb_zone.Cells[mapID][13]);
+            string zscPathDeco = Utils.FixPath(RoseDataSource.DataPath + "/" + ResourceManager.Instance.stb_zone.Cells[mapID][12]);
+            string zscPathCnst = Utils.FixPath(RoseDataSource.DataPath + "/" + ResourceManager.Instance.stb_zone.Cells[mapID][13]);
 
-             m_ZSC_Cnst = new ZSC(zscPathCnst);
-             m_ZSC_Deco = new ZSC(zscPathDeco);
+            m_ZSC_Cnst = new ZSC(zscPathCnst);
+            m_ZSC_Deco = new ZSC(zscPathDeco);
 
             m_LIT_Cnst = new LIT(litPath);
             m_LIT_Deco = new LIT(litPath.Replace("building", "object"));
@@ -131,7 +146,6 @@ namespace UnityRose.Game
 
             return true;
         }
-
 
         public void UpdateAtlas(ref Dictionary<string, Rect> atlasRectHash, ref Dictionary<string, Texture2D> atlasTexHash, ref List<Texture2D> textures)
         {
@@ -168,33 +182,17 @@ namespace UnityRose.Game
 
         public bool Import(Transform terrainParent, Transform objectsParent, Texture2D atlas, Texture2D atlas_normal, Dictionary<string, Rect> atlasRectHash)
         {
-
             if (!m_isValid)
             {
                 Debug.LogError("Cannot Import patch_" + this.m_name);
                 return false;
             }
 
-            // Begin the real work
+            return ImportInternal(terrainParent, objectsParent, atlas, atlas_normal, atlasRectHash);
+        }
 
-
-            // Each 4 heights are connected together as a quad
-            // Each * below is a datapoint from HIM file representing height z
-            //       (0,0)    (1,0)    (2,0)
-            //            *----*----*
-            //            |    |    |
-            //      (0,1) *----*----* (2,1)
-            //            |    |    |
-            //      (0,2) *----*----* (2,2)
-            //
-
-
-            // Mesh components
-            // path = 16x16 tiles
-            // tile = 4x4 quads
-            // quad = 2 triangles
-            // triangle = 3 vertices
-
+        private bool ImportInternal(Transform terrainParent, Transform objectsParent, Texture2D atlas, Texture2D atlas_normal, Dictionary<string, Rect> atlasRectHash)
+        {
             int nVertices = 64 * 64 * 4;
             Vector3[] vertices = new Vector3[nVertices];
             Vector2[] uvsBottom = new Vector2[nVertices];
@@ -203,7 +201,6 @@ namespace UnityRose.Game
             int[] triangles = new int[(m_HIM.Length - 1) * (m_HIM.Width - 1) * 6];
 
             int i_v = 0;      // vertex index
-            int i_t = 0;     // triangle index
 
             // TODO: move these hardcoded values to a more appropriate place
             float m_xStride = 2.5f;
@@ -214,27 +211,6 @@ namespace UnityRose.Game
             center = new Vector2(x_offset + m_xStride * 32.0f, y_offset + m_yStride * 32.0f);
 
             m_mesh = new Mesh();
-
-
-
-            //  Uv mapping for tiles
-            //	x%5 =   0     1	     2	   3     4	 
-            //   	 (0,1) (.25,1)(.5,1)(.75,1)(1,1)
-            //		 	*-----*-----*-----*-----*
-            //			|   / |   / |   / |   / |
-            //		    | /   | /   | /   | /   |
-            //  (0,.75)	*-----*-----*-----*-----*
-            //			|   / |   / |   / |   / |
-            //			| /   | /   | /   | /   |
-            //	(0,.5)	*-----*-----*-----*-----*
-            //			|   / |   / |   / |   / |
-            //			| /   | /   | /   | /   |
-            //	(0,.25)	*-----*-----*-----*-----*
-            //			|   / |   / |   / |   / |
-            //			| /   | /   | /   | /   |
-            //  (0,0)	*-----*-----*-----*-----*
-            //			   (.25,0)(.5,0)(.75,0)(1,0)
-
 
             Vector2[,] uvMatrix = new Vector2[5, 5];
             Vector2[,] uvMatrixLR = new Vector2[5, 5];
@@ -258,7 +234,6 @@ namespace UnityRose.Game
 
             m_tiles = new List<Tile>();
 
-            // Populate tiles with texture references
             for (int t_x = 0; t_x < 16; t_x++)
             {
                 for (int t_y = 0; t_y < 16; t_y++)
@@ -270,82 +245,45 @@ namespace UnityRose.Game
                     tile.bottomTex = texPath1;
                     tile.topTex = texPath2;
                     m_tiles.Add(tile);
-
                 }
             }
 
-            Texture2D lightTex = ROSEImport.ImportTexture(groundLight, true);
+            Texture2D lightTex = SaveTexture(RoseTextureImporter.Import(groundLight), groundLight, shared: false);
 
-            //string lightTexPath = "Assets/3DDATA/MAPS/JUNON/JPT01/" + m_Col + "_" + m_Row + "/" + m_Col + "_" + m_Row + "_PLANELIGHTINGMAP.dds";
-            //  Texture2D lightTex = Utils.loadTex(ref groundLight);// Resources.LoadAssetAtPath<Texture2D>(lightTexPath);  //Utils.loadTex(lightTexPath, "Assets/GameData/Textures/Lightmaps/");                          
-            //Utils.convertTex( lightTexPath, "Assets/GameData/Textures/Lightmaps/", ref lightTex);
-
-
-            // copy rects to tiles
             foreach (Tile tile in m_tiles)
             {
                 tile.bottomRect = atlasRectHash[tile.bottomTex];
                 tile.topRect = atlasRectHash[tile.topTex];
             }
 
-            // Generate a material
-
-            Material material = null;
-            if (realTimeBaking)
-            {
-                material = (Material)AssetDatabase.LoadMainAssetAtPath("Assets/Materials/JPT01.mat"); // new Material(Shader.Find( "Custom/StandardTerrain"));
-                                                                                                      //material.SetTexture("_MainTex", atlas);
-                                                                                                      //material.SetTexture("_DetailAlbedoMap", atlas);
-            }
-            else
-            {
-                //	material = new Material(Shader.Find("Universal Render Pipeline/Terrain/Lit"));
-                material = new Material(Shader.Find("Custom/TerrainShader2"));
-                material.SetTexture("_BottomTex", atlas);
-                material.SetTexture("_TopTex", atlas);
-                material.SetTexture("_LightTex", lightTex);
-            }
+            Material material = new Material(Shader.Find("Custom/TerrainShader2"));
+            material.SetTexture("_BottomTex", atlas);
+            material.SetTexture("_TopTex", atlas);
+            material.SetTexture("_LightTex", lightTex);
+            material = SaveMaterial(material, $"{m_name}_Ground");
 
             float l = m_HIM.Length - 1;
             float w = m_HIM.Width - 1;
 
             int triangleID = 0;
-            // Generate vertices and triangles
             for (int x = 0; x < m_HIM.Length - 1; x++)
             {
                 for (int y = 0; y < m_HIM.Width - 1; y++)
                 {
-                    //    Each quad will be split into two triangles:
-                    //
-                    //          a         b
-                    //            *-----*
-                    //            |   / |
-                    //            |  /  |
-                    //            | /   |
-                    //          d *-----* c         
-                    //
-                    //  The triangles used are: adb and bdc
-
-
                     int a = i_v++;
                     int b = i_v++;
                     int c = i_v++;
                     int d = i_v++;
 
-
-
-                    // Calculate lightmap UV's (placed in color because mesh only has uv and uv2)
                     uvsLight[a] = new Color((float)y / w, 1.0f - (float)x / l, 0.0f);
                     uvsLight[b] = new Color((float)y / w, 1.0f - (float)(x + 1) / l, 0.0f);
                     uvsLight[c] = new Color((float)(y + 1) / w, 1.0f - (float)(x + 1) / l, 0.0f);
                     uvsLight[d] = new Color((float)(y + 1) / w, 1.0f - (float)(x) / l, 0.0f);
 
-                    // Calculate vertices
                     vertices[a] = new Vector3(x * m_xStride + x_offset, m_HIM.Heights[x, y] / heightScaler, y * m_yStride + y_offset);
                     vertices[b] = new Vector3((x + 1) * m_xStride + x_offset, m_HIM.Heights[x + 1, y] / heightScaler, y * m_yStride + y_offset);
                     vertices[c] = new Vector3((x + 1) * m_xStride + x_offset, m_HIM.Heights[x + 1, y + 1] / heightScaler, (y + 1) * m_yStride + y_offset);
                     vertices[d] = new Vector3(x * m_xStride + x_offset, m_HIM.Heights[x, y + 1] / heightScaler, (y + 1) * m_yStride + y_offset);
-
 
                     if (y == 0)
                     {
@@ -368,17 +306,12 @@ namespace UnityRose.Game
                         Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), c);
                     }
 
-
                     int tileX = x / 4;
                     int tileY = y / 4;
                     int tileID = tileY * 16 + tileX;
 
-
-                    // Apply UV's
                     ZON.RotationType rotation = m_ZON.Tiles[m_TIL.Tiles[tileX, tileY].TileID].Rotation;
                     Vector2[,] rotMatrix;
-                    if (rotation == ZON.RotationType.Rotate90Clockwise || rotation == ZON.RotationType.Rotate90CounterClockwise)
-                        Debug.Log("Rotation: " + (int)rotation);
                     switch (rotation)
                     {
                         case ZON.RotationType.Normal:
@@ -404,7 +337,6 @@ namespace UnityRose.Game
                             break;
                     }
 
-                    // Get top and bottom UV's using texture atlas and rotation adjustments
                     uvsTop[a] = m_tiles[tileID].GetUVTop(rotMatrix[x % 4, y % 4]);
                     uvsTop[b] = m_tiles[tileID].GetUVTop(rotMatrix[(x % 4 + 1) % 5, y % 4]);
                     uvsTop[c] = m_tiles[tileID].GetUVTop(rotMatrix[(x % 4 + 1) % 5, (y % 4 + 1) % 5]);
@@ -422,10 +354,8 @@ namespace UnityRose.Game
                     triangles[triangleID++] = b;
                     triangles[triangleID++] = d;
                     triangles[triangleID++] = c;
-
-                }  // for y
-            }    // for x
-
+                }
+            }
 
             m_mesh.vertices = vertices;
             m_mesh.triangles = triangles;
@@ -433,43 +363,26 @@ namespace UnityRose.Game
             m_mesh.uv2 = uvsTop;
             m_mesh.colors = uvsLight;
 
-
             m_mesh.RecalculateNormals();
 
             if (blendNormals)
             {
-                // CalculateSharedNormals: fix all normals as follows:
-                // Several triangles share same vertex, but it is duplicated
-                // We want to:
-                //	1. search the vertex array for shared vertices
-                //	2. store each shared vertex id in a data structure comprising rows of shared vertices
-                //  3. go through each row of shared vertices and calculate the average normal
-                //	4. store the avg normal and all corresponding vertex id's in different data structure
-                //	5. traverse the new data structure and assign the new normal to all the vertices it belongs to
-
                 Vector3[] normals = new Vector3[m_mesh.vertexCount];
                 Dictionary<String, List<int>> vertexLookup = new Dictionary<String, List<int>>();
-                // 1. and 2.
                 for (int i = 0; i < m_mesh.vertexCount; i++)
                     Utils.addVertexToLookup(vertexLookup, m_mesh.vertices[i].ToString(), i);
-
-                // traverse the shared vertex list and calculate new normals
 
                 foreach (KeyValuePair<String, List<int>> entry in vertexLookup)
                 {
                     Vector3 avg = Vector3.zero;
                     foreach (int id in entry.Value)
-                    {
                         avg += m_mesh.normals[id];
-                    }
 
                     avg.Normalize();
 
                     foreach (int id in entry.Value)
                         normals[id] = avg;
-
                 }
-
 
                 m_mesh.normals = normals;
             }
@@ -478,7 +391,7 @@ namespace UnityRose.Game
             m_mesh.RecalculateBounds();
             m_mesh.Optimize();
 
-            //AssetDatabase.CreateAsset( m_mesh, "Assets/patch_" + this.m_name + ".mesh");
+            m_mesh = SaveMesh(m_mesh, $"{m_name}_Ground");
 
             GameObject patchObject = new GameObject();
             patchObject.name = "patch_" + this.m_name;
@@ -489,91 +402,96 @@ namespace UnityRose.Game
 
             MeshRenderer patchRenderer = patchObject.GetComponent<MeshRenderer>();
             patchRenderer.material = material;
-            //patchRenderer.castShadows = false;
             patchObject.transform.parent = terrainParent;
             patchObject.layer = LayerMask.NameToLayer("Floor");
-
-            //================== TERRAIN OBJECTS==========================
 
             GameObject deco = new GameObject();
             deco.name = "deco_" + this.m_name;
             deco.transform.parent = objectsParent;
             deco.layer = LayerMask.NameToLayer("MapObjects");
 
+            ImportObjectGroup(m_IFO.Decoration, m_ZSC_Deco, m_LIT_Deco, deco.transform, "Deco");
 
-            //================= DECORATION ======================
-            for (int obj = 0; obj < m_IFO.Decoration.Count; obj++)
+            GameObject cnst = new GameObject();
+            cnst.name = "cnst_" + this.m_name;
+            cnst.transform.parent = objectsParent;
+            cnst.layer = LayerMask.NameToLayer("MapObjects");
+
+            ImportObjectGroup(m_IFO.Construction, m_ZSC_Cnst, m_LIT_Cnst, deco.transform, "Const");
+
+            return true;
+        }  // Import()
+
+        /// <summary>
+        /// Shared body for the old Decoration and Construction loops.
+        /// </summary>
+        private void ImportObjectGroup(List<IFO.BaseIFO> ifoObjects, ZSC zsc, LIT lit, Transform parent, string groupName)
+        {
+            for (int obj = 0; obj < ifoObjects.Count; obj++)
             {
-                IFO.BaseIFO ifo = m_IFO.Decoration[obj];
+                IFO.BaseIFO ifo = ifoObjects[obj];
                 GameObject terrainObject = new GameObject();
                 terrainObject.layer = LayerMask.NameToLayer("MapObjects");
-                terrainObject.name = "Deco_" + ifo.MapPosition.x + "_" + ifo.MapPosition.y;
-                terrainObject.transform.parent = deco.transform;
+                terrainObject.name = $"{groupName}_{ifo.MapPosition.x}_{ifo.MapPosition.y}";
+                terrainObject.transform.parent = parent;
                 terrainObject.transform.localPosition = (ifo.Position / 100.0f);
                 bool isAnimated = false;
                 AnimationClip clip = new AnimationClip();
                 clip.legacy = true;
 
-                for (int part = 0; part < m_ZSC_Deco.Objects[ifo.ObjectID].Models.Count; part++)
+                var zscObj = zsc.Objects[ifo.ObjectID];
+
+                bool hasLitEntry = obj < lit.Objects.Count;
+
+                if (!hasLitEntry)
+                {
+                    Debug.LogWarning($"{groupName}_{obj}: no matching LIT entry (LIT has {lit.Objects.Count}), lightmap skipped for this instance.");
+                }
+
+                for (int part = 0; part < zscObj.Models.Count; part++)
                 {
                     try
                     {
-                        ZSC.Object.Model model = m_ZSC_Deco.Objects[ifo.ObjectID].Models[part];
-                        // load ZMS
-                        string zmsPath = m_3dDataDir.Parent.FullName + "/" + m_ZSC_Deco.Models[model.ModelID].Replace("\\", "/");
-                        //string texPath = "Assets/" + m_ZSC_Deco.Textures[model.TextureID].Path; // Akima : Removing Assets since we won't need it anymore
-                        string texPath = m_ZSC_Deco.Textures[model.TextureID].Path;
+                        ZSC.Object.Model model = zscObj.Models[part];
+                        string zmsPath = m_3dDataDir.Parent.FullName + "/" + zsc.Models[model.ModelID].Replace("\\", "/");
+                        string texPath = zsc.Textures[model.TextureID].Path;
+
+                        Texture2D mainTex = SaveTexture(RoseTextureImporter.Import(texPath), texPath);
+
+                        bool hasLitPart = hasLitEntry && part < lit.Objects[obj].Parts.Count;
+
                         string lightPath = null;
-                        ZMS zms = null;
+                        Vector2 lmOffset = Vector2.zero;
+                        Vector2 lmScale = Vector2.one;
 
-                        lightPath = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\" + m_LIT_Deco.Objects[obj].Parts[part].DDSName); // TODO : fix here for other planets
-                        LIT.Object.Part lmData = m_LIT_Deco.Objects[obj].Parts[part];
-
-                        // Calculate light map UV offset and scale
-                        float objScale = 1.0f / (float)lmData.ObjectsPerWidth;
-                        float rowNum = (float)Math.Floor((double)((double)lmData.MapPosition / (double)lmData.ObjectsPerWidth));
-                        float colNum = (float)lmData.MapPosition % lmData.ObjectsPerWidth;
-
-                        Vector2 lmOffset = new Vector2(colNum * objScale, rowNum * objScale);
-                        Vector2 lmScale = new Vector2(objScale, objScale);
-
-                        zms = new ZMS(zmsPath, lmScale, lmOffset);
-
-                        // Create material	
-                        // Texture2D mainTex = Utils.loadTex(ref texPath);
-
-                        Texture2D mainTex = ROSEImport.ImportTexture(texPath, false);
-
-                        Material mat = null;
-                        if (realTimeBaking)
+                        if (hasLitPart)
                         {
-                            Texture2D normalMap = Utils.generateNormalMap(texPath);
-                            mat = new Material(Shader.Find("Standard"));
-                            mat.SetFloat("_Mode", 1.0f);
-                            mat.SetTexture("_MainTex", mainTex);
-                            mat.SetTexture("_OcclusionMap", mainTex);
-                            mat.SetTexture("_BumpMap", normalMap);
-                            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                            mat.SetInt("_ZWrite", 1);
-                            mat.EnableKeyword("_ALPHATEST_ON");
-                            mat.DisableKeyword("_ALPHABLEND_ON");
-                            mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                            mat.SetFloat("_OcclusionStrength", 0.5f);
-                            mat.SetFloat("_BumpScale", 0.8f);
-                            mat.SetFloat("_Glossiness", 0.1f);
-                            //mat.renderQueue = 2450;
+                            LIT.Object.Part lmData = lit.Objects[obj].Parts[part];
+                            lightPath = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\" + lmData.DDSName);
+
+                            float objScale = 1.0f / (float)lmData.ObjectsPerWidth;
+                            float rowNum = (float)Math.Floor((double)lmData.MapPosition / lmData.ObjectsPerWidth);
+                            float colNum = (float)lmData.MapPosition % lmData.ObjectsPerWidth;
+
+                            lmOffset = new Vector2(colNum * objScale, rowNum * objScale);
+                            lmScale = new Vector2(objScale, objScale);
                         }
-                        else
+
+                        var zms = new ZMS(zmsPath, lmScale, lmOffset);
+
+                        Material mat;
+
+
+                        mat = new Material(Shader.Find("Custom/ObjectShader"));
+                        mat.SetTexture("_MainTex", mainTex);
+
+                        if (hasLitPart)
                         {
-                            mat = new Material(Shader.Find("Custom/ObjectShader"));
-                            mat.SetTexture("_MainTex", mainTex);
-                            //  Texture2D lightTexture = Utils.loadTex(ref lightPath);
-                            Texture2D lightTexture = ROSEImport.ImportTexture(lightPath, true);
+                            Texture2D lightTexture = SaveTexture(RoseTextureImporter.Import(lightPath), lightPath, shared: false);
                             mat.SetTexture("_LightTex", lightTexture);
                         }
-
-
+                        
+                        mat = SaveMaterial(mat, $"{texPath}_{(hasLitPart ? lightPath : "nolit")}_{Shader.Find(realTimeBaking ? "Standard" : "Custom/ObjectShader").name}");
 
                         GameObject modelObject = new GameObject();
                         modelObject.layer = LayerMask.NameToLayer("MapObjects");
@@ -583,12 +501,13 @@ namespace UnityRose.Game
                         modelObject.transform.localPosition = (model.Position / 100.0f);
                         modelObject.transform.rotation = model.Rotation;
 
-                        modelObject.AddComponent<MeshFilter>().mesh = zms.getMesh();
+                        var meshKey = $"{mapName}_{zmsPath}_{lmOffset}_{lmScale}";
+                        var mesh = SaveMesh(zms.getMesh(), meshKey);
+                        modelObject.AddComponent<MeshFilter>().mesh = mesh;
                         modelObject.AddComponent<MeshRenderer>();
                         modelObject.name = new DirectoryInfo(zmsPath).Name;
                         MeshRenderer renderer = modelObject.GetComponent<MeshRenderer>();
                         renderer.material = mat;
-                        //renderer.castShadows = false;
 
                         if (model.CollisionLevel != ZSC.CollisionLevelType.None)
                             modelObject.AddComponent<MeshCollider>();
@@ -597,21 +516,19 @@ namespace UnityRose.Game
                         if (zmoPath != null && zmoPath.ToLower().Contains("zmo"))
                         {
                             isAnimated = true;
-                            ZMO zmo = new ZMO(Path.Combine(ROSEImport.GetDataPath(), model.Motion), false, true);
+                            var zmo = new ZMO(Path.Combine(RoseDataSource.DataPath, model.Motion), false, true);
                             clip = zmo.buildAnimationClip(modelObject.name, clip);
                         }
                         else
+                        {
                             modelObject.isStatic = true;
+                        }
                     }
-
                     catch (Exception ex)
                     {
-                        Debug.LogWarning("Error while loading Deco Object : " + ex.Message);
+                        Debug.LogWarning($"Error while loading {groupName} object: " + ex.Message);
                     }
                 }
-
-
-
 
                 terrainObject.transform.rotation = ifo.Rotation;
                 terrainObject.transform.localScale = ifo.Scale;
@@ -621,6 +538,8 @@ namespace UnityRose.Game
                     Animation animation = terrainObject.GetComponent<Animation>();
                     if (animation == null)
                         animation = terrainObject.AddComponent<Animation>();
+
+                    clip = SaveAnimationClip(clip, $"{m_name}_{groupName}_{terrainObject.name}_{obj}");
                     clip.wrapMode = WrapMode.Loop;
                     animation.AddClip(clip, terrainObject.name);
                     animation.clip = clip;
@@ -629,143 +548,173 @@ namespace UnityRose.Game
                 {
                     terrainObject.isStatic = true;
                 }
-
             }
+        }
 
-            GameObject cnst = new GameObject();
-            cnst.name = "cnst_" + this.m_name;
-            cnst.transform.parent = objectsParent;
-            cnst.layer = LayerMask.NameToLayer("MapObjects");
-            //================= CONSTRUCTION ======================
-            for (int obj = 0; obj < m_IFO.Construction.Count; obj++)
+        public static void ClearCache()
+        {
+            TextureCache.Clear();
+            MeshCache.Clear();
+            MaterialCache.Clear();
+            AnimationCache.Clear();
+            createdFolders.Clear();
+        }
+
+        private Mesh SaveMesh(Mesh mesh, string key)
+        {
+            if (mesh == null)
+                return null;
+
+            var cacheKey = key.ToLower();
+
+            if (MeshCache.TryGetValue(cacheKey, out var cached))
             {
-                IFO.BaseIFO ifo = m_IFO.Construction[obj];
-                GameObject terrainObject = new GameObject();
-                terrainObject.layer = LayerMask.NameToLayer("MapObjects");
-                terrainObject.name = "Const_" + ifo.MapPosition.x + "_" + ifo.MapPosition.y;
-                terrainObject.transform.parent = deco.transform;
-                terrainObject.transform.localPosition = (ifo.Position / 100.0f);
-                bool isAnimated = false;
-                AnimationClip clip = new AnimationClip();
-                clip.legacy = true;
-                for (int part = 0; part < m_ZSC_Cnst.Objects[ifo.ObjectID].Models.Count; part++)
-                {
-                    ZSC.Object.Model model = m_ZSC_Cnst.Objects[ifo.ObjectID].Models[part];
-                    string zmsPath = m_3dDataDir.Parent.FullName + "/" + m_ZSC_Cnst.Models[model.ModelID].Replace("\\", "/");
-                    string texPath = m_ZSC_Cnst.Textures[model.TextureID].Path;
-                    // string texPath = "Assets/" + m_ZSC_Cnst.Textures[model.TextureID].Path;
+                UnityEngine.Object.DestroyImmediate(mesh); // the freshly-built mesh is redundant, drop it
 
-                    string lightPath = null;
-                    ZMS zms = null;
-
-                    // load ZMS
-                    lightPath = Utils.FixPath(this.m_assetDir.Parent.FullName + "\\" + this.m_name + "\\LIGHTMAP\\" + m_LIT_Cnst.Objects[obj].Parts[part].DDSName);
-                    LIT.Object.Part lmData = m_LIT_Cnst.Objects[obj].Parts[part];
-
-                    // Calculate light map UV offset and scale
-                    float objScale = 1.0f / (float)lmData.ObjectsPerWidth;
-                    float rowNum = (float)Math.Floor((double)((double)lmData.MapPosition / (double)lmData.ObjectsPerWidth));
-                    float colNum = (float)lmData.MapPosition % lmData.ObjectsPerWidth;
-
-                    Vector2 lmOffset = new Vector2(colNum * objScale, rowNum * objScale);
-                    Vector2 lmScale = new Vector2(objScale, objScale);
-
-                    zms = new ZMS(zmsPath, lmScale, lmOffset);
-
-                    // Create material
-                    // Texture2D mainTex = Utils.loadTex(ref texPath);
-
-                    Texture2D mainTex = ROSEImport.ImportTexture(texPath, false);
-
-                    Material mat = null;
-                    if (realTimeBaking)
-                    {
-                        Texture2D normalMap = Utils.generateNormalMap(texPath);
-                        mat = new Material(Shader.Find("Standard"));
-                        mat.SetFloat("_Mode", 1.0f);
-                        mat.SetTexture("_MainTex", mainTex);
-                        mat.SetTexture("_OcclusionMap", mainTex);
-                        mat.SetTexture("_BumpMap", normalMap);
-                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                        mat.SetInt("_ZWrite", 1);
-                        mat.EnableKeyword("_ALPHATEST_ON");
-                        mat.DisableKeyword("_ALPHABLEND_ON");
-                        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                        mat.SetFloat("_OcclusionStrength", 0.5f);
-                        mat.SetFloat("_BumpScale", 0.8f);
-                        mat.SetFloat("_Glossiness", 0.1f);
-                        //mat.renderQueue = 2450;
-                    }
-                    else
-                    {
-                        mat = new Material(Shader.Find("Custom/ObjectShader"));
-                        mat.SetTexture("_MainTex", mainTex);
-                        //Texture2D lightTexture = Utils.loadTex(ref lightPath);
-                        Texture2D lightTexture = ROSEImport.ImportTexture(lightPath, true);
-                        mat.SetTexture("_LightTex", lightTexture);
-
-                    }
-
-
-                    GameObject modelObject = new GameObject();
-                    modelObject.layer = LayerMask.NameToLayer("MapObjects");
-                    modelObject.transform.parent = terrainObject.transform;
-
-                    modelObject.transform.localScale = model.Scale;
-                    modelObject.transform.localPosition = (model.Position / 100.0f);
-                    modelObject.transform.rotation = model.Rotation;
-
-                    modelObject.AddComponent<MeshFilter>().mesh = zms.getMesh();
-                    modelObject.AddComponent<MeshRenderer>();
-                    modelObject.name = new DirectoryInfo(zmsPath).Name;
-                    MeshRenderer renderer = modelObject.GetComponent<MeshRenderer>();
-                    renderer.material = mat;
-                    //renderer.castShadows = false; 
-                    modelObject.AddComponent<MeshCollider>();
-
-                    string zmoPath = model.Motion;
-                    if (zmoPath != null && zmoPath.ToLower().Contains("zmo"))
-                    {
-                        isAnimated = true;
-                        ZMO zmo = new ZMO(Path.Combine(ROSEImport.GetDataPath(), model.Motion), false, true);
-                        clip = zmo.buildAnimationClip(modelObject.name, clip);
-                    }
-                    else
-                        modelObject.isStatic = true;
-                }
-
-                terrainObject.transform.rotation = ifo.Rotation;
-                terrainObject.transform.localScale = ifo.Scale;
-
-
-                if (isAnimated)
-                {
-                    Animation animation = terrainObject.GetComponent<Animation>();
-
-                    if (animation == null)
-                        animation = terrainObject.AddComponent<Animation>();
-
-                    clip.wrapMode = WrapMode.Loop;
-                    animation.AddClip(clip, terrainObject.name);
-                    animation.clip = clip;
-                }
-                else
-                    terrainObject.isStatic = false;
-
+                return cached;
             }
 
+            string folder = key.Contains("_Ground") ? MapMeshFolder : SharedMeshFolder;
+            EnsureFolder($"{folder}/dummy.asset");
 
+            string safeName = SafeFileName(cacheKey);
+            string path = $"{folder}/{safeName}.asset";
 
+            var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            if (existing != null)
+            {
+                MeshCache[cacheKey] = existing;
+                UnityEngine.Object.DestroyImmediate(mesh);
+                return existing;
+            }
 
-            /*
-			// TODO: add any extra components here
-			AssetDatabase.CreateAsset( m_mesh, this.m_unityAssetDir.FullName);
-			AssetDatabase.SaveAssets();
-			*/
-            return true;
-        }  // Import()	
+            mesh.name = safeName;
+            AssetDatabase.CreateAsset(mesh, path);
+            MeshCache[cacheKey] = mesh;
+            return mesh;
+        }
 
+        private Material SaveMaterial(Material mat, string key)
+        {
+            if (mat == null)
+                return null;
+
+            if (MaterialCache.TryGetValue(key, out var cached))
+            {
+                UnityEngine.Object.DestroyImmediate(mat);
+                return cached;
+            }
+
+            string folder = key.Contains("Ground") || key.Contains("Lightmap") ? MapMaterialFolder : SharedMaterialFolder;
+            EnsureFolder($"{folder}/dummy.mat");
+
+            string safeName = SafeFileName(key);
+            string path = $"{folder}/{safeName}.mat";
+
+            var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (existing != null)
+            {
+                UnityEngine.Object.DestroyImmediate(mat);
+                MaterialCache[key] = existing;
+                return existing;
+            }
+
+            AssetDatabase.CreateAsset(mat, path);
+            MaterialCache[key] = mat;
+            return mat;
+        }
+
+        private Texture2D SaveTexture(Texture2D tex, string rosePath, bool shared = true)
+        {
+            if (tex == null)
+                return null;
+
+            string safeName = SafeFileName(rosePath);
+            var path = shared ? $"Assets/Data/Shared/Textures/{safeName}.asset" : $"{MapRoot}/Lightmaps/{safeName}.asset";
+
+            if (TextureCache.TryGetValue(path, out var alreadySaved))
+                return alreadySaved;
+
+            var existing = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if (existing != null)
+            {
+                TextureCache[path] = existing;
+                return existing;
+            }
+
+            EnsureFolder(path);
+            AssetDatabase.CreateAsset(tex, path);
+            TextureCache[path] = tex;
+            return tex;
+        }
+
+        private AnimationClip SaveAnimationClip(AnimationClip clip, string key)
+        {
+            if (clip == null)
+                return null;
+
+            if (AnimationCache.TryGetValue(key, out var cached))
+                return cached;
+
+            string folder = "Assets/Data/Animations";
+            EnsureFolder($"{folder}/dummy.anim");
+
+            string safeName = SafeFileName(key);
+            string path = $"{folder}/{safeName}.anim";
+
+            var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+            if (existing != null)
+            {
+                AnimationCache[key] = existing;
+                return existing;
+            }
+
+            AssetDatabase.CreateAsset(clip, path);
+            AnimationCache[key] = clip;
+            return clip;
+        }
+
+        private static string SafeFileName(string key) =>
+            key.Replace("\\", "_").Replace("/", "_").Replace(":", "_");
+
+        private static void EnsureFolder(string assetPath)
+        {
+            string folder = Path.GetDirectoryName(assetPath)?.Replace("\\", "/");
+
+            if (string.IsNullOrEmpty(folder))
+                return;
+
+            if (createdFolders.Contains(folder))
+                return;
+
+            string[] parts = folder.Split('/');
+            string current = parts[0];
+
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string next = current + "/" + parts[i];
+
+                if (!AssetDatabase.IsValidFolder(next))
+                {
+                    AssetDatabase.CreateFolder(current, parts[i]);
+                }
+
+                createdFolders.Add(next);
+                current = next;
+            }
+
+            createdFolders.Add(folder);
+        }
+
+        private string MapRoot => $"Assets/Data/Rose/{mapName}";
+
+        private string MapMeshFolder => $"{MapRoot}/Meshes";
+
+        private string MapMaterialFolder => $"{MapRoot}/Materials";
+
+        private string SharedMeshFolder => "Assets/Data/Shared/Meshes";
+
+        private string SharedMaterialFolder => "Assets/Data/Shared/Materials";
     }
 
 
@@ -786,10 +735,8 @@ namespace UnityRose.Game
             topRect = top;
         }
 
-
         public Vector2 GetUVTop(Vector2 uv)
         {
-            // adjust uv's slightly to hide seams between tiles
             if (uv.x < 0.01f) uv.x += 0.01f;
             else if (uv.x > 0.99f) uv.x *= 0.99f;
             if (uv.y < 0.01f) uv.y += 0.01f;
@@ -808,8 +755,6 @@ namespace UnityRose.Game
             return new Vector2((uv.x * bottomRect.width) + bottomRect.x, (uv.y * bottomRect.height) + bottomRect.y);
         }
     }
-
-
 }
 
 #endif

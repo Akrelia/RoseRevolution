@@ -1,7 +1,8 @@
 using System.IO;
 using UnityEngine;
-using UnityRose.File;
+using UnityRose.RoseFile;
 using System.Collections.Generic;
+using UnityEditor;
 
 namespace UnityRose.Formats
 {
@@ -277,27 +278,33 @@ namespace UnityRose.Formats
         public AnimationClip BuildSkeletonAnimationClip(RoseSkeletonData skeleton)
         {
             var clip = new AnimationClip();
-            clip.legacy = true;
+            clip.legacy = false;
 
             for (var i = 0; i < channelCount; ++i)
             {
                 var boneId = Channels[i].ID;
-                var cbn = "Bone_" + boneId.ToString();
+
+                // was: var cbn = "Bone_" + boneId.ToString();
+                // "Bone_{index}" never matched the real bone names ("b1_pelvis", "b1_lfoot", ...)
+                // that BuildNpcPrefab uses for its GameObjects, so every curve bound to nothing -
+                // hence "missing" for every single track in the Animator window.
+                if (skeleton == null || boneId < 0 || boneId >= skeleton.bones.Count)
+                {
+                    Debug.LogWarning("Found invalid channel index or null skeleton.");
+                    continue;
+                }
+
+                var cbn = skeleton.bones[boneId].name;
                 int curBoneIdx = boneId;
                 while (true)
                 {
                     if (curBoneIdx == 0) break;
 
-                    if (skeleton != null) // Akima : skeleton are sometimes null, so for the moment, we just skip it until we figure it out
-                    {
-                        curBoneIdx = skeleton.bones[curBoneIdx].parent;
-                        cbn = "Bone_" + curBoneIdx + "/" + cbn;
-                    }
+                    curBoneIdx = skeleton.bones[curBoneIdx].parent;
 
-                    else
-                    {
-                        break;
-                    }
+                    if (curBoneIdx < 0) break; // reached a bone with no parent before hitting index 0
+
+                    cbn = skeleton.bones[curBoneIdx].name + "/" + cbn;
                 }
 
                 if (Channels[i].Type == ChannelType.Rotation)
@@ -337,7 +344,13 @@ namespace UnityRose.Formats
                 }
             }
 
+            var settings = AnimationUtility.GetAnimationClipSettings(clip);
+            settings.loopTime = true;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+
             clip.EnsureQuaternionContinuity();
+
+
             return clip;
         }
 

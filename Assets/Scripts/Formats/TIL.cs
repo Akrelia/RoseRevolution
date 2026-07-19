@@ -1,5 +1,5 @@
 using System.Text;
-using UnityRose.File;
+using UnityRose.RoseFile;
 
 namespace UnityRose.Formats
 {

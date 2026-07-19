@@ -1,54 +1,21 @@
-using UnityEngine;
-using System.Collections;
-using UnityRose;
+﻿using UnityEngine;
 
-public class RoseNpc : RoseCharacter
+public class RoseNpc : MonoBehaviour
 {
-	public RoseNpcData data;
+    public RoseNPCInfos data;
 
-	private void Start()
-	{
-		UpdateModels(); // Akima : added here to trigger the generate stuff
+    private void Start()
+    {
+        var animator = GetComponent<Animator>();
 
-		GetComponent<Animation>()?.Play(); // Akima : play the first animation by default (the Idle one seems to be by default)
-	}
+        if (animator == null || animator.runtimeAnimatorController == null)
+            return;
 
-	public void UpdateModels()
-	{
-		parts.Clear();
+        var controller = animator.runtimeAnimatorController;
 
-		if (data != null)
-		{
-			for (var i = 0; i < data.parts.Count; ++i)
-			{
-				parts.Add(data.parts[i]);
-			}
-
-			skeleton = data.skeleton;
-
-			UpdateData();
-
-			var animator = gameObject.GetComponent<Animation>();
-
-			if (animator == null)
-			{
-				animator = gameObject.AddComponent<Animation>();
-				animator.wrapMode = WrapMode.Loop;
-				animator.Play();
-			}
-
-			for (var i = 0; i < data.animations.Count; ++i)
-			{
-				var anim = data.animations[i];
-				if (anim != null)
-				{
-					animator.AddClip(anim, anim.name);
-					if (animator.clip == null)
-					{
-						animator.clip = anim;
-					}
-				}
-			}
-		}
-	}
+        if (controller.animationClips.Length > 0)
+        {
+            animator.Play(0, 0, 0f);
+        }
+    }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityRose;
+using static RevolutionShared.Rose.Data.RoseEnums;
 
 [CreateAssetMenu(menuName = "SO/Importation Settings")]
 public class ImportationSettings : ScriptableObject

@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections;
-using UnityRose.File;
+using UnityRose.RoseFile;
 
 namespace UnityRose.Formats
 {

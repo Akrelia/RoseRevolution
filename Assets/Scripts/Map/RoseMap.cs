@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using static UnityRose.Formats.ZON;
 
 namespace UnityRose.Game
 {
     public class RoseMap : MonoBehaviour
     {
         [Header("Data")]
+        public int mapID;
         public string mapName;
-  //      public List<RosePatch> patches = new List<RosePatch>();
-        public DirectoryInfo assetDir;
+        public List<SpawnData> spawns;
+        //      public List<RosePatch> patches = new List<RosePatch>();
         [Header("Colors")]
         public Color dawn = Color.white;
         public Color noon = Color.white;
@@ -22,10 +24,16 @@ namespace UnityRose.Game
 
         float lastTick;
 
+        /// <summary>
+        /// Start.
+        /// </summary>
         private void Start()
         {
         }
 
+        /// <summary>
+        /// Update.
+        /// </summary>
         private void Update()
         {
             if (lastTick + timeRate <= Time.time)
@@ -40,32 +48,42 @@ namespace UnityRose.Game
             }
         }
 
+        /// <summary>
+        /// Get the color of the time of day based on the hour.
+        /// </summary>
+        /// <param name="hour">Hour.</param>
+        /// <returns>Time of the  day color.</returns>
         public Color GetTimeOfDayColor(float hour)
         {
-            hour = hour % 24f; // Boucle au cas où
+            hour = hour % 24f;
 
-            if (hour >= 5f && hour < 9f) // Dawn → Noon
+            if (hour >= 5f && hour < 9f)
             {
                 float t = Mathf.InverseLerp(5f, 9f, hour);
+                
                 return Color.Lerp(dawn, noon, t);
             }
-            else if (hour >= 9f && hour < 17f) // Noon → Sunset
+
+            else if (hour >= 9f && hour < 17f)
             {
                 float t = Mathf.InverseLerp(9f, 17f, hour);
+                
                 return Color.Lerp(noon, sunset, t);
             }
-            else if (hour >= 17f && hour < 21f) // Sunset → Night
+
+            else if (hour >= 17f && hour < 21f)
             {
                 float t = Mathf.InverseLerp(17f, 21f, hour);
+             
                 return Color.Lerp(sunset, night, t);
             }
-            else // Night → Dawn (21h → 5h)
+
+            else
             {
-                float t = hour < 5f
-                    ? Mathf.InverseLerp(21f, 29f, hour + 24f) // 21h à 5h devient 21 → 29
-                    : Mathf.InverseLerp(21f, 29f, hour);
+                float t = hour < 5f ? Mathf.InverseLerp(21f, 29f, hour + 24f) : Mathf.InverseLerp(21f, 29f, hour);
                 return Color.Lerp(night, dawn, t);
             }
         }
     }
+
 }

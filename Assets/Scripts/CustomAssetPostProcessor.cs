@@ -12,7 +12,6 @@ public class CustomAssetPostProcessor : AssetPostprocessor
     {
         string extension = Path.GetExtension(assetPath).ToLower();
 
-        // Si l'extension est .mov, empêcher l'importation
         if (extension == ".mov")
         {
             Debug.Log("Skipping import for MOV file: " + assetPath);

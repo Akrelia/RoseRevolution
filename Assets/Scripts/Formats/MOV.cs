@@ -5,7 +5,7 @@
 // <date>2/25/2015 8:37 AM </date>
 
 using System.Text;
-using UnityRose.File;
+using UnityRose.RoseFile;
 
 namespace UnityRose.Formats
 {

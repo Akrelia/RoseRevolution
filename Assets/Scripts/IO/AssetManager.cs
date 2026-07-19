@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -29,7 +30,7 @@ public class AssetManager
     public void Load()
     {
         LoadIcons();
-        LoadItemTypes();
+      //  LoadItemTypes();
     }
 
     public string GetItemCategory(int id)
@@ -54,28 +55,35 @@ public class AssetManager
 
     public void LoadItemTypes()
     {
-        var handle = Addressables.LoadAssetAsync<AddressableIndex>("index-ids");
-
-        handle.WaitForCompletion();
-
-        var index = handle.Result;
-
-        if (index.groups.Count == 0 || index.groups[0].addresses.Count == 0)
+        try
         {
-            Debug.LogWarning("Index is empty.");
+            var handle = Addressables.LoadAssetAsync<AddressableIndex>("index-ids");
 
-            return;
+            handle.WaitForCompletion();
+
+            var index = handle.Result;
+
+            if (index.groups.Count == 0 || index.groups[0].addresses.Count == 0)
+            {
+                Debug.LogWarning("Index is empty.");
+
+                return;
+            }
+
+            var address = index.groups[0].addresses[0].address;
+
+            var handle2 = Addressables.LoadAssetAsync<IDDatabase>(address);
+
+            handle2.WaitForCompletion();
+
+            itemTypes = handle2.Result;
+
+            Debug.Log("Types loaded");
         }
-
-        var address = index.groups[0].addresses[0].address;
-        
-        var handle2 = Addressables.LoadAssetAsync<IDDatabase>(address);
-
-        handle2.WaitForCompletion();
-
-        itemTypes = handle2.Result;
-
-        Debug.Log("Types loaded");
+        catch (Exception ex)
+        {
+            Debug.Log("Error loading types: " + ex.Message);
+        }
     }
 
     /// <summary>

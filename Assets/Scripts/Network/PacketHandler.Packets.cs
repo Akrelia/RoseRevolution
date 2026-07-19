@@ -4,6 +4,7 @@ using RevolutionShared.Packets;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityRose;
+using static RevolutionShared.Rose.Data.RoseEnums;
 
 /// <summary>
 /// Packets for Packet Handler.

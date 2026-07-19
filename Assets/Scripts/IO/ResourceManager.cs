@@ -8,11 +8,15 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityRose.Formats;
+using UnityRose.Import;
 using System.IO;
 using UnityRose;
+using static RevolutionShared.Rose.Data.RoseEnums;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityRose.ImportEditor;
 #endif
 
 
@@ -185,7 +189,11 @@ namespace UnityRose
         /// <returns></returns>
         public object loadResource(string path)
         {
-            path = Path.Combine(ROSEImport.GetCurrentPath(), path);
+            // was: Path.Combine(ROSEImport.GetCurrentPath(), path) - GetCurrentPath() lived
+            // on the old static ROSEImport and was never wired to RoseDataSource, which is
+            // what caused ZON.Load -> ResourceManager -> old ROSEImport.ImportTexture to
+            // resolve paths relative to the Unity project instead of the VFS root.
+            path = Path.Combine(RoseDataSource.DataPath, path);
 
             DirectoryInfo dir = new DirectoryInfo(path);
             switch (dir.Extension)
@@ -239,7 +247,7 @@ namespace UnityRose
         /// <returns></returns>
         public GameObject loadSkeleton(GenderType gender, WeaponType weapon)
         {
- 
+
             var prefab = Resources.Load("Animation/" + gender.ToString() + "/" + weapon.ToString() + "/skeleton");
             var clone = GameObject.Instantiate(prefab);
             return clone as GameObject;
@@ -308,6 +316,10 @@ namespace UnityRose
 
 #if UNITY_EDITOR
 
+        // Everything below only ever ran in the Editor (AssetDatabase.CreateAsset,
+        // PrefabUtility, AnimationUtility baking clips to .anim files), so it stays here.
+        // Only the path source changes: ROSEImport.GetDataPath() -> ROSEEditorBaker.DataPath,
+        // which is the EditorPrefs-backed value that also keeps RoseDataSource in sync.
 
         /// <summary>
         /// Loop through all weapon types for each gender and create an animation asset and all associated clips
@@ -344,7 +356,7 @@ namespace UnityRose
         {
             GameObject skeleton = new GameObject("skeleton");
             bool male = (gender == GenderType.MALE);
-            ZMD zmd = new ZMD(male ? ROSEImport.GetDataPath() + "/3DData/Avatar/MALE.ZMD" : ROSEImport.GetDataPath() + "/3DData/Avatar/FEMALE.ZMD");
+            ZMD zmd = new ZMD(male ? ROSEEditorBaker.DataPath + "/3DData/Avatar/MALE.ZMD" : ROSEEditorBaker.DataPath + "/3DData/Avatar/FEMALE.ZMD");
             zmd.buildSkeleton(skeleton);
 
             BindPoses poses = ScriptableObject.CreateInstance<BindPoses>();
@@ -362,7 +374,7 @@ namespace UnityRose
         {
             GameObject skeleton = new GameObject("skeleton");
             bool male = (gender == GenderType.MALE);
-            ZMD zmd = new ZMD(male ? ROSEImport.GetDataPath() + "/3DData/Avatar/MALE.ZMD" : ROSEImport.GetDataPath() + "/3DData/Avatar/FEMALE.ZMD"); // Akima : switch here too
+            ZMD zmd = new ZMD(male ? ROSEEditorBaker.DataPath + "/3DData/Avatar/MALE.ZMD" : ROSEEditorBaker.DataPath + "/3DData/Avatar/FEMALE.ZMD"); // Akima : switch here too
             zmd.buildSkeleton(skeleton);
 
             BindPoses poses = ScriptableObject.CreateInstance<BindPoses>();
@@ -391,7 +403,7 @@ namespace UnityRose
 
             foreach (ActionType action in Enum.GetValues(typeof(ActionType)))
             {
-                string zmoPath = ROSEImport.GetDataPath() + "/" + Utils.FixPath(ResourceManager.Instance.GetZMOPath(weapon, action, gender));  // Assets/3ddata path
+                string zmoPath = ROSEEditorBaker.DataPath + "/" + Utils.FixPath(ResourceManager.Instance.GetZMOPath(weapon, action, gender));  // Assets/3ddata path
                 string unityPath = "Assets/Resources/Animation/" + gender.ToString() + "/" + weapon.ToString() + "/clips/" + action.ToString() + ".anim";
 
                 AnimationClip clip = new ZMO(zmoPath).buildAnimationClip(zmd);
@@ -414,7 +426,7 @@ namespace UnityRose
             {
                 string unityPath = "Assets/Resources/Animation/" + gender.ToString() + "/" + rig.ToString() + "/clips/" + motion.Key + ".anim";
 
-                AnimationClip clip = new ZMO(ROSEImport.GetDataPath() + "/" + motion.Value).buildAnimationClip(zmd);
+                AnimationClip clip = new ZMO(ROSEEditorBaker.DataPath + "/" + motion.Value).buildAnimationClip(zmd);
                 clip.name = motion.Key;
                 clip.legacy = true;
                 clip = (AnimationClip)Utils.SaveReloadAsset(clip, unityPath, ".anim");
