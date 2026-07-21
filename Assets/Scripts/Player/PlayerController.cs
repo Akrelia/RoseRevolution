@@ -7,15 +7,13 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using Network.Packets;
-using Network;
 using UnityEngine.EventSystems;
 using static RevolutionShared.Rose.Data.RoseEnums;
 
 namespace UnityRose
 {
 
-	public class PlayerController : NetworkMonoBehaviour
+	public class PlayerController : MonoBehaviour
 	{
 		public bool isMainPlayer = false;
 		public PlayerInfo playerInfo;
@@ -43,32 +41,6 @@ namespace UnityRose
 			controller = this.gameObject.GetComponent<CharacterController>();
 			destinationPosition = transform.position;
 			playerInfo.name = this.name;
-
-			base.Init();
-
-			/*
-			 // Add definitions for all packet received delegates  
-			 CharacterManager.Instance.registerCallback(CharacterOperation.GROUNDCLICK, (object obj) => {
-
-				 funcQueue.Enqueue(() => {
-					 GroundClick packet = (GroundClick)obj;
-
-					 if(packet.clientID == playerInfo.name )//&& !isMainPlayer)
-					 {
-						 destinationPosition = packet.pos;
-					 }
-				 });
-			 });
-			 */
-
-
-
-			if (isMainPlayer)
-			{
-				// Tell server main player has finished loading
-				//NetworkManager.Send(new CharLoadCompleted(playerInfo.name));
-			}
-
 		}
 
 
@@ -124,7 +96,6 @@ namespace UnityRose
 					{
 						case RuntimePlatform.IPhonePlayer:
 						case RuntimePlatform.Android:
-						case RuntimePlatform.WP8Player:
 							locate = Input.touchCount > 0;
 							break;
 						default:
@@ -162,7 +133,6 @@ namespace UnityRose
 			{
 				case RuntimePlatform.IPhonePlayer:
 				case RuntimePlatform.Android:
-				case RuntimePlatform.WP8Player:
 					screenPoint = Input.GetTouch(0).position;
 					fire = (Input.GetTouch(0).tapCount > 0) && (Input.GetTouch(0).phase == TouchPhase.Ended);
 					break;

@@ -189,13 +189,10 @@ namespace UnityRose
         /// <returns></returns>
         public object loadResource(string path)
         {
-            // was: Path.Combine(ROSEImport.GetCurrentPath(), path) - GetCurrentPath() lived
-            // on the old static ROSEImport and was never wired to RoseDataSource, which is
-            // what caused ZON.Load -> ResourceManager -> old ROSEImport.ImportTexture to
-            // resolve paths relative to the Unity project instead of the VFS root.
             path = Path.Combine(RoseDataSource.DataPath, path);
 
             DirectoryInfo dir = new DirectoryInfo(path);
+
             switch (dir.Extension)
             {
                 case ".zms":
@@ -306,8 +303,11 @@ namespace UnityRose
                 typeID = int.Parse(stb_weapon_list.Cells[weaponID][5]); // TODO: create enums for the columns and use them to look things up
                 type = weapon_type_lookup[typeID];
             }
-            catch (Exception e)
+
+            catch (Exception ex)
             {
+                Debug.Log(ex.Message);
+
                 type = WeaponType.EMPTY;
             }
 
@@ -315,11 +315,6 @@ namespace UnityRose
         }
 
 #if UNITY_EDITOR
-
-        // Everything below only ever ran in the Editor (AssetDatabase.CreateAsset,
-        // PrefabUtility, AnimationUtility baking clips to .anim files), so it stays here.
-        // Only the path source changes: ROSEImport.GetDataPath() -> ROSEEditorBaker.DataPath,
-        // which is the EditorPrefs-backed value that also keeps RoseDataSource in sync.
 
         /// <summary>
         /// Loop through all weapon types for each gender and create an animation asset and all associated clips
@@ -367,7 +362,8 @@ namespace UnityRose
             string path = "Assets/Resources/Animation/" + gender.ToString() + "/" + weapon.ToString() + "/skeleton.prefab";
             AssetDatabase.CreateAsset(poses, path.Replace("skeleton.prefab", "bindPoses.asset"));
             AssetDatabase.SaveAssets();
-            PrefabUtility.CreatePrefab(path, skeleton);
+            PrefabUtility.SaveAsPrefabAsset(skeleton, path);
+        //    PrefabUtility.CreatePrefab(path, skeleton);
         }
 
         public void GenerateAnimationAsset(GenderType gender, RigType rig, Dictionary<String, String> zmoPaths)
@@ -385,7 +381,8 @@ namespace UnityRose
             string path = "Assets/Resources/Animation/" + gender.ToString() + "/" + rig.ToString() + "/skeleton.prefab";
             AssetDatabase.CreateAsset(poses, path.Replace("skeleton.prefab", "bindPoses.asset"));
             AssetDatabase.SaveAssets();
-            PrefabUtility.CreatePrefab(path, skeleton);
+            PrefabUtility.SaveAsPrefabAsset(skeleton, path);
+        //    PrefabUtility.CreatePrefab(path, skeleton);
         }
 
 

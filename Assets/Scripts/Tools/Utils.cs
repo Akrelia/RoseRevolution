@@ -346,12 +346,12 @@ public class Utils
             rosePath = ddsPath;
             return AssetDatabase.LoadAssetAtPath<Texture2D>(ddsPath);
         }
+
         else
         {
             rosePath = pngPath;
             return AssetDatabase.LoadAssetAtPath<Texture2D>(pngPath);
         }
-        return null;
     }
 
     // Converts a rose path to a unity path and creates the directory structure of non-existent
@@ -420,7 +420,7 @@ public class Utils
         importer.filterMode = FilterMode.Trilinear;
         importer.normalmapFilter = TextureImporterNormalFilter.Standard;
         importer.convertToNormalmap = true;
-        importer.normalmap = true;
+       // importer.normalmap = true;
         //importer.isReadable = true; // Akima : fix here
 
         importer.SaveAndReimport();
@@ -466,6 +466,7 @@ public class Utils
         string texPath = "Assets/GameData/Textures/" + unityDir.Name;
         // Convert the texture name to the given extensio and create intermediate folders if  not present
         DirectoryInfo texDir = r2uDir(texPath, extension);
+
         return texDir.FullName;
     }
 

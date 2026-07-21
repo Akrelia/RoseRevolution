@@ -104,7 +104,7 @@ public static class Packets
         packet.Add(face);
         packet.Add(back);
         packet.Add(body);
-        packet.Add(gloves);
+        packet.Add(gloves); // DTO
         packet.Add(shoes);
         packet.Add(mask);
         packet.Add(hat);

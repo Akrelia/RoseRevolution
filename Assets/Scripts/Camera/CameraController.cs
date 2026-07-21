@@ -39,7 +39,6 @@ public class CameraController : MonoBehaviour
     private bool rotateBehind = false;
     private bool cameraDirty = true;
     private float pbuffer = 0.0f;       //Cooldownpuffer for SideButtons
-    private float coolDown = 0.5f;      //Cooldowntime for SideButtons 
     private Vector2 lastMousePosition;
 
     void Start()
@@ -99,6 +98,7 @@ public class CameraController : MonoBehaviour
         Vector3 desiredPosition = target.transform.position - (rotation * Vector3.forward * correctedDistance + targetOffset);
 
         bool isCorrected = false;
+
         if (Physics.Linecast(trueTargetPosition, desiredPosition, out RaycastHit collisionHit, collisionLayers))
         {
             correctedDistance = Vector3.Distance(trueTargetPosition, collisionHit.point) - offsetFromWall;
@@ -123,7 +123,9 @@ public class CameraController : MonoBehaviour
             currentDistance = Mathf.Clamp(currentDistance, minDistance, maxDistance);
 
             if (IsSettled(isCorrected))
+            {
                 cameraDirty = false;
+            }
         }
         else if (isCorrected)
         {
@@ -135,73 +137,38 @@ public class CameraController : MonoBehaviour
 
         transform.rotation = rotation;
         transform.position = position;
+
+        if (rotateBehind)
+            RotateBehindTarget();
     }
 
     void HandleOrbitInput()
     {
-        // Calculate the desired distance
-        switch (Application.platform)
+        if (GUIUtility.hotControl == 0 && Input.GetMouseButtonDown(1))
+            lastMousePosition = Input.mousePosition;
+
+        if (GUIUtility.hotControl == 0 && Input.GetMouseButton(1))
         {
-            case RuntimePlatform.IPhonePlayer:
-            case RuntimePlatform.Android:
-                if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved)
-                {
-                    Touch touch = Input.GetTouch(0);
-                    ApplyYawDelta(touch.deltaPosition.x);
-                    ApplyPitchDelta(-touch.deltaPosition.y);
-                }
+            Vector2 mousePos = Input.mousePosition;
+            Vector2 delta = mousePos - lastMousePosition;
+            lastMousePosition = mousePos;
 
-                if ((Input.touchCount == 2) && ((Input.GetTouch(0).phase == TouchPhase.Moved) || (Input.GetTouch(1).phase == TouchPhase.Moved)))
-                {
-                    // Store both touches.
-                    Touch touchZero = Input.GetTouch(0);
-                    Touch touchOne = Input.GetTouch(1);
+            if (allowMouseInputX)
+                ApplyYawDelta(delta.x);
+            else
+                RotateBehindTarget();
 
-                    // Find the position in the previous frame of each touch.
-                    Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
-                    Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
+            if (allowMouseInputY)
+                ApplyPitchDelta(-delta.y);
 
-                    // Find the magnitude of the vector (the distance) between the touches in each frame.
-                    float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
-                    float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
+            if (!lockToRearOfTarget)
+                rotateBehind = false;
+        }
 
-                    // Find the difference in the distances between each frame.
-                    float dist = prevTouchDeltaMag - touchDeltaMag;
-
-                    //float dist = Vector2.Distance( Input.touches[0].deltaPosition, Input.touches[1].deltaPosition);
-                    desiredDistance += dist * Time.deltaTime * (zoomRate / 50.0f) * Mathf.Abs(desiredDistance);
-                    cameraDirty = true;
-                }
-                break;
-
-            default:
-                if (GUIUtility.hotControl == 0 && Input.GetMouseButtonDown(1))
-                    lastMousePosition = Input.mousePosition;
-
-                if (GUIUtility.hotControl == 0 && Input.GetMouseButton(1))
-                {
-                    Vector2 mousePos = Input.mousePosition;
-                    Vector2 delta = mousePos - lastMousePosition;
-                    lastMousePosition = mousePos;
-
-                    if (allowMouseInputX)
-                        ApplyYawDelta(delta.x);
-                    else
-                        RotateBehindTarget();
-
-                    if (allowMouseInputY)
-                        ApplyPitchDelta(-delta.y);
-
-                    if (!lockToRearOfTarget)
-                        rotateBehind = false;
-                }
-
-                if (Mathf.Abs(Input.GetAxis("Mouse ScrollWheel")) > 0.0001f)
-                {
-                    desiredDistance -= Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * zoomRate * Mathf.Abs(desiredDistance);
-                    cameraDirty = true;
-                }
-                break;
+        if (Mathf.Abs(Input.GetAxis("Mouse ScrollWheel")) > 0.0001f)
+        {
+            desiredDistance -= Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * zoomRate * Mathf.Abs(desiredDistance);
+            cameraDirty = true;
         }
     }
 

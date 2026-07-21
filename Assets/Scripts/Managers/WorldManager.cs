@@ -13,7 +13,6 @@ public class WorldManager : MonoBehaviour
     [Header("Prefabs")]
     public GameObject mainPlayer;
     public GameObject mobSpawner;
-    public GameObject playerSpawner;
     public GameObject entityGUI;
     [Header("Components")]
     public CameraController cameraController;
@@ -84,8 +83,7 @@ public class WorldManager : MonoBehaviour
 
         entity.transform.parent = mobSpawner.transform;
 
-        entity.transform.localPosition = position / 100F;
-        entity.transform.localPosition -= new Vector3(5200, 0, 5200);
+        entity.transform.position = RoseToUnity(position);
         entity.transform.rotation = Quaternion.identity; ;
 
         var roseNpc = entity.AddComponent<RoseNpc>();
@@ -94,6 +92,13 @@ public class WorldManager : MonoBehaviour
 
         return roseNpc;
     }
+
+
+    public static Vector3 RoseToUnity(Vector3 rose)
+    {
+        return new Vector3(10400 - rose.z, rose.y, rose.x);
+    }
+
 
     public static T LoadNPCAssetStartingWith<T>(string prefix) where T : ScriptableObject
     {

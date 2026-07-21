@@ -71,13 +71,19 @@ public class SandboxManager : MonoBehaviour
     [PacketEvent(ServerCommands.SandboxConnectionResponse)]
     public void Connected(Client client, PacketIn packet)
     {
-        var mainPlayer = worldManager.SpawnPlayer(true, gender, playerName, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield, spawnPosition);
-
-        guiController.characterPreview.SetCharacterInformations(playerName, 1200, 1200, 960, 960, 1, "Visitor");
-
         var id = packet.GetLong();
         var name = packet.GetString();
         var mapID = packet.GetInt();
+
+        var x = packet.GetFloat();
+        var y = packet.GetFloat();
+        var z = packet.GetFloat();
+        
+        var mapSpawn = new Vector3(x, y, z);
+
+        var mainPlayer = worldManager.SpawnPlayer(true, gender, playerName, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield, WorldManager.RoseToUnity(mapSpawn));
+
+        guiController.characterPreview.SetCharacterInformations(playerName, 1200, 1200, 960, 960, 1, "Visitor");
 
         mainPlayer.charModel.name = name;
 

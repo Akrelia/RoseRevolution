@@ -8,8 +8,10 @@ using UnityEngine.UI;
 /// <summary>
 /// Debug console.
 /// </summary>
-public class DebugConsole : MonoBehaviour
+public class DebugConsole : BaseWindow
 {
+    [Header("Display")]
+    public GameObject display;
     [Header("Colors")]
     public Color timeStampColor;
     public Color errorColor;
@@ -50,6 +52,11 @@ public class DebugConsole : MonoBehaviour
 
         PushButton(defaultButton);
         ShowPanel(defaultPanel);
+    }
+
+    public void ToggleDisplay()
+    {
+        display.SetActive(!display.activeSelf);
     }
 
     public void PushButton(Button button)
@@ -161,6 +168,7 @@ public static class RoseDebug
         logEvent?.Invoke(entry);
     }
 
+    public static void LogException(Exception exception) => LogError($"Exception: {exception.Message}\n{exception.StackTrace}");
     public static void LogError(string message) => AddLog(errorLogs, message, OnErrorLog);
     public static void LogWarning(string message) => AddLog(warningLogs, message, OnWarningLog);
     public static void LogPacket(string message) => AddLog(packetLogs, message, OnPacketLog);

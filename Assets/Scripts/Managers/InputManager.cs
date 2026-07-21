@@ -7,7 +7,7 @@ public class InputManager : MonoBehaviour
 {
     [Header("Shortcuts")]
     public KeyCode toggleConsoleKey;
-    public KeyCode toggleGMPanel;
+    public KeyCode toggleDebug;
     [Header("Components")]
     public GUIController guiController;
 
@@ -18,12 +18,12 @@ public class InputManager : MonoBehaviour
     {
         if (Input.GetKeyDown(toggleConsoleKey))
         {
-            guiController.debugConsole.gameObject.SetActive(!guiController.debugConsole.gameObject.activeSelf);
+            guiController.debugConsole.ToggleDisplay(); // Put this in inspector
         }
 
-        if (Input.GetKeyDown(toggleGMPanel))
+        if (Input.GetKeyDown(toggleDebug))
         {
-            guiController.gmPanel.gameObject.SetActive(!guiController.gmPanel.gameObject.activeSelf);
+            guiController.monsterViewerWindow.gameObject.SetActive(!guiController.monsterViewerWindow.gameObject.activeSelf);
         }
     }
 }

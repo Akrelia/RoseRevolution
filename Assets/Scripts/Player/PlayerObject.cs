@@ -1,7 +1,8 @@
 using UnityEngine;
 using System.Collections;
+using System;
 
-[System.Serializable]
+[Serializable]
 public struct PlayerInfo
 {
 	public enum Job1Type // TODO : remove
@@ -27,7 +28,7 @@ public struct PlayerInfo
 		numJobTypes
 	}
 
-	public new string name;
+	public string name;
 
 	public int level;
 	public bool male;       // true = male. false = female

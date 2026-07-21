@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
+using UnityRose.Import;
 
 namespace UnityRose.RoseFile
 {
@@ -100,7 +101,7 @@ namespace UnityRose.RoseFile
             }
             catch (IOException ex)
             {
-
+                RoseDebug.LogError(ex.Message);
             }
 
             return value;
@@ -133,9 +134,10 @@ namespace UnityRose.RoseFile
                     throw new IOException("Read<T>(int size) : Unkown Type!");
                 }
             }
+
             catch (IOException ex)
             {
-                //System.Windows.Forms.MessageBox.Show(ex.Message, "IOException");
+                RoseDebug.LogException(ex);
             }
 
             return value;

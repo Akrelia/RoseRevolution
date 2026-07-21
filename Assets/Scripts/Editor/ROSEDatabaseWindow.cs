@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEditor;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace UnityRose.ImportEditor
 {
@@ -132,41 +135,30 @@ namespace UnityRose.ImportEditor
             if (map == null)
             {
                 Debug.LogWarning($"Map {id} not found.");
-
                 return;
             }
 
-            var root = new JObject();
-
-            root["ID"] = map.id;
-            root["Name"] = map.name;
-
-            var spawns = new JArray();
-
-            if (map.spawnPoints != null)
-            {
-                foreach (var spawn in map.spawnPoints)
-                {
-                    spawns.Add(new JObject
-                    {
-                        ["Name"] = spawn.name,
-                        ["X"] = spawn.position.x,
-                        ["Y"] = spawn.position.y,
-                        ["Z"] = spawn.position.z
-                    });
-                }
-            }
-
-            root["SpawnPoints"] = spawns;
+            var dto = new RevolutionShared.JSON.MapData(
+                map.id,
+                map.name,
+                map.spawnPoints?.Select(x => new RevolutionShared.JSON.MapSpawn(
+                    x.name,
+                    x.position.x,
+                    x.position.y,
+                    x.position.z
+                )).ToList() ?? new List<RevolutionShared.JSON.MapSpawn>()
+            );
 
             string path = EditorUtility.SaveFilePanel("Export Map", Application.dataPath, map.name, "json");
 
-            if (!string.IsNullOrEmpty(path))
-            {
-                System.IO.File.WriteAllText(path, root.ToString(Newtonsoft.Json.Formatting.Indented));
+            if (string.IsNullOrEmpty(path))
+                return;
 
-                Debug.Log($"Exported map {map.id} : {path}");
-            }
+            string json = JsonConvert.SerializeObject(dto, Formatting.Indented);
+
+            File.WriteAllText(path, json);
+
+            Debug.Log($"Exported map {map.id} : {path}");
         }
 
         private void ExportMonsterSpawns(int mapID)

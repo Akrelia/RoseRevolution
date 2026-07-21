@@ -97,14 +97,14 @@ public partial class PacketHandler
                         {
                             await (Task)method.Invoke(instance, new object[] { client, packet });
 
-                        //    NetworkEvents.Raise((ServerCommands)attribute.Value, client, packet);
+                            //    NetworkEvents.Raise((ServerCommands)attribute.Value, client, packet);
                         };
 
                         if (!actions.ContainsKey(attribute.Value))
                         {
                             actions[attribute.Value] = action; // Call the action
 
-                          //  NetworkEvents.RegisterEvent((ServerCommands)attribute.Value); // Register the event
+                            //  NetworkEvents.RegisterEvent((ServerCommands)attribute.Value); // Register the event
 
                         }
 
@@ -209,7 +209,15 @@ public partial class PacketHandler
     {
         if (actions.ContainsKey(packet.Command))
         {
-            await actions[packet.Command](client, packet);
+            try
+            {
+                await actions[packet.Command](client, packet);
+            }
+
+            catch (Exception ex)
+            {
+                RoseDebug.LogError($"Error while handling packet {((ServerCommands)packet.Command).GetName()} : {ex.Message}\n{ex.StackTrace}");
+            }
         }
 
         else
@@ -219,7 +227,15 @@ public partial class PacketHandler
 
         if (NetworkEvents.events.ContainsKey((ServerCommands)packet.Command))
         {
-            NetworkEvents.Raise((ServerCommands)packet.Command,client,packet);
+            try
+            {
+                NetworkEvents.Raise((ServerCommands)packet.Command, client, packet);
+            }
+
+            catch (Exception ex)
+            {
+                RoseDebug.LogError($"Error while raising packet event {((ServerCommands)packet.Command).GetName()} : {ex.Message}\n{ex.StackTrace}");
+            }
         }
 
         else

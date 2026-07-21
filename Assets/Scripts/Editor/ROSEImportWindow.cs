@@ -382,7 +382,7 @@ namespace UnityRose.ImportEditor
 
             if (existing != null)
             {
-                existing.name = name;
+                existing.name = displayName;
                 existing.prefab = prefab;
                 existing.spawnPoints = roseMap != null ? roseMap.spawns : new List<SpawnData>();
             }

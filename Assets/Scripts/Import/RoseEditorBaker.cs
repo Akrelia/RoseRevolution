@@ -393,19 +393,15 @@ namespace UnityRose.ImportEditor
             {
                 var animator = root.AddComponent<Animator>();
 
-                // A Generic Animator (no Humanoid retargeting) still needs an Avatar - without
-                // one it has no mapping from the clip's bone paths to the actual Transforms
-                // under `root`, so it runs the controller/state machine but visibly does
-                // nothing. "b1_pelvis" is this skeleton's root bone (parent == -1 in
-                // npc.skeleton.bones), so it's the motion root Unity needs.
                 var avatar = AvatarBuilder.BuildGenericAvatar(root, "b1_pelvis");
+
                 avatar.name = $"{npc.npcName}_Avatar";
 
                 if (!avatar.isValid)
                 {
-                    Debug.LogError($"Failed to build a valid avatar for NPC {npc.npcName} " +
-                                    "(check that 'b1_pelvis' exists as a child Transform under root).");
+                    Debug.LogError($"Failed to build a valid avatar for NPC {npc.npcName} " + "(check that 'b1_pelvis' exists as a child Transform under root).");
                 }
+
                 else
                 {
                     var avatarPath = $"Assets/Prefabs/Npcs/Avatars/{npc.id}.asset";
@@ -429,6 +425,10 @@ namespace UnityRose.ImportEditor
                 animator.runtimeAnimatorController = controller;
 
             }
+
+            float scale = npc.monsterData.size / 100F;
+
+            root.transform.localScale = new Vector3(scale, scale, scale);
 
             var npcComponent = root.AddComponent<RoseNpc>();
             npcComponent.data = npc;
@@ -508,7 +508,7 @@ namespace UnityRose.ImportEditor
             npc.skeleton = BakeSkeleton(chr.SkeletonFiles[chrObj.ID]);
 
 
-            var zsc = new ZscImporter(Path.Combine(DataPath, "3DDATA/NPC/PART_NPC.ZSC"),"Assets/NpcParts");
+            var zsc = new ZscImporter(Path.Combine(DataPath, "3DDATA/NPC/PART_NPC.ZSC"), "Assets/NpcParts");
 
 
             foreach (var zscPart in chrObj.Objects)
@@ -557,12 +557,12 @@ namespace UnityRose.ImportEditor
             if (test == null)
             {
                 Debug.LogError($"Failed to build prefab for NPC {npcIdx} - {stbName}");
+
                 return null;
             }
 
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(test, prefabPath);
-
 
             Debug.Log($"NPC prefab created: {prefabPath}");
 

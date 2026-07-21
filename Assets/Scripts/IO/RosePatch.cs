@@ -167,7 +167,11 @@ namespace UnityRose.Game
                         atlasTexHash.Add(texPath1, tex1);
                         textures.Add(tex1);
                     }
-                    catch (Exception e) { }
+
+                    catch (Exception ex)
+                    {
+                        Debug.Log(ex.Message);
+                    }
 
                     try
                     {
@@ -175,7 +179,11 @@ namespace UnityRose.Game
                         atlasTexHash.Add(texPath2, tex2);
                         textures.Add(tex2);
                     }
-                    catch (Exception e) { }
+                    
+                    catch (Exception ex)
+                    {
+                        Debug.Log(ex.Message);
+                    }
                 }
             }
         }
@@ -490,7 +498,7 @@ namespace UnityRose.Game
                             Texture2D lightTexture = SaveTexture(RoseTextureImporter.Import(lightPath), lightPath, shared: false);
                             mat.SetTexture("_LightTex", lightTexture);
                         }
-                        
+
                         mat = SaveMaterial(mat, $"{texPath}_{(hasLitPart ? lightPath : "nolit")}_{Shader.Find(realTimeBaking ? "Standard" : "Custom/ObjectShader").name}");
 
                         GameObject modelObject = new GameObject();

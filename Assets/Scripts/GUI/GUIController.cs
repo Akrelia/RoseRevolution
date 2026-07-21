@@ -14,4 +14,5 @@ public class GUIController : MonoBehaviour
     public CharacterPreview characterPreview;
     public DebugConsole debugConsole;
     public GMPanel gmPanel;
+    public MonsterViewerWindow monsterViewerWindow;
 }

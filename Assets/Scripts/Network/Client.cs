@@ -66,7 +66,7 @@ public class Client
             }
         }
 
-        catch (Exception ex)
+        catch (SocketException ex)
         {
             RoseDebug.LogError($"Client crashed : {ex.Message}{ex.StackTrace}");
         }
