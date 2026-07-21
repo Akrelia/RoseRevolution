@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 using UnityRose.Formats;
 
@@ -8,9 +9,15 @@ namespace UnityRose.Import
     /// <summary>
     /// Where to find the raw ROSE 3DDATA folder. Set this once at startup.
     /// </summary>
-    public static class RoseDataSource
+    public static class RoseDataSource // TODO : Fuse this with the otehr one
     {
-        public static string DataPath { get; set; } = "";
+        private const string DataPathKey = "ROSE_DataPath";
+
+        public static string DataPath
+        {
+            get => EditorPrefs.GetString(DataPathKey, "");
+            set => EditorPrefs.SetString(DataPathKey, value);
+        }
     }
 
     public static class RoseMeshImporter

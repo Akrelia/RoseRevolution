@@ -105,7 +105,7 @@ public class SandboxManager : MonoBehaviour
 
         catch (Exception ex)
         {
-            Debug.Log(ex.Message);
+            RoseDebug.LogException(ex);
         }
     }
 

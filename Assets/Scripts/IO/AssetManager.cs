@@ -29,7 +29,7 @@ public class AssetManager
     /// </summary>
     public void Load()
     {
-        LoadIcons();
+      //  LoadIcons();
       //  LoadItemTypes();
     }
 

@@ -2652,7 +2652,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1ec9e88d1afb654a8c1dd9e7b938e4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapDatabase: {fileID: 11400000, guid: 56134fb9ba4fee54a8918d445f1e59f0, type: 2}
+  mapDatabase: {fileID: 11400000, guid: 65dbb7d06ae2d47408df2c173317ac62, type: 2}
   address: 192.168.1.198
   port: 27350
   playerName: '[DEV]Akima'
@@ -3262,6 +3262,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Monster Viewer Window
+      objectReference: {fileID: 0}
+    - target: {fileID: 2459331726184469483, guid: dac33378924a7694985db24993060a8c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4316920534030093593, guid: dac33378924a7694985db24993060a8c,
         type: 3}

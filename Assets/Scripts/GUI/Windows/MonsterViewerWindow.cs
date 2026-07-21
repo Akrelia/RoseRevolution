@@ -38,9 +38,12 @@ public class MonsterViewerWindow : MonoBehaviour
     /// <param name="index">Curret index.</param>
     public void ChangeModel(int index)
     {
-        var npcData = npcDatabase.npcs[index];
+        if (npcDatabase != null)
+        {
+            var npcData = npcDatabase.npcs[index];
 
-        DisplayModel(npcData);
+            DisplayModel(npcData);
+        }
     }
 
     /// <summary>
