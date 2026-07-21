@@ -300,7 +300,7 @@ namespace UnityRose.ImportEditor
 
                     RoseMapImporter.ImportMap(i);
 
-                    string prefabPath = $"Assets/Data/Rose/{name}.prefab";
+                    string prefabPath = $"{ImportPaths.Maps.Prefabs}/{name}.prefab";
 
                     var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
 
@@ -338,11 +338,11 @@ namespace UnityRose.ImportEditor
         {
             var mapData = ROSEMapListCache.Get();
 
-            string folder = "Assets/Data/Databases";
+            string folder = ImportPaths.Database.Root;
 
             if (!AssetDatabase.IsValidFolder(folder))
             {
-                AssetDatabase.CreateFolder("Assets/Data", "Databases");
+                AssetDatabase.CreateFolder(ImportPaths.Root, "Databases");
             }
 
             string path = $"{folder}/RoseMapDatabase.asset";
@@ -365,7 +365,7 @@ namespace UnityRose.ImportEditor
                 name = "Map_" + id;
             }
 
-            string prefabPath = $"Assets/Prefabs/Rose/{prefabName}.prefab";
+            string prefabPath = $"{ImportPaths.Maps.Prefabs}/{prefabName}.prefab";
 
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
 
@@ -424,11 +424,11 @@ namespace UnityRose.ImportEditor
 
         private void RegisterNpcInInternalDB(GameObject prefab, RoseNPCInfos npc)
         {
-            string folder = "Assets/Data/Databases";
+            string folder = ImportPaths.Database.Root;
 
             if (!AssetDatabase.IsValidFolder(folder))
             {
-                AssetDatabase.CreateFolder("Assets/Data", "Databases");
+                AssetDatabase.CreateFolder(ImportPaths.Root, "Databases");
             }
 
             string path = $"{folder}/RoseNpcDatabase.asset";
@@ -590,7 +590,7 @@ namespace UnityRose.ImportEditor
 
             string mapName = Path.GetFileNameWithoutExtension(Utils.FixPath(mapData.stb.Cells[mapID][1].ToString()));
 
-            string prefabPath = $"Assets/Prefabs/Rose/{mapName}.prefab";
+            string prefabPath = $"{ImportPaths.Maps.Prefabs}/{mapName}.prefab";
 
             return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) != null;
         }

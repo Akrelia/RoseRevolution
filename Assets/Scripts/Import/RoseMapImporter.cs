@@ -7,6 +7,10 @@ using UnityRose.Formats;
 using UnityRose.Game;
 using Newtonsoft.Json.Linq;
 using static UnityRose.Formats.ZON;
+using UnityEngine.Rendering.Universal;
+using UnityRose.ImportEditor;
+
+
 
 
 #if UNITY_EDITOR
@@ -131,7 +135,7 @@ namespace UnityRose.Import
 
             AssetDatabase.SaveAssets();
 
-            var prefabPath = $"Assets/Prefabs/Rose/{mapName}.prefab";
+            var prefabPath = $"{ImportPaths.Maps.Prefabs}/{mapName}.prefab";
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(map, prefabPath);
 

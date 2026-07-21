@@ -145,16 +145,17 @@ namespace UnityRose.Import
         public static Material Build(string texturePath, string shaderName = "Universal Render Pipeline/Unlit")
         {
             var shader = Shader.Find(shaderName);
+         
             if (shader == null)
             {
-                Debug.LogError($"RoseMaterialImporter: shader '{shaderName}' not found. " +
-                                "Add it to Project Settings > Graphics > Always Included Shaders " +
-                                "or it will be stripped from builds and Shader.Find will fail there.");
+                Debug.LogError($"RoseMaterialImporter: shader '{shaderName}' not found. " + "Add it to Project Settings > Graphics > Always Included Shaders " + "or it will be stripped from builds and Shader.Find will fail there.");
+            
                 return null;
             }
 
             var mat = new Material(shader);
             var tex = RoseTextureImporter.Import(texturePath);
+        
             if (tex != null)
                 mat.SetTexture("_BaseMap", tex);
 
@@ -207,7 +208,7 @@ namespace UnityRose.Import
                 {
                     mesh = ImportMesh(part.ModelID),
                     material = ImportMaterial(part.TextureID),
-                    boneIndex = (short)part.BoneIndex   // était : -1 en dur
+                    boneIndex = (short)part.BoneIndex   // Akima : was -1 hardcoded
                 });
             }
 

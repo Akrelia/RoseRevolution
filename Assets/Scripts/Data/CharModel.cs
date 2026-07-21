@@ -88,47 +88,7 @@ namespace UnityRose
 
 		public CharModel()
 		{
-			LoadModel("Player Character", GenderType.MALE, WeaponType.EMPTY, Job1Type.VISITOR, Job2Type.NONE, 1, new Vector3(0, 0, 0), new Stats(), new Equip());
-		}
-
-		public CharModel(string name)
-		{
-			LoadModel(name, GenderType.MALE, WeaponType.EMPTY, Job1Type.VISITOR, Job2Type.NONE, 1, new Vector3(0, 0, 0), new Stats(), new Equip());
-		}
-
-		public CharModel(GenderType gender)
-		{
-			LoadModel("Player Character", gender, WeaponType.EMPTY, Job1Type.VISITOR, Job2Type.NONE, 1, new Vector3(0, 0, 0), new Stats(), new Equip());
-		}
-
-		public CharModel(GenderType gender, WeaponType weapon)
-		{
-			LoadModel("Player Character", gender, weapon, Job1Type.VISITOR, Job2Type.NONE, 1, new Vector3(0, 0, 0), new Stats(), new Equip());
-		}
-
-		public CharModel(string name, GenderType gender)
-		{
-			LoadModel(name, gender, WeaponType.EMPTY, Job1Type.VISITOR, Job2Type.NONE, 1, new Vector3(0, 0, 0), new Stats(), new Equip());
-		}
-
-		public CharModel(string name, GenderType gender, WeaponType weapon)
-		{
-			LoadModel(name, gender, weapon, Job1Type.VISITOR, Job2Type.NONE, 1, new Vector3(0, 0, 0), new Stats(), new Equip());
-		}
-
-		public CharModel(string name, GenderType gender, WeaponType weapon, Job1Type job1, Job2Type job2, int level)
-		{
-			LoadModel(name, gender, weapon, job1, job2, level, new Vector3(0, 0, 0), new Stats(), new Equip());
-		}
-
-		public CharModel(string name, GenderType gender, WeaponType weapon, Job1Type job1, Job2Type job2, int level, Vector3 pos)
-		{
-			LoadModel(name, gender, weapon, job1, job2, level, pos, new Stats(), new Equip());
-		}
-
-		public CharModel(string name, GenderType gender, WeaponType weapon, Job1Type job1, Job2Type job2, int level, Vector3 pos, Stats stats)
-		{
-			LoadModel(name, gender, weapon, job1, job2, level, pos, stats, new Equip());
+			LoadModel("Player Character (P)", GenderType.MALE, WeaponType.EMPTY, Job1Type.VISITOR, Job2Type.NONE, 1, new Vector3(0, 0, 0), new Stats(), new Equip());
 		}
 
 		public void LoadModel(string name, GenderType gender, WeaponType weapon, Job1Type job1, Job2Type job2, int level, Vector3 pos, Stats stats, Equip equip)

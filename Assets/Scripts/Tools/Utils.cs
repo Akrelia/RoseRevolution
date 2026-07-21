@@ -354,6 +354,29 @@ public class Utils
         }
     }
 
+    public static void EnsureFolder(string assetPath)
+    {
+        string folder = Path.GetDirectoryName(assetPath)?.Replace("\\", "/");
+
+        if (string.IsNullOrEmpty(folder))
+            return;
+
+        string[] parts = folder.Split('/');
+        string current = parts[0];
+
+        for (int i = 1; i < parts.Length; i++)
+        {
+            string next = current + "/" + parts[i];
+
+            if (!AssetDatabase.IsValidFolder(next))
+            {
+                AssetDatabase.CreateFolder(current, parts[i]);
+            }
+
+            current = next;
+        }
+    }
+
     // Converts a rose path to a unity path and creates the directory structure of non-existent
     public static DirectoryInfo r2uDir(string rosePath, string extension = ".asset")
     {

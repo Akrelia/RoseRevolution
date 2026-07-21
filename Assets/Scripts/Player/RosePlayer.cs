@@ -94,7 +94,6 @@ public class RosePlayer : IPointerClickHandler
 
         player.transform.position = charModel.pos;
         controller.SetAnimationStateMachine(charModel.rig, charModel.state);
-
     }
 
     public void Destroy()

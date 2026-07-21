@@ -95,9 +95,12 @@ public class SandboxManager : MonoBehaviour
         {
             var map = mapDatabase.GetMapById(mapID);
 
-            Instantiate(map.prefab);
+            if (map != null)
+            {
+                Instantiate(map.prefab);
 
-            RoseDebug.Log($"{map.name} has been loaded");
+                RoseDebug.Log($"{map.name} has been loaded");
+            }
         }
 
         catch (Exception ex)

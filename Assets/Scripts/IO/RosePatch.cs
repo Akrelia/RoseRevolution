@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityRose.Formats;
 using System.Linq;
 using UnityRose.Import;
+using UnityRose.ImportEditor;
 
 namespace UnityRose.Game
 {
@@ -15,8 +16,6 @@ namespace UnityRose.Game
     {
         private const bool realTimeBaking = false;
         private const bool blendNormals = false;
-
-        private const string DataRoot = "Assets/Data/Patchs";
 
         public DirectoryInfo m_assetDir { get; set; }
         public DirectoryInfo m_unityAssetDir { get; set; }
@@ -51,7 +50,6 @@ namespace UnityRose.Game
         private static readonly HashSet<string> createdFolders = new HashSet<string>();
 
         private string groundLight;
-        private string patchFolder; // Assets/Data/Patchs/<mapName_or_dir>/<patchName>
 
         public RosePatch()
         {
@@ -69,7 +67,6 @@ namespace UnityRose.Game
             this.m_Row = 0;
             this.m_isValid = false;
             this.center = new Vector2(0.0f, 0.0f);
-
 
             if (assetDir.Exists)
             {
@@ -101,10 +98,7 @@ namespace UnityRose.Game
             else
                 m_isValid = false;
 
-            // e.g. Assets/Data/Patchs/EJT01/1_1
             mapName = assetDir.Parent != null ? assetDir.Parent.Name : "UnknownMap";
-
-            patchFolder = $"{DataRoot}/{mapName}/{m_name}";
         }
 
         public RosePatch(DirectoryInfo assetDir, ZON zon)
@@ -199,7 +193,7 @@ namespace UnityRose.Game
             return ImportInternal(terrainParent, objectsParent, atlas, atlas_normal, atlasRectHash);
         }
 
-        private bool ImportInternal(Transform terrainParent, Transform objectsParent, Texture2D atlas, Texture2D atlas_normal, Dictionary<string, Rect> atlasRectHash)
+        private bool ImportInternal(Transform terrainParent, Transform objectsParent, Texture2D atlas, Texture2D atlas_normal, Dictionary<string, Rect> atlasRectHash, bool blendNormals = false)
         {
             int nVertices = 64 * 64 * 4;
             Vector3[] vertices = new Vector3[nVertices];
@@ -583,7 +577,7 @@ namespace UnityRose.Game
             }
 
             string folder = key.Contains("_Ground") ? MapMeshFolder : SharedMeshFolder;
-            EnsureFolder($"{folder}/dummy.asset");
+            EnsureCachedFolder($"{folder}/dummy.asset");
 
             string safeName = SafeFileName(cacheKey);
             string path = $"{folder}/{safeName}.asset";
@@ -614,7 +608,7 @@ namespace UnityRose.Game
             }
 
             string folder = key.Contains("Ground") || key.Contains("Lightmap") ? MapMaterialFolder : SharedMaterialFolder;
-            EnsureFolder($"{folder}/dummy.mat");
+            EnsureCachedFolder($"{folder}/dummy.mat");
 
             string safeName = SafeFileName(key);
             string path = $"{folder}/{safeName}.mat";
@@ -650,7 +644,7 @@ namespace UnityRose.Game
                 return existing;
             }
 
-            EnsureFolder(path);
+            EnsureCachedFolder(path);
             AssetDatabase.CreateAsset(tex, path);
             TextureCache[path] = tex;
             return tex;
@@ -665,7 +659,7 @@ namespace UnityRose.Game
                 return cached;
 
             string folder = "Assets/Data/Animations";
-            EnsureFolder($"{folder}/dummy.anim");
+            EnsureCachedFolder($"{folder}/dummy.anim");
 
             string safeName = SafeFileName(key);
             string path = $"{folder}/{safeName}.anim";
@@ -685,7 +679,7 @@ namespace UnityRose.Game
         private static string SafeFileName(string key) =>
             key.Replace("\\", "_").Replace("/", "_").Replace(":", "_");
 
-        private static void EnsureFolder(string assetPath)
+        public static void EnsureCachedFolder(string assetPath) // TODO : Use the one from Utils and check if the cache still needed 
         {
             string folder = Path.GetDirectoryName(assetPath)?.Replace("\\", "/");
 
@@ -714,15 +708,15 @@ namespace UnityRose.Game
             createdFolders.Add(folder);
         }
 
-        private string MapRoot => $"Assets/Data/Rose/{mapName}";
+        private string MapRoot => $"{ImportPaths.Maps.Root}/{mapName}";
 
         private string MapMeshFolder => $"{MapRoot}/Meshes";
 
         private string MapMaterialFolder => $"{MapRoot}/Materials";
 
-        private string SharedMeshFolder => "Assets/Data/Shared/Meshes";
+        private string SharedMeshFolder => $"{ImportPaths.Maps.Root}/Shared/Meshes";
 
-        private string SharedMaterialFolder => "Assets/Data/Shared/Materials";
+        private string SharedMaterialFolder => $"{ImportPaths.Maps.Root}/Shared/Materials";
     }
 
 

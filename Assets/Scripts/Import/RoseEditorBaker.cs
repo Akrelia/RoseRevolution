@@ -11,9 +11,61 @@ using System.Linq;
 using UnityEditor.Animations;
 using RevolutionShared.Rose.Data.NPC;
 using static RevolutionShared.Rose.Data.RoseEnums;
+using static UnityRose.Formats.IFO;
+using UnityRose.Game;
 
 namespace UnityRose.ImportEditor
 {
+    public static class ImportPaths
+    {
+        public const string Root = "Assets/GameData";
+
+        public static class Database
+        {
+            public const string Root = ImportPaths.Root + "/Databases";
+        }
+
+        public static class NPC
+        {
+            public const string Root = ImportPaths.Root + "/NPC";
+            public const string Data = NPC.Root + "/Data";
+            public const string Prefabs = NPC.Root + "/Prefabs";
+            public const string Materials = NPC.Root + "/Materials";
+            public const string Parts = NPC.Root + "/Parts";
+            public const string Animations = NPC.Root + "/Animations";
+            public const string Avatars = NPC.Root + "/Avatars";
+            public const string Controllers = NPC.Root + "/Controllers";
+        }
+
+        public static class Player
+        {
+            public const string Root = ImportPaths.Root + "/Player";
+            public const string Prefabs = Player.Root + "/Prefabs";
+        }
+
+        public static class Maps
+        {
+            public const string Root = ImportPaths.Root + "/Maps";
+            public const string Data = Maps.Root + "/Data";
+            public const string Patches = Maps.Root + "/Patches";
+            public const string Prefabs = Maps.Root + "/Prefabs";
+            public const string Chunks = Maps.Root + "/Chunks";
+        }
+
+        public static class Items
+        {
+            public const string Root = ImportPaths.Root + "/Items";
+            public const string Data = Items.Root + "/Data";
+            public const string Prefabs = Items.Root + "/Prefabs";
+        }
+
+        public static class Icons
+        {
+            public const string Root = ImportPaths.Root + "/Icons";
+            public const string Data = Icons.Root + "/Data";
+        }
+    }
+
     public static class ROSEEditorBaker
     {
         private const string DataPathKey = "ROSE_DataPath";
@@ -30,21 +82,13 @@ namespace UnityRose.ImportEditor
 
         public static void ClearData()
         {
-            ClearUData();
-            System.IO.File.Delete("Assets/GameData.meta");
-            if (Directory.Exists("Assets/GameData"))
-                Directory.Delete("Assets/GameData", true);
-            AssetDatabase.Refresh();
-        }
+            File.Delete("Assets/GameData.meta");
 
-        public static void ClearUData()
-        {
-            System.IO.File.Delete("Assets/MapObjects.meta");
-            System.IO.File.Delete("Assets/NpcParts.meta");
-            System.IO.File.Delete("Assets/Npcs.meta");
-            if (Directory.Exists("Assets/MapObjects")) Directory.Delete("Assets/MapObjects", true);
-            if (Directory.Exists("Assets/NpcParts")) Directory.Delete("Assets/NpcParts", true);
-            if (Directory.Exists("Assets/Npcs")) Directory.Delete("Assets/Npcs", true);
+            if (Directory.Exists(ImportPaths.Root))
+            {
+                Directory.Delete(ImportPaths.Root, true);
+            }
+
             AssetDatabase.Refresh();
         }
 
@@ -54,7 +98,8 @@ namespace UnityRose.ImportEditor
             var dirPath = Path.GetDirectoryName(rosePath);
             var pathName = dirPath.Length > 7 ? dirPath.Substring(7) : dirPath; // strip "3DDATA/"
             var meshName = Path.GetFileNameWithoutExtension(rosePath);
-            return Utils.CombinePath("Assets/GameData", pathName, meshName + unityExt);
+
+            return Utils.CombinePath(ImportPaths.Root, pathName, meshName + unityExt);
         }
 
         public static Mesh BakeMesh(string rosePath)
@@ -84,6 +129,7 @@ namespace UnityRose.ImportEditor
             AssetDatabase.CreateAsset(skel, assetPath);
             EditorUtility.SetDirty(skel);
             AssetDatabase.SaveAssets();
+
             return AssetDatabase.LoadAssetAtPath<RoseSkeletonData>(assetPath);
         }
 
@@ -95,11 +141,9 @@ namespace UnityRose.ImportEditor
 
             Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
             AssetDatabase.CreateAsset(clip, assetPath);
+
             return clip;
         }
-
-        // ---- Textures: kept on the original copy+import path (better than a hand-rolled
-        //      DDS reader for anything that ships in the build) ----
 
         public static Texture2D BakeTexture(string rosePath)
         {
@@ -108,6 +152,7 @@ namespace UnityRose.ImportEditor
             if (!File.Exists(fullPath))
             {
                 Debug.LogWarning("Could not find referenced texture: " + fullPath);
+
                 return null;
             }
 
@@ -117,6 +162,7 @@ namespace UnityRose.ImportEditor
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(texPath));
                 File.Copy(fullPath, texPath);
+
                 AssetDatabase.ImportAsset(texPath, ImportAssetOptions.ForceSynchronousImport);
             }
 
@@ -127,6 +173,7 @@ namespace UnityRose.ImportEditor
             if (texture == null)
             {
                 Debug.LogError("Texture still null after import: " + texPath);
+
                 return null;
             }
 
@@ -137,13 +184,9 @@ namespace UnityRose.ImportEditor
         {
             var zscName = Path.GetFileNameWithoutExtension(pathZ);
 
-            var matFolder = Path.Combine("Assets/NpcMaterials", zscName);
+            var matFolder = Path.Combine(ImportPaths.NPC.Materials, zscName);
 
-            var matPath = Path.Combine(
-                matFolder,
-                "Mat_" + materialIdx + ".mat"
-            ).Replace("\\", "/");
-
+            var matPath = Path.Combine(matFolder, "Mat_" + materialIdx + ".mat").Replace("\\", "/");
 
             var existing = AssetDatabase.LoadAssetAtPath<Material>(matPath);
 
@@ -155,6 +198,7 @@ namespace UnityRose.ImportEditor
                     return existing;
 
                 Debug.LogWarning($"Material exists but missing texture: {matPath}");
+
                 AssetDatabase.DeleteAsset(matPath);
             }
 
@@ -193,8 +237,6 @@ namespace UnityRose.ImportEditor
 
             return mat;
         }
-
-        // ---- NPCs ----
 
         private static AnimatorController BakeAnimatorController(RoseNPCInfos npc, string path)
         {
@@ -282,8 +324,6 @@ namespace UnityRose.ImportEditor
 
         private static GameObject BuildNpcPrefab(RoseNPCInfos npc)
         {
-
-
             if (npc == null)
             {
                 Debug.LogError("Cannot build NPC prefab: npc is null");
@@ -359,9 +399,7 @@ namespace UnityRose.ImportEditor
                     {
                         var renderer = obj.AddComponent<SkinnedMeshRenderer>();
 
-                        model.mesh.bindposes = bones
-                            .Select(b => b.worldToLocalMatrix * root.transform.localToWorldMatrix)
-                            .ToArray(); // see note below - bindposes must match bone order/rest pose
+                        model.mesh.bindposes = bones.Select(b => b.worldToLocalMatrix * root.transform.localToWorldMatrix).ToArray(); // see note below - bindposes must match bone order/rest pose
 
                         renderer.sharedMesh = model.mesh;
                         renderer.sharedMaterial = model.material;
@@ -372,6 +410,7 @@ namespace UnityRose.ImportEditor
                             renderer.bones = bones.ToArray();
                         }
                     }
+
                     else // rigid, attached to a single bone/dummy
                     {
                         var filter = obj.AddComponent<MeshFilter>();
@@ -379,15 +418,13 @@ namespace UnityRose.ImportEditor
                         filter.sharedMesh = model.mesh;
                         renderer.sharedMaterial = model.material;
 
-                        // Parent to the actual bone/dummy it's rigidly attached to, so it follows
-                        // that bone's transform when animated - this is the "sur le côté" fix:
-                        // right now every rigid part is parented to `root`, ignoring boneIndex entirely.
                         if (model.boneIndex >= 0 && model.boneIndex < bones.Count)
+                        {
                             obj.transform.SetParent(bones[model.boneIndex], false);
+                        }
                     }
                 }
             }
-
 
             if (npc.animations != null && npc.animations.Count > 0)
             {
@@ -404,7 +441,8 @@ namespace UnityRose.ImportEditor
 
                 else
                 {
-                    var avatarPath = $"Assets/Prefabs/Npcs/Avatars/{npc.id}.asset";
+                    var avatarPath = $"{ImportPaths.NPC.Avatars}/{npc.id}.asset";
+
                     Directory.CreateDirectory(Path.GetDirectoryName(avatarPath));
 
                     if (AssetDatabase.LoadAssetAtPath<Avatar>(avatarPath) != null)
@@ -417,7 +455,7 @@ namespace UnityRose.ImportEditor
                     animator.avatar = AssetDatabase.LoadAssetAtPath<Avatar>(avatarPath);
                 }
 
-                var controllerPath = $"Assets/Prefabs/Npcs/Controllers/{npc.id}.controller";
+                var controllerPath = $"{ImportPaths.NPC.Controllers}/{npc.id}.controller";
                 Directory.CreateDirectory(Path.GetDirectoryName(controllerPath));
 
                 var controller = BakeAnimatorController(npc, controllerPath);
@@ -441,27 +479,26 @@ namespace UnityRose.ImportEditor
             var chr = new CHR(Utils.CombinePath(DataPath, "3DDATA/NPC/LIST_NPC.CHR"));
 
             if (!chr.Characters[npcIdx].IsEnabled)
+            {
                 return null;
-
+            }
 
             var stbName = ResourceManager.Instance.stb_npc_list.Cells[npcIdx][1].ToString();
 
-            var npcPath = Utils.CombinePath("Assets/Npcs", $"[{npcIdx}]{stbName}.asset");
-            var prefabPath = Utils.CombinePath("Assets/Prefabs/Npcs", $"[{npcIdx}]{stbName}.prefab");
-
+            var npcPath = Utils.CombinePath(ImportPaths.NPC.Data, $"[{npcIdx}]{stbName}.asset");
+            var prefabPath = Utils.CombinePath(ImportPaths.NPC.Prefabs, $"[{npcIdx}]{stbName}.prefab");
 
             var existingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
 
             if (existingPrefab != null)
+            {
                 return existingPrefab;
-
+            }
 
             Directory.CreateDirectory(Path.GetDirectoryName(npcPath));
             Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
 
-
             var chrObj = chr.Characters[npcIdx];
-
 
             var npc = ScriptableObject.CreateInstance<RoseNPCInfos>();
 
@@ -507,38 +544,34 @@ namespace UnityRose.ImportEditor
             npc.monsterData = data;
             npc.skeleton = BakeSkeleton(chr.SkeletonFiles[chrObj.ID]);
 
-
-            var zsc = new ZscImporter(Path.Combine(DataPath, "3DDATA/NPC/PART_NPC.ZSC"), "Assets/NpcParts");
-
+            var zsc = new ZscImporter(Path.Combine(DataPath, "3DDATA/NPC/PART_NPC.ZSC"), ImportPaths.NPC.Parts);
 
             foreach (var zscPart in chrObj.Objects)
             {
                 var part = zsc.ImportPart(zscPart.Object);
 
                 if (part != null)
+                {
                     npc.parts.Add(part);
+                }
             }
-
 
             foreach (var zscMotion in chrObj.Animations)
             {
                 if (zscMotion.Animation < 0)
+                {
                     continue;
+                }
 
-
-                var anim = BakeAnimation(
-                    chr.MotionFiles[zscMotion.Animation],
-                    npc.skeleton
-                );
-
+                var anim = BakeAnimation(chr.MotionFiles[zscMotion.Animation], npc.skeleton);
 
                 while (npc.animations.Count <= (int)zscMotion.Type)
+                {
                     npc.animations.Add(null);
-
+                }
 
                 npc.animations[(int)zscMotion.Type] = anim;
             }
-
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -561,13 +594,11 @@ namespace UnityRose.ImportEditor
                 return null;
             }
 
-
             var prefab = PrefabUtility.SaveAsPrefabAsset(test, prefabPath);
 
             Debug.Log($"NPC prefab created: {prefabPath}");
 
             GameObject.DestroyImmediate(test);
-
 
             return prefab;
         }
@@ -651,7 +682,8 @@ namespace UnityRose.ImportEditor
 
                 var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(destPath);
                 if (tex != null) textures.Add(tex);
-                else Debug.LogWarning($"Impossible de charger {destPath} en tant que Texture2D.");
+
+                else Debug.LogWarning($"Impossible to load {destPath} as Texture2D.");
             }
 
             AssetDatabase.StopAssetEditing();
@@ -668,13 +700,20 @@ namespace UnityRose.ImportEditor
             EditorUtility.SetDirty(db);
             AssetDatabase.SaveAssets();
 
-            Debug.Log($"Import terminé : {textures.Count} icônes importées dans la base.");
+            Debug.Log($"Import finished : {textures.Count} icon imported.");
         }
 
         public static void CreatePlayerPrefabs()
         {
             var player = new RosePlayer();
-            PrefabUtility.SaveAsPrefabAsset(player.player, "Assets/Prefabs/Player/Player.prefab");
+
+            var prefabPath = ImportPaths.Player.Prefabs + "/Player.prefab";
+
+            Utils.EnsureFolder(prefabPath);
+
+            PrefabUtility.SaveAsPrefabAsset(player.player, prefabPath);
+
+            GameObject.DestroyImmediate(player.player);
         }
 
         public static class AssetHelper
