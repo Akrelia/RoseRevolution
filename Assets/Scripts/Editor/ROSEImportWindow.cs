@@ -409,6 +409,9 @@ namespace UnityRose.ImportEditor
             if (database == null)
             {
                 database = CreateInstance<RoseMonsterSpawnDatabase>();
+
+                Utils.EnsureFolder(Path.GetDirectoryName(ROSEDatabaseWindow.MonsterSpawnDatabasePath));
+
                 AssetDatabase.CreateAsset(database, ROSEDatabaseWindow.MonsterSpawnDatabasePath);
             }
 

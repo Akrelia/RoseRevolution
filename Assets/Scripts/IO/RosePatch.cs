@@ -148,35 +148,23 @@ namespace UnityRose.Game
                 for (int t_y = 0; t_y < 16; t_y++)
                 {
                     int tileID = m_TIL.Tiles[t_x, t_y].TileID;
-                    string texPath1 = m_ZON.Textures[m_ZON.Tiles[tileID].ID1].TexPath;
-                    string texPath2 = m_ZON.Textures[m_ZON.Tiles[tileID].ID2].TexPath;
 
-                    Texture2D tex1 = m_ZON.Textures[m_ZON.Tiles[tileID].ID1].Tex;
-                    Texture2D tex2 = m_ZON.Textures[m_ZON.Tiles[tileID].ID2].Tex;
-                    // Adding an existing texture to atlas will cause an exception, so catch it but do nothing
-                    // as this is expected to happen
-                    try
+                    var tile = m_ZON.Tiles[tileID];
+
+                    var tex1 = m_ZON.Textures[tile.ID1];
+                    if (!atlasRectHash.ContainsKey(tex1.TexPath))
                     {
-                        atlasRectHash.Add(texPath1, new Rect());
-                        atlasTexHash.Add(texPath1, tex1);
-                        textures.Add(tex1);
+                        atlasRectHash.Add(tex1.TexPath, new Rect());
+                        atlasTexHash.Add(tex1.TexPath, tex1.Tex);
+                        textures.Add(tex1.Tex);
                     }
 
-                    catch (Exception ex)
+                    var tex2 = m_ZON.Textures[tile.ID2];
+                    if (!atlasRectHash.ContainsKey(tex2.TexPath))
                     {
-                        Debug.Log(ex.Message);
-                    }
-
-                    try
-                    {
-                        atlasRectHash.Add(texPath2, new Rect());
-                        atlasTexHash.Add(texPath2, tex2);
-                        textures.Add(tex2);
-                    }
-                    
-                    catch (Exception ex)
-                    {
-                        Debug.Log(ex.Message);
+                        atlasRectHash.Add(tex2.TexPath, new Rect());
+                        atlasTexHash.Add(tex2.TexPath, tex2.Tex);
+                        textures.Add(tex2.Tex);
                     }
                 }
             }
@@ -632,7 +620,7 @@ namespace UnityRose.Game
                 return null;
 
             string safeName = SafeFileName(rosePath);
-            var path = shared ? $"Assets/Data/Shared/Textures/{safeName}.asset" : $"{MapRoot}/Lightmaps/{safeName}.asset";
+            var path = shared ? $"{ImportPaths.Maps.Shared}/Textures/{safeName}.asset" : $"{MapRoot}/Lightmaps/{safeName}.asset";
 
             if (TextureCache.TryGetValue(path, out var alreadySaved))
                 return alreadySaved;
@@ -658,7 +646,7 @@ namespace UnityRose.Game
             if (AnimationCache.TryGetValue(key, out var cached))
                 return cached;
 
-            string folder = "Assets/Data/Animations";
+            string folder = ImportPaths.Maps.Animations; ;
             EnsureCachedFolder($"{folder}/dummy.anim");
 
             string safeName = SafeFileName(key);
@@ -679,7 +667,7 @@ namespace UnityRose.Game
         private static string SafeFileName(string key) =>
             key.Replace("\\", "_").Replace("/", "_").Replace(":", "_");
 
-        public static void EnsureCachedFolder(string assetPath) // TODO : Use the one from Utils and check if the cache still needed 
+        public static void EnsureCachedFolder(string assetPath)
         {
             string folder = Path.GetDirectoryName(assetPath)?.Replace("\\", "/");
 
@@ -696,12 +684,16 @@ namespace UnityRose.Game
             {
                 string next = current + "/" + parts[i];
 
-                if (!AssetDatabase.IsValidFolder(next))
+                if (!AssetDatabase.IsValidFolder(next) && !createdFolders.Contains(next))
                 {
-                    AssetDatabase.CreateFolder(current, parts[i]);
+                    string guid = AssetDatabase.CreateFolder(current, parts[i]);
+                    string createdPath = AssetDatabase.GUIDToAssetPath(guid);
+
+                    Debug.Log($"Requested: {next} | Created: {createdPath}");
+
+                    createdFolders.Add(createdPath);
                 }
 
-                createdFolders.Add(next);
                 current = next;
             }
 

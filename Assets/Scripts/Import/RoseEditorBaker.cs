@@ -46,10 +46,12 @@ namespace UnityRose.ImportEditor
         public static class Maps
         {
             public const string Root = ImportPaths.Root + "/Maps";
-            public const string Data = Maps.Root + "/Data";
             public const string Patches = Maps.Root + "/Patches";
             public const string Prefabs = Maps.Root + "/Prefabs";
             public const string Chunks = Maps.Root + "/Chunks";
+            public const string Animations = Maps.Root + "/Animations";
+            public const string Shared = Maps.Root + "/Shared";
+            public const string Atlas = Maps.Root + "/Atlas";
         }
 
         public static class Items

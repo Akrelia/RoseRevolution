@@ -16,8 +16,8 @@ namespace UnityRose.ImportEditor
         private RoseMonsterSpawnDatabase spawnDatabase;
         private Vector2 scroll;
 
-        public const string MapDatabasePath = "Assets/Data/Databases/RoseMapDatabase.asset";
-        public const string MonsterSpawnDatabasePath = "Assets/Data/Databases/RoseMonsterSpawnDatabase.asset";
+        public const string MapDatabasePath = ImportPaths.Database.Root + "/RoseMapDatabase.asset";
+        public const string MonsterSpawnDatabasePath = ImportPaths.Database.Root + "/RoseMonsterSpawnDatabase.asset";
 
         [MenuItem("ROSE Online/Database Viewer")]
         static void Open()

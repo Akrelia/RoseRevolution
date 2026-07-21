@@ -43,16 +43,6 @@ namespace UnityRose.Import
 
             var dirs = new DirectoryInfo(mapDirectory);
 
-            CreateFolder("Assets/Data");
-            CreateFolder("Assets/Data/Materials");
-            CreateFolder("Assets/Data/Materials/Rose");
-            CreateFolder("Assets/Data/Meshes");
-            CreateFolder("Assets/Data/Meshes/Rose");
-            CreateFolder("Assets/Data/Textures");
-            CreateFolder("Assets/Data/Textures/Rose");
-            CreateFolder("Assets/Prefabs");
-            CreateFolder("Assets/Prefabs/Rose");
-
             var map = new GameObject(mapName);
             var roseMap = map.AddComponent<RoseMap>();
 
@@ -131,11 +121,11 @@ namespace UnityRose.Import
             roseMap.mapName = mapName;
             roseMap.spawns = BuildSpawnPoints(patches);
 
-            Debug.Log(roseMap.spawns.Count);
-
             AssetDatabase.SaveAssets();
 
             var prefabPath = $"{ImportPaths.Maps.Prefabs}/{mapName}.prefab";
+
+            Utils.EnsureFolder(prefabPath);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(map, prefabPath);
 
@@ -159,7 +149,7 @@ namespace UnityRose.Import
 
         private static Texture2D SaveAtlas(Texture2D atlas, string mapName)
         {
-            const string folder = "Assets/Data/Textures";
+            const string folder = ImportPaths.Maps.Atlas;
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
@@ -192,35 +182,14 @@ namespace UnityRose.Import
             rects = atlas.PackTextures(textures.ToArray(), 0, Math.Max(width, height));
             atlas.anisoLevel = 11;
             atlas.Apply();
+
             return atlas;
-        }
-
-        private static void CreateFolder(string path)
-        {
-            if (AssetDatabase.IsValidFolder(path))
-                return;
-
-            string parent = Path.GetDirectoryName(path).Replace("\\", "/");
-            string name = Path.GetFileName(path);
-
-            if (!AssetDatabase.IsValidFolder(parent))
-                CreateFolder(parent);
-
-            AssetDatabase.CreateFolder(parent, name);
         }
 
         private static void BlendSeamNormals(List<RosePatch> patches)
         {
             var patchNormalLookup = new Dictionary<string, List<PatchNormalIndex>>();
             var patchID = 0;
-
-            CreateFolder("Assets/Data");
-            CreateFolder("Assets/Data/Materials");
-            CreateFolder("Assets/Data/Materials/Rose");
-            CreateFolder("Assets/Data/Meshes");
-            CreateFolder("Assets/Data/Meshes/Rose");
-            CreateFolder("Assets/Data/Textures");
-            CreateFolder("Assets/Data/Textures/Rose");
 
             foreach (var patch in patches)
             {
@@ -235,19 +204,25 @@ namespace UnityRose.Import
                     else
                         patchNormalLookup[vertex].AddRange(ids);
                 }
+
                 patchID++;
             }
 
             foreach (var vertex in patchNormalLookup.Keys)
             {
                 var avg = Vector3.zero;
-                foreach (var entry in patchNormalLookup[vertex])
-                    avg += patches[entry.patchID].m_mesh.normals[entry.normalID];
 
+                foreach (var entry in patchNormalLookup[vertex])
+                {
+                    avg += patches[entry.patchID].m_mesh.normals[entry.normalID];
+                }
+             
                 avg.Normalize();
 
                 foreach (var entry in patchNormalLookup[vertex])
+                {
                     patches[entry.patchID].m_mesh.normals[entry.normalID] = avg;
+                }
             }
         }
 
