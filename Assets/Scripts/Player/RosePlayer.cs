@@ -11,13 +11,14 @@ using UnityEditor;
 using UnityRose.Import;
 using RevolutionShared.Rose.Data;
 
-public class RosePlayer : IPointerClickHandler
+public class RosePlayer
 {
     public GameObject player;
     public CharModel charModel;
     private BindPoses bindPoses;
     private GameObject skeleton;
-    private ResourceManager rm;
+    private ResourceManager rm; 
+    private RoseAvatarDatabase avatarDatabase;
     private Bounds playerBounds;
 
     public RosePlayer()
@@ -339,6 +340,7 @@ public class RosePlayer : IPointerClickHandler
         modelObject.transform.localScale = Vector3.one;
         modelObject.name = bodyPart.ToString();
         Mesh mesh = zms.getMesh();
+
         if (zms.support.bones)
         {
             SkinnedMeshRenderer renderer = modelObject.AddComponent<SkinnedMeshRenderer>();
@@ -348,6 +350,7 @@ public class RosePlayer : IPointerClickHandler
             renderer.material = material;
             renderer.bones = bindPoses.boneTransforms;
         }
+
         else
         {
             modelObject.AddComponent<MeshFilter>().mesh = mesh;
@@ -362,11 +365,7 @@ public class RosePlayer : IPointerClickHandler
     public void setAnimationState(States state)
     {
         charModel.state = state;
-        player.GetComponent<PlayerController>().SetAnimationState(state);
-    }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        Debug.Log("I was clicked");
+        player.GetComponent<PlayerController>().SetAnimationState(state);
     }
 }

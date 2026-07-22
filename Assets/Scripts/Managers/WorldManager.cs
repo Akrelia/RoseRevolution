@@ -31,8 +31,8 @@ public class WorldManager : MonoBehaviour
         model.pos = position;
         model.gender = appearence.Gender;
 
-        model.changeID(BodyPartType.HAIR, (int)appearence.Hair);
-        model.changeID(BodyPartType.FACE, (int)appearence.Face);
+        model.changeID(BodyPartType.HAIR, appearence.Hair);
+        model.changeID(BodyPartType.FACE, appearence.Face);
 
         model.changeID(BodyPartType.BACK, appearence.Back);
         model.changeID(BodyPartType.BODY, appearence.Body);
@@ -76,7 +76,7 @@ public class WorldManager : MonoBehaviour
     /// <returns>Entity spawned.</returns>
     public RoseNpc SpawnEntity(int id, int dataId, Vector3 position)
     {
-        // RoseImport.ImportNPC(dataId);
+        /* RoseImport.ImportNPC(dataId);
 
         GameObject entity = new GameObject();
 
@@ -92,30 +92,14 @@ public class WorldManager : MonoBehaviour
         roseNpc.data = LoadNPCAssetStartingWith<RoseNPCInfos>($"[{dataId}]");
 
         return roseNpc;
+        */
+
+        return null;
     }
 
 
     public static Vector3 RoseToUnity(Vector3 rose)
     {
         return new Vector3(10400 - rose.z, rose.y, rose.x);
-    }
-
-
-    public static T LoadNPCAssetStartingWith<T>(string prefix) where T : ScriptableObject
-    {
-        string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}", new[] { "Assets/Npcs" });
-
-        foreach (string guid in guids)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            string filename = System.IO.Path.GetFileNameWithoutExtension(path);
-
-            if (filename.StartsWith(prefix))
-            {
-                return AssetDatabase.LoadAssetAtPath<T>(path);
-            }
-        }
-
-        return null;
     }
 }
