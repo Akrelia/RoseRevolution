@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityRose;
 using UnityRose.Import;
 using static RevolutionShared.Rose.Data.RoseEnums;
@@ -51,6 +53,22 @@ public class SandboxManager : MonoBehaviour
 #if UNITY_EDITOR
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 #endif
+
+        Addressables.LoadAssetAsync<RoseMapDatabase>(nameof(RoseMapDatabase)).Completed += OnDatabaseLoaded;
+    }
+
+    /// <summary>
+    /// When the map database is loaded.
+    /// </summary>
+    /// <param name="handle">Handle.</param>
+    private void OnDatabaseLoaded(AsyncOperationHandle<RoseMapDatabase> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            mapDatabase = handle.Result;
+
+            Debug.Log($"Loaded {mapDatabase.maps.Count} Maps");
+        }
     }
 
     /// <summary>
