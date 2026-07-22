@@ -1,5 +1,8 @@
+using RevolutionCore.Utils;
+using RevolutionShared.Data;
 using RevolutionShared.Networking.Packets;
 using RevolutionShared.Packets;
+using RevolutionShared.Rose.Data;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -7,8 +10,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityRose;
-using UnityRose.Import;
-using static RevolutionShared.Rose.Data.RoseEnums;
 
 /// <summary>
 /// Sandbox manager.
@@ -39,6 +40,7 @@ public class SandboxManager : MonoBehaviour
     public WorldManager worldManager;
     public GUIController guiController;
 
+    CharacterAppearance appearance;
     Dictionary<long, RosePlayer> players;
     Dictionary<int, RoseNpc> entities;
 
@@ -78,7 +80,9 @@ public class SandboxManager : MonoBehaviour
     {
         await Client.ConnectAsync(address, port);
 
-        Client.SendPacket(Packets.ConnectSandbox(playerName, gender, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield));
+        appearance = new CharacterAppearance(gender, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield);
+
+        Client.SendPacket(Packets.ConnectSandbox(playerName, appearance));
     }
 
     /// <summary>
@@ -96,10 +100,10 @@ public class SandboxManager : MonoBehaviour
         var x = packet.GetFloat();
         var y = packet.GetFloat();
         var z = packet.GetFloat();
-        
+
         var mapSpawn = new Vector3(x, y, z);
 
-        var mainPlayer = worldManager.SpawnPlayer(true, gender, playerName, hair, face, back, body, gloves, shoes, mask, hat, weapon, shield, WorldManager.RoseToUnity(mapSpawn));
+        var mainPlayer = worldManager.SpawnPlayer(true, playerName, appearance, WorldManager.RoseToUnity(mapSpawn));
 
         guiController.characterPreview.SetCharacterInformations(playerName, 1200, 1200, 960, 960, 1, "Visitor");
 
@@ -172,17 +176,7 @@ public class SandboxManager : MonoBehaviour
 
             if (!players.ContainsKey(id))
             {
-                var playerGender = (GenderType)packet.GetByte();
-                var playerHair = packet.GetByte();
-                var playerFace = packet.GetByte();
-                var playerBack = packet.GetInt();
-                var playerBody = packet.GetInt();
-                var playerGloves = packet.GetInt();
-                var playerShoes = packet.GetInt();
-                var playerMask = packet.GetInt();
-                var playerHat = packet.GetInt();
-                var playerWeapon = packet.GetInt();
-                var playerSubweapon = packet.GetInt();
+                var appearence = packet.Get<CharacterAppearance>();
 
                 var x = packet.GetFloat();
                 var y = packet.GetFloat();
@@ -190,7 +184,7 @@ public class SandboxManager : MonoBehaviour
 
                 var position = new Vector3(x, y, z);
 
-                var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat, playerWeapon, playerSubweapon, position);
+                var player = worldManager.SpawnPlayer(false, playerName, appearence, position);
 
                 players.Add(id, player);
             }
@@ -210,19 +204,9 @@ public class SandboxManager : MonoBehaviour
 
         if (!players.ContainsKey(id))
         {
-            var playerGender = (GenderType)packet.GetByte();
-            var playerHair = packet.GetByte();
-            var playerFace = packet.GetByte();
-            var playerBack = packet.GetInt();
-            var playerBody = packet.GetInt();
-            var playerGloves = packet.GetInt();
-            var playerShoes = packet.GetInt();
-            var playerMask = packet.GetInt();
-            var playerHat = packet.GetInt();
-            var playerWeapon = packet.GetInt();
-            var playerSubweapon = packet.GetInt();
+            var appearence = packet.Get<CharacterAppearance>();
 
-            var player = worldManager.SpawnPlayer(false, playerGender, playerName, playerHair, playerFace, playerBack, playerBody, playerGloves, playerShoes, playerMask, playerHat, playerWeapon, playerSubweapon, spawnPosition);
+            var player = worldManager.SpawnPlayer(false, playerName, appearence, spawnPosition);
 
             players.Add(id, player);
         }
@@ -341,4 +325,10 @@ public class SandboxManager : MonoBehaviour
     {
         get { return Client.Instance; }
     }
+}
+
+
+namespace System.Runtime.CompilerServices
+{
+    public class IsExternalInit { } // Hack to use some C# 9 features in .NET Framework 4.8 (which is keyword Record here)
 }

@@ -1,9 +1,3 @@
-// <copyright file="Utils.cs" company="Wadii Bellamine">
-// Copyright (c) 2015 All Rights Reserved
-// </copyright>
-// <author>Wadii Bellamine</author>
-// <date>2/25/2015 8:37 AM </date>
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +7,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityRose;
-using static RevolutionShared.Rose.Data.RoseEnums;
+using RevolutionShared.Rose.Data;
+
 
 
 #if UNITY_EDITOR

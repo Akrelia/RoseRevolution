@@ -1,9 +1,10 @@
+using RevolutionShared.Data;
+using RevolutionShared.Rose.Data;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityRose;
-using static RevolutionShared.Rose.Data.RoseEnums;
 
 /// <summary>
 /// World manager.
@@ -21,31 +22,31 @@ public class WorldManager : MonoBehaviour
     /// Spawn a character player.
     /// </summary>
     /// <param name="position">Position.</param>
-    public RosePlayer SpawnPlayer(bool mainPlayer, GenderType gender, string playerName, byte hairID, byte faceID, int backID, int bodyID, int glovesID, int shoesID, int maskID, int hatID, int weaponID, int subWeaponID, Vector3 position)
+    public RosePlayer SpawnPlayer(bool mainPlayer, string playerName, CharacterAppearance appearence, Vector3 position)
     {
         CharModel model = new CharModel();
 
         model.rig = RigType.FOOT;
         model.state = States.STANDING;
         model.pos = position;
-        model.gender = gender;
+        model.gender = appearence.Gender;
 
-        model.changeID(BodyPartType.HAIR, hairID);
-        model.changeID(BodyPartType.FACE, faceID);
+        model.changeID(BodyPartType.HAIR, (int)appearence.Hair);
+        model.changeID(BodyPartType.FACE, (int)appearence.Face);
 
-        model.changeID(BodyPartType.BACK, backID);
-        model.changeID(BodyPartType.BODY, bodyID);
-        model.changeID(BodyPartType.ARMS, glovesID);
-        model.changeID(BodyPartType.FOOT, shoesID);
-        model.changeID(BodyPartType.FACEITEM, maskID);
-        model.changeID(BodyPartType.CAP, hatID);
+        model.changeID(BodyPartType.BACK, appearence.Back);
+        model.changeID(BodyPartType.BODY, appearence.Body);
+        model.changeID(BodyPartType.ARMS, appearence.Gloves);
+        model.changeID(BodyPartType.FOOT, appearence.Shoes);
+        model.changeID(BodyPartType.FACEITEM, appearence.Mask);
+        model.changeID(BodyPartType.CAP, appearence.Hat);
 
         var rosePlayer = new RosePlayer(model);
 
         rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = mainPlayer;
 
-        rosePlayer.equip(BodyPartType.FACEITEM, maskID);
-        rosePlayer.equip(BodyPartType.WEAPON, weaponID);
+        rosePlayer.equip(BodyPartType.FACEITEM, appearence.Mask);
+        rosePlayer.equip(BodyPartType.WEAPON, appearence.Weapon);
         //rosePlayer.equip(BodyPartType.SUBWEAPON, subWeaponID);
 
         if (mainPlayer)

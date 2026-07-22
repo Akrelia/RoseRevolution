@@ -1,8 +1,3 @@
-// <copyright file="RosePlayer.cs" company="Wadii Bellamine">
-// Copyright (c) 2015 All Rights Reserved
-// </copyright>
-// <author>Wadii Bellamine</author>
-// <date>6/13/2015 7:01 PM </date>
 using System;
 using UnityEngine;
 using System.Collections;
@@ -11,7 +6,8 @@ using UnityRose.Formats;
 using UnityRose.Import;
 using System.IO;
 using UnityRose;
-using static RevolutionShared.Rose.Data.RoseEnums;
+using RevolutionShared.Rose.Data;
+
 
 
 #if UNITY_EDITOR

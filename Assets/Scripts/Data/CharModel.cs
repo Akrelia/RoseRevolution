@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections;
-using static RevolutionShared.Rose.Data.RoseEnums;
+using RevolutionShared.Rose.Data;
 
 namespace UnityRose
 {

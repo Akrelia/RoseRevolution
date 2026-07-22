@@ -1,8 +1,3 @@
-// <copyright file="RosePlayer.cs" company="Wadii Bellamine">
-// Copyright (c) 2015 All Rights Reserved
-// </copyright>
-// <author>Wadii Bellamine</author>
-// <date>2/25/2015 8:37 AM </date>
 using System;
 using UnityEngine;
 using System.Collections;
@@ -14,7 +9,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEditor;
 using UnityRose.Import;
-using static RevolutionShared.Rose.Data.RoseEnums;
+using RevolutionShared.Rose.Data;
 
 public class RosePlayer : IPointerClickHandler
 {

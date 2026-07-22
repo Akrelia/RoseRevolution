@@ -8,7 +8,7 @@ using UnityRose.Import;
 using System;
 using System.IO;
 using System.Text;
-using static RevolutionShared.Rose.Data.RoseEnums;
+using RevolutionShared.Rose.Data;
 
 namespace UnityRose.ImportEditor
 {

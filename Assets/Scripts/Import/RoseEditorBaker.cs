@@ -10,9 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Animations;
 using RevolutionShared.Rose.Data.NPC;
-using static RevolutionShared.Rose.Data.RoseEnums;
 using static UnityRose.Formats.IFO;
 using UnityRose.Game;
+using RevolutionShared.Rose.Data;
 
 namespace UnityRose.ImportEditor
 {

@@ -1,6 +1,5 @@
 ﻿#if UNITY_EDITOR
 
-
 using UnityEngine;
 using UnityEditor;
 using UnityRose.Formats;
@@ -17,7 +16,7 @@ using System.Text;
 using UnityRose.Game;
 using System.Linq;
 using static UnityRose.Formats.ZON;
-using static RevolutionShared.Rose.Data.RoseEnums;
+using RevolutionShared.Rose.Data;
 
 namespace UnityRose.ImportEditor
 {

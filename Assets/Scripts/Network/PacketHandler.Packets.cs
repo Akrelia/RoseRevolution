@@ -1,10 +1,12 @@
 using RevolutionShared.Attributes;
+using RevolutionShared.Data;
+using RevolutionCore.Utils;
 using RevolutionShared.Networking.Packets;
 using RevolutionShared.Packets;
+using RevolutionShared.Rose.Data;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityRose;
-using static RevolutionShared.Rose.Data.RoseEnums;
 
 /// <summary>
 /// Packets for Packet Handler.
@@ -94,22 +96,13 @@ public static class Packets
     /// </summary>
     /// <param name="username">Username.</param>
     /// <returns>Packet.</returns>
-    public static PacketOut ConnectSandbox(string username, GenderType gender, byte hair, byte face, int back, int body, int gloves, int shoes, int mask, int hat, int weapon, int subweapon)
+    public static PacketOut ConnectSandbox(string username, CharacterAppearance appearence)
     {
         PacketOut packet = new PacketOut(ClientCommands.ConnectSandbox);
 
         packet.Add(username);
-        packet.Add((byte)gender);
-        packet.Add(hair);
-        packet.Add(face);
-        packet.Add(back);
-        packet.Add(body);
-        packet.Add(gloves); // DTO
-        packet.Add(shoes);
-        packet.Add(mask);
-        packet.Add(hat);
-        packet.Add(weapon);
-        packet.Add(subweapon);
+
+        packet.Add(appearence);
 
         return packet;
     }

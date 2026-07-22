@@ -1,14 +1,8 @@
-// <copyright file="PlayerController.cs" company="Wadii Bellamine">
-// Copyright (c) 2015 All Rights Reserved
-// </copyright>
-// <authors>Wadii Bellamine, Kiu</authors>
-// <date>2/25/2015 8:37 AM </date>
-
 using UnityEngine;
 using System;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
-using static RevolutionShared.Rose.Data.RoseEnums;
+using RevolutionShared.Rose.Data;
 
 namespace UnityRose
 {
