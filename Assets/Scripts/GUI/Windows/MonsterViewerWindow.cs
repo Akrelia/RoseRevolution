@@ -4,6 +4,8 @@ using UnityEngine;
 using TMPro;
 using Unity.VisualScripting;
 using RevolutionShared.Rose.Data.NPC;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 /// <summary>
 /// Monster viewer window.
@@ -29,7 +31,17 @@ public class MonsterViewerWindow : MonoBehaviour
     /// </summary>
     public void Start()
     {
-        ChangeModel(index);
+        Addressables.LoadAssetAsync<RoseNPCDatabase>(nameof(RoseNPCDatabase)).Completed += OnDatabaseLoaded;
+    }
+
+    private void OnDatabaseLoaded(AsyncOperationHandle<RoseNPCDatabase> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            npcDatabase = handle.Result;
+
+            Debug.Log($"Loaded {npcDatabase.npcs.Count} NPCs");
+        }
     }
 
     /// <summary>
@@ -131,7 +143,9 @@ public class MonsterViewerWindow : MonoBehaviour
         var animatorController = modelPreview.CurrentModel.GetComponent<Animator>();
 
         if (animatorController != null)
+        {
             animatorController.Play("Animation_" + animationIndex);
+        }
 
         animationNameLabel.text = $"{animations[animationIndex].name}";
     }

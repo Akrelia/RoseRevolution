@@ -356,6 +356,8 @@ namespace UnityRose.ImportEditor
                 AssetDatabase.CreateAsset(database, path);
             }
 
+            AddressableUtils.EnsureAddressable(path, nameof(RoseMapDatabase));
+
             string displayName = mapData.stl.GetText(mapData.stb.Cells[id][27], STL.Language.English);
 
             string prefabName = mapData.stb.Cells[id][1];
@@ -415,6 +417,8 @@ namespace UnityRose.ImportEditor
                 AssetDatabase.CreateAsset(database, ROSEDatabaseWindow.MonsterSpawnDatabasePath);
             }
 
+            AddressableUtils.EnsureAddressable(ROSEDatabaseWindow.MonsterSpawnDatabasePath, nameof(RoseMonsterSpawnDatabase)); // Shouldn't be useful but just in case
+
             database.maps.RemoveAll(x => x.MapID == mapID);
 
             MapSpawnData spawnData = new MapSpawnData();
@@ -440,10 +444,12 @@ namespace UnityRose.ImportEditor
 
             if (database == null)
             {
-                database = ScriptableObject.CreateInstance<RoseNPCDatabase>();
+                database = CreateInstance<RoseNPCDatabase>();
 
                 AssetDatabase.CreateAsset(database, path);
             }
+
+            AddressableUtils.EnsureAddressable(path, nameof(RoseNPCDatabase));
 
             var existing = database.npcs.Find(x => x.id == npc.id);
 
@@ -596,6 +602,23 @@ namespace UnityRose.ImportEditor
             string prefabPath = $"{ImportPaths.Maps.Prefabs}/{mapName}.prefab";
 
             return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) != null;
+        }
+
+        public static class AddressableUtils
+        {
+            public static void EnsureAddressable(string assetPath, string address)
+            {
+                var settings = AddressableAssetSettingsDefaultObject.Settings;
+
+                if (settings == null)
+                    return;
+
+                string guid = AssetDatabase.AssetPathToGUID(assetPath);
+
+                var entry = settings.FindAssetEntry(guid) ?? settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
+
+                entry.address = address;
+            }
         }
 
         /// <summary>
