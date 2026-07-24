@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Skill Damage Formula Reference - ROSE-Docs</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">ROSE-Docs</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Welcome to Rose wiki.</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Stats</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../base-stats/" class="dropdown-item">Base Character Stats</a>
+</li>
+                                    
+<li>
+    <a href="../formulas/" class="dropdown-item">Formula Reference</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Skill Damage Formula Reference</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../formulas/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" class="nav-link disabled">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#skill-damage-formula-reference" class="nav-link">Skill Damage Formula Reference</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#overview" class="nav-link">Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#skill-damage-pipeline" class="nav-link">Skill Damage Pipeline</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#attacker-variables" class="nav-link">Attacker Variables</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#defender-variables" class="nav-link">Defender Variables</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#damage-type-1-weapon-skill" class="nav-link">Damage Type 1 - Weapon Skill</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#success-formula" class="nav-link">Success Formula</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#failed-hit" class="nav-link">Failed Hit</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#low-success-damage" class="nav-link">Low Success Damage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#normal-weapon-skill-damage" class="nav-link">Normal Weapon Skill Damage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#damage-type-2-magic-skill" class="nav-link">Damage Type 2 - Magic Skill</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#success-formula_1" class="nav-link">Success Formula</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#failed-hit_1" class="nav-link">Failed Hit</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#low-success-damage_1" class="nav-link">Low Success Damage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#normal-magic-damage" class="nav-link">Normal Magic Damage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#damage-type-3-unarmed-skill" class="nav-link">Damage Type 3 - Unarmed Skill</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#success-formula_2" class="nav-link">Success Formula</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#failed-hit_2" class="nav-link">Failed Hit</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#low-success-damage_2" class="nav-link">Low Success Damage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#normal-unarmed-damage" class="nav-link">Normal Unarmed Damage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#default-damage-type" class="nav-link">Default Damage Type</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#final-damage-processing" class="nav-link">Final Damage Processing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#implementation-reference" class="nav-link">Implementation Reference</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="skill-damage-formula-reference">Skill Damage Formula Reference</h1>
+<blockquote>
+<p><strong>Sources</strong></p>
+<p>Original ROSE Online Server</p>
+<p>Function:</p>
+<p><code>CCal::Get_SkillDAMAGE()</code></p>
+<p>File:</p>
+<p><code>src/common/calculation.cpp</code></p>
+<p>This document describes the server-side skill damage calculations.</p>
+</blockquote>
+<hr />
+<h1 id="overview">Overview</h1>
+<p>Skill damage in ROSE is calculated differently depending on the skill damage
+type.</p>
+<p>Each skill contains a Damage Type value which determines the formula branch:</p>
+<table>
+<thead>
+<tr>
+<th>Damage Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Weapon Skill</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Magic Skill</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Unarmed Skill</td>
+</tr>
+<tr>
+<td>Default</td>
+<td>Basic Attack Style</td>
+</tr>
+</tbody>
+</table>
+<p>Each formula performs its own hit success calculation before determining damage.</p>
+<p>A failed success calculation results in:</p>
+<pre><code class="language-text">Damage = 0
+or a miss.
+</code></pre>
+<p>Successful skills then apply:</p>
+<ol>
+<li>Skill Power scaling</li>
+<li>Attacker stats</li>
+<li>Defender stats</li>
+<li>Random variation</li>
+<li>Minimum damage clamp</li>
+<li>Hit count multiplier</li>
+<li>Maximum damage clamp</li>
+</ol>
+<hr />
+<h1 id="skill-damage-pipeline">Skill Damage Pipeline</h1>
+<pre><code class="language-text">Skill Used
+
+    -&gt;
+
+Damage Type Selection
+
+    -&gt;
+
+Success Rate Calculation
+
+    -&gt;
+
+Miss Check
+
+    -&gt;
+
+Damage Formula
+
+    -&gt;
+
+Minimum Damage (5)
+
+    -&gt;
+
+Hit Count Multiplier
+
+    -&gt;
+
+Maximum Damage (9999) (this is for my case the original irose is 2047, also irose does a bit set so you dont overflow if I remember correctly)
+
+    -&gt;
+
+Final Damage
+</code></pre>
+<hr />
+<h1 id="attacker-variables">Attacker Variables</h1>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Level</td>
+<td>Character level</td>
+</tr>
+<tr>
+<td>AttackPower</td>
+<td>Total calculated AP</td>
+</tr>
+<tr>
+<td>HitRate</td>
+<td>Accuracy value</td>
+</tr>
+<tr>
+<td>INT</td>
+<td>Intelligence</td>
+</tr>
+<tr>
+<td>Sense</td>
+<td>Sense attribute</td>
+</tr>
+<tr>
+<td>Critical</td>
+<td>Critical value</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="defender-variables">Defender Variables</h1>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Level</td>
+<td>Monster level</td>
+</tr>
+<tr>
+<td>Defence</td>
+<td>Physical defence</td>
+</tr>
+<tr>
+<td>Resist</td>
+<td>Magical resistance</td>
+</tr>
+<tr>
+<td>Avoid</td>
+<td>Dodge rate</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="damage-type-1-weapon-skill">Damage Type 1 - Weapon Skill</h1>
+<h2 id="success-formula">Success Formula</h2>
+<pre><code class="language-cpp">Suc =
+(
+(Level + 20)
+- TargetLevel
++ Random(1,60)
+)
+
+×
+
+(
+HitRate
+- Avoid × 0.6
++ Random(1,70)
++ 10
+)
+
+÷ 110
+</code></pre>
+<hr />
+<h2 id="failed-hit">Failed Hit</h2>
+<pre><code class="language-text">Suc &lt; 10
+
+Damage = 0
+</code></pre>
+<hr />
+<h2 id="low-success-damage">Low Success Damage</h2>
+<pre><code class="language-text">10 &lt;= Suc &lt; 20
+</code></pre>
+<p>Formula:</p>
+<pre><code class="language-text">Damage =
+
+(
+SkillPower × 0.4
+)
+
+×
+
+(AttackPower + 50)
+
+×
+
+(Random(1,30)
++
+Sense × 1.2
++
+340)
+
+÷
+
+(TargetDefence
++
+TargetResistance
++
+20)
+
+÷
+
+(250
++
+TargetLevel
+-
+AttackerLevel)
+
++
+20
+</code></pre>
+<hr />
+<h2 id="normal-weapon-skill-damage">Normal Weapon Skill Damage</h2>
+<pre><code class="language-text">Suc &gt;= 20
+</code></pre>
+<p>Formula:</p>
+<pre><code class="language-text">Damage =
+
+(
+SkillPower
++
+AttackPower × 0.2
+)
+
+×
+
+(AttackPower + 60)
+
+×
+
+(Random(1,30)
++
+Sense × 0.7
++
+370)
+
+×
+
+0.01
+
+×
+
+(120
+-
+TargetLevel
++
+AttackerLevel)
+
+÷
+
+(
+Defence
++
+Resistance × 0.8
++
+Avoid × 0.4
++
+20
+)
+
+÷270
+
++20
+</code></pre>
+<hr />
+<h1 id="damage-type-2-magic-skill">Damage Type 2 - Magic Skill</h1>
+<h2 id="success-formula_1">Success Formula</h2>
+<pre><code class="language-text">Suc =
+
+(
+(Level + 30)
+-
+TargetLevel
++
+Random(1,50)
+)
+
+×
+
+(
+HitRate
+-
+Avoid × 0.56
++
+Random(1,70)
++
+10
+)
+
+÷110
+</code></pre>
+<hr />
+<h2 id="failed-hit_1">Failed Hit</h2>
+<pre><code class="language-text">Suc &lt; 8
+
+Damage = 0
+</code></pre>
+<hr />
+<h2 id="low-success-damage_1">Low Success Damage</h2>
+<pre><code class="language-text">8 &lt;= Suc &lt; 20
+</code></pre>
+<pre><code class="language-text">Damage =
+
+SkillPower
+
+×
+
+(
+AttackPower ×0.8
++
+INT
++
+80
+)
+
+×
+
+(
+Random(1,30)
++
+Sense ×1.3
++
+280
+)
+
+×
+
+0.2
+
+÷
+
+(
+Defence ×0.3
++
+Resistance
++
+30
+)
+
+÷
+
+(
+250
++
+TargetLevel
+-
+AttackerLevel
+)
+
++20
+</code></pre>
+<hr />
+<h2 id="normal-magic-damage">Normal Magic Damage</h2>
+<pre><code class="language-text">Suc &gt;= 20
+</code></pre>
+<pre><code class="language-text">Damage =
+
+SkillPower
+
+×
+
+(
+AttackPower ×0.8
++
+INT ×1.2
++
+100
+)
+
+×
+
+(
+Random(1,30)
++
+Sense ×0.7
++
+350
+)
+
+×
+
+0.01
+
+×
+
+(
+150
+-
+TargetLevel
++
+AttackerLevel
+)
+
+÷
+
+(
+Defence ×0.3
++
+Resistance
++
+Avoid ×0.3
++
+60
+)
+
+÷350
+
++20
+</code></pre>
+<hr />
+<h1 id="damage-type-3-unarmed-skill">Damage Type 3 - Unarmed Skill</h1>
+<h2 id="success-formula_2">Success Formula</h2>
+<pre><code class="language-text">Suc =
+
+(
+(Level +10)
+-
+TargetLevel
++
+Random(1,80)
+)
+
+×
+
+(
+HitRate
+-
+Avoid ×0.5
++
+Random(1,50)
++
+50
+)
+
+÷90
+</code></pre>
+<hr />
+<h2 id="failed-hit_2">Failed Hit</h2>
+<pre><code class="language-text">Suc &lt; 6
+
+Damage = 0
+</code></pre>
+<hr />
+<h2 id="low-success-damage_2">Low Success Damage</h2>
+<pre><code class="language-text">6 &lt;= Suc &lt; 20
+</code></pre>
+<pre><code class="language-text">Damage =
+
+SkillPower
+
+×
+
+(
+SkillPower
++
+INT
++
+80
+)
+
+×
+
+(
+Random(1,30)
++
+Sense ×2
++
+290
+)
+
+×
+
+0.2
+
+÷
+
+(
+Defence ×0.2
++
+Resistance
++
+30
+)
+
+÷
+
+(
+250
++
+TargetLevel
+-
+AttackerLevel
+)
+
++20
+</code></pre>
+<hr />
+<h2 id="normal-unarmed-damage">Normal Unarmed Damage</h2>
+<pre><code class="language-text">Suc &gt;=20
+</code></pre>
+<pre><code class="language-text">Damage =
+
+(35 + SkillPower)
+
+×
+
+(
+SkillPower
++
+INT
++
+140
+)
+
+×
+
+(
+Random(1,30)
++
+Sense
++
+380
+)
+
+×
+
+0.01
+
+×
+
+(
+150
+-
+TargetLevel
++
+AttackerLevel
+)
+
+÷
+
+(
+Defence ×0.35
++
+Resistance ×1.2
++
+Avoid ×0.4
++
+10
+)
+
+÷730
+
++20
+</code></pre>
+<hr />
+<h1 id="default-damage-type">Default Damage Type</h1>
+<p>Used when no specific skill damage type exists.</p>
+<p>This behaves similarly to a basic attack.</p>
+<hr />
+<h1 id="final-damage-processing">Final Damage Processing</h1>
+<p>After every successful formula:</p>
+<pre><code class="language-cpp">Dmg = Max(Dmg,5)
+
+Dmg *= Max(1,HitCount)
+
+Dmg = Min(Dmg,9999)
+</code></pre>
+<p>Meaning:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th style="text-align: right;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Minimum Damage</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>Maximum Damage</td>
+<td style="text-align: right;">9999</td>
+</tr>
+<tr>
+<td>Multi-hit Support</td>
+<td style="text-align: right;">Yes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="implementation-reference">Implementation Reference</h1>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Skill Damage</td>
+<td><code>CCal::Get_SkillDAMAGE()</code></td>
+</tr>
+<tr>
+<td>Skill Buff Scaling</td>
+<td><code>CCal::Get_SkillAdjustVALUE()</code></td>
+</tr>
+<tr>
+<td>Combat Constants</td>
+<td><code>game_config.h</code></td>
+</tr>
+</tbody>
+</table>
+<p>Implementation:</p>
+<p><a href="../RoseStats.h">RoseStats.h</a></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

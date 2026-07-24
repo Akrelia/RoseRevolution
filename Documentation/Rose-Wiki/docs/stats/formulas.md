@@ -572,6 +572,214 @@ Value ×
 
 ---
 
+# Quest Rewards Scaling
+
+**Source**
+
+```cpp
+CCal::Get_RewardVALUE (calculation.cpp:78)
+```
+
+
+---
+
+## Variables
+
+```text
+Charm = 
+Current characters charm value.
+
+Level =
+max(Character Level, 1)
+
+Fame =
+0
+
+kWorldReward =
+World Reward Rate
+
+Base =
+Quest Base Reward Value
+
+DupCnt =
+Reward Count
+```
+
+---
+
+## Equation 0 — EXP (Base Value Weighted)
+
+```text
+Reward =
+
+((Base + 30)
+×
+(Charm + 10)
+×
+kWorldReward
+×
+(Fame + 20))
+
+÷
+
+(Level + 70)
+÷
+
+30000
+
++
+
+Base
+```
+
+---
+
+## Equation 1 — EXP (Level Ratio)
+
+```text
+Reward =
+
+Base
+
+×
+
+(Level + 3)
+
+×
+
+(Level + Charm / 2 + 40)
+
+×
+
+kWorldReward
+
+÷
+
+10000
+```
+
+---
+
+## Equation 2 — Money (Count Based)
+
+```text
+Reward =
+
+Base × DupCnt
+```
+
+---
+
+## Equation 3 / 5 — Money Base / Item Base
+
+```text
+Reward =
+
+((Base + 20)
+×
+(Charm + 10)
+×
+kWorldReward
+×
+(Fame + 20))
+
+÷
+
+(Level + 70)
+÷
+
+30000
+
++
+
+Base
+```
+
+---
+
+## Equation 4 — Money (Level Ratio)
+
+```text
+Reward =
+
+(Base + 2)
+
+×
+
+(Level + Charm + 40)
+
+×
+
+(Fame + 40)
+
+×
+
+kWorldReward
+
+÷
+
+140000
+```
+
+---
+
+## Equation 6 — Item (Level Ratio)
+
+```text
+Reward =
+
+((Base + 20)
+
+×
+
+(Level + Charm)
+
+×
+
+(Fame + 20)
+
+×
+
+kWorldReward)
+
+÷
+
+3000000
+
++
+
+Base
+```
+
+---
+
+## Reward Equation Table
+
+| Equation | Reward Type | Calculation |
+|----------|-------------|-------------|
+| 0 | EXP | Base value weighted |
+| 1 | EXP | Level ratio |
+| 2 | Money | Base × Count |
+| 3 | Money | Base weighted |
+| 4 | Money | Level ratio |
+| 5 | Item | Base weighted |
+| 6 | Item | Level ratio |
+
+---
+
+## Notes
+
+```text
+Fame is currently fixed to 0 in the original implementation.
+
+Level is clamped:
+Level = max(Level, 1)
+
+Charm affects all reward scaling formulas except Equation 2.
+
+kWorldReward acts as a global reward multiplier. (this is basically the drop rate server sided)
+```
+
 # Constants
 
 | Constant | Value |
@@ -603,3 +811,4 @@ Value ×
 | Get_BasicDAMAGE | calculation.cpp |
 | Get_SkillDAMAGE | calculation.cpp |
 | Get_SkillAdjustVALUE | calculation.cpp |
+| Get_RewardVALUE | calculation.cpp |

@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Base Character Stats - ROSE-Docs</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">ROSE-Docs</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Welcome to Rose wiki.</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Stats</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Base Character Stats</a>
+</li>
+                                    
+<li>
+    <a href="../formulas/" class="dropdown-item">Formula Reference</a>
+</li>
+                                    
+<li>
+    <a href="../skill-damage/" class="dropdown-item">Skill Damage Formula Reference</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../.." class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../formulas/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#base-character-stats" class="nav-link">Base Character Stats</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#overview" class="nav-link">Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#starting-attributes" class="nav-link">Starting Attributes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#attribute-overview" class="nav-link">Attribute Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#abbreviation-index" class="nav-link">Abbreviation Index</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#strength-str" class="nav-link">Strength (STR)</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#primary-effects" class="nav-link">Primary Effects</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#derived-stats" class="nav-link">Derived Stats</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#dexterity-dex" class="nav-link">Dexterity (DEX)</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#primary-effects_1" class="nav-link">Primary Effects</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#derived-stats_1" class="nav-link">Derived Stats</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#constitution-con" class="nav-link">Constitution (CON)</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#primary-effects_2" class="nav-link">Primary Effects</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#derived-stats_2" class="nav-link">Derived Stats</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#intelligence-int" class="nav-link">Intelligence (INT)</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#primary-effects_3" class="nav-link">Primary Effects</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#derived-statis" class="nav-link">Derived Statis</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#sense-sen" class="nav-link">Sense (SEN)</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#primary-effects_4" class="nav-link">Primary Effects</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#charm-cha" class="nav-link">Charm (CHA)</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#primary-effects-unconfirmed" class="nav-link">Primary Effects (Unconfirmed)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#weapon-attribute-scaling" class="nav-link">Weapon Attribute Scaling</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#weapon-ap-scaling" class="nav-link">Weapon AP Scaling</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#attribute-interaction-summary" class="nav-link">Attribute Interaction Summary</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#references" class="nav-link">References</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="base-character-stats">Base Character Stats</h1>
+<blockquote>
+<p><strong>Sources</strong></p>
+<ul>
+<li>Original ROSE Online Server</li>
+<li><code>src/sho_gameserver/src/common/cuserdata.cpp</code></li>
+<li><code>src/sho_gameserver/src/cobjavt.cpp</code></li>
+</ul>
+<p>This document describes the six primary character attributes used throughout
+ROSE Online.</p>
+</blockquote>
+<hr />
+<h1 id="overview">Overview</h1>
+<p>Every player character begins with <strong>15 points</strong> in each primary attribute.</p>
+<p>Unlike <strong>Derived Stats</strong>, such as Health Points (HP), Movement Speed (MS), or
+Attack Power (AP), these attributes are increased manually by the player through
+level progression (stat points), or modified through equipment bonus stats, and passive skills.</p>
+<hr />
+<h1 id="starting-attributes">Starting Attributes</h1>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th style="text-align: right;">Initial Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STR</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>DEX</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>INT</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>CON</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>SEN</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>CHA</td>
+<td style="text-align: right;">10 (I think)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="attribute-overview">Attribute Overview</h1>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>STR</strong></td>
+<td>Increases Health Points, Defence, Carry Weight and Attack Power for most melee weapon classes.</td>
+</tr>
+<tr>
+<td><strong>DEX</strong></td>
+<td>Increases Movement Speed, Dodge Rate and Attack Power for Bows, Katars and Dual Weapons.</td>
+</tr>
+<tr>
+<td><strong>CON</strong></td>
+<td>Increases Accuracy (Hit Rate), Critical Rate, and contributes heavily to Gun and Launcher damage. Also affects crafting success rates.</td>
+</tr>
+<tr>
+<td><strong>INT</strong></td>
+<td>GIncreases Mana Points, Magical Resistance, Buff potency, Healing effectiveness and Magic Weapon damage.</td>
+</tr>
+<tr>
+<td><strong>SEN</strong></td>
+<td>Increases Critical Rate while improving Weapon Attack Power scaling for ranged and magical weapons. Also affects crafting success rates.</td>
+</tr>
+<tr>
+<td><strong>CHA</strong></td>
+<td>Primarily affects NPC interactions, quest rewards and drop rewards. <em>(Current implementation unconfirmed.)</em></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="abbreviation-index">Abbreviation Index</h1>
+<table>
+<thead>
+<tr>
+<th>Abbreviation</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STR</td>
+<td>Strength</td>
+</tr>
+<tr>
+<td>DEX</td>
+<td>Dexterity</td>
+</tr>
+<tr>
+<td>CON</td>
+<td>Constitution</td>
+</tr>
+<tr>
+<td>INT</td>
+<td>Intelligence</td>
+</tr>
+<tr>
+<td>SEN</td>
+<td>Sense</td>
+</tr>
+<tr>
+<td>CHA</td>
+<td>Charm</td>
+</tr>
+<tr>
+<td>AP</td>
+<td>Attack Power</td>
+</tr>
+<tr>
+<td>DEF</td>
+<td>Defence</td>
+</tr>
+<tr>
+<td>RES</td>
+<td>Resistance</td>
+</tr>
+<tr>
+<td>CRIT</td>
+<td>Critical Rate</td>
+</tr>
+<tr>
+<td>HIT</td>
+<td>Hit Rate</td>
+</tr>
+<tr>
+<td>HP</td>
+<td>Health Points</td>
+</tr>
+<tr>
+<td>MP</td>
+<td>Mana Points</td>
+</tr>
+<tr>
+<td>MS</td>
+<td>Movement Speed</td>
+</tr>
+<tr>
+<td>1H</td>
+<td>One-Handed</td>
+</tr>
+<tr>
+<td>2H</td>
+<td>Two-Handed</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="strength-str">Strength (STR)</h1>
+<h2 id="primary-effects">Primary Effects</h2>
+<ul>
+<li>Melee Attack Power</li>
+<li>Physical Defence</li>
+<li>Maximum Health Points</li>
+<li>Maximum Carry Weight</li>
+<li>Weapon Skill Damage</li>
+<li>Unarmed Attack Power</li>
+</ul>
+<h2 id="derived-stats">Derived Stats</h2>
+<table>
+<thead>
+<tr>
+<th>Derived Stat</th>
+<th>Formula Contribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Defence</td>
+<td><code>(STR + 5) × 0.35</code></td>
+</tr>
+<tr>
+<td>Max HP</td>
+<td><code>STR × 2</code></td>
+</tr>
+<tr>
+<td>Max Weight</td>
+<td><code>STR × 6</code></td>
+</tr>
+<tr>
+<td>Attack Power</td>
+<td>Primary scaling attribute for melee weapons</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="dexterity-dex">Dexterity (DEX)</h1>
+<h2 id="primary-effects_1">Primary Effects</h2>
+<ul>
+<li>Movement Speed</li>
+<li>Dodge Rate</li>
+<li>Bow Attack Power</li>
+<li>Katar Attack Power</li>
+<li>Dual-Wield Attack Power</li>
+<li>Unarmed Attack Power</li>
+</ul>
+<h2 id="derived-stats_1">Derived Stats</h2>
+<table>
+<thead>
+<tr>
+<th>Derived Stat</th>
+<th>Formula Contribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Movement Speed</td>
+<td><code>(DEX + 500)</code> multiplier</td>
+</tr>
+<tr>
+<td>Dodge Rate</td>
+<td><code>(DEX + 10) × 0.8</code></td>
+</tr>
+<tr>
+<td>Attack Power</td>
+<td>Primary scaling for Bows and Katars</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="constitution-con">Constitution (CON)</h1>
+<h2 id="primary-effects_2">Primary Effects</h2>
+<ul>
+<li>Hit Rate</li>
+<li>Critical Rate</li>
+<li>Gun Attack Power</li>
+<li>Launcher Attack Power</li>
+<li>Crafting Success</li>
+</ul>
+<h2 id="derived-stats_2">Derived Stats</h2>
+<table>
+<thead>
+<tr>
+<th>Derived Stat</th>
+<th>Formula Contribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hit Rate</td>
+<td><code>(CON + 10) × 0.8</code></td>
+</tr>
+<tr>
+<td>Critical Rate</td>
+<td><code>(CON + 20) × 0.2</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="intelligence-int">Intelligence (INT)</h1>
+<h2 id="primary-effects_3">Primary Effects</h2>
+<ul>
+<li>Mana Points</li>
+<li>Magic Attack Power</li>
+<li>Magical Resistance</li>
+<li>Healing</li>
+<li>Buff Potency</li>
+<li>Magic Skill Damage</li>
+</ul>
+<h2 id="derived-statis">Derived Statis</h2>
+<table>
+<thead>
+<tr>
+<th>Derived Stat</th>
+<th>Formula Contribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Maximum MP</td>
+<td><code>INT × 4</code></td>
+</tr>
+<tr>
+<td>Resistance</td>
+<td><code>(INT + 5) × 0.6</code></td>
+</tr>
+<tr>
+<td>Magic Weapon Scaling</td>
+<td>Primary attribute</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="sense-sen">Sense (SEN)</h1>
+<h2 id="primary-effects_4">Primary Effects</h2>
+<ul>
+<li>Critical Rate</li>
+<li>Bow Weapon Scaling</li>
+<li>Gun Weapon Scaling</li>
+<li>Launcher Weapon Scaling</li>
+<li>Wand Weapon Scaling</li>
+<li>Crafting Success</li>
+</ul>
+<hr />
+<h1 id="charm-cha">Charm (CHA)</h1>
+<h2 id="primary-effects-unconfirmed">Primary Effects <em>(Unconfirmed)</em></h2>
+<ul>
+<li>Quest Rewards <em>(Unconfirmed)</em></li>
+<li>Drop Rewards <em>(Unconfirmed)</em></li>
+<li>NPC Interaction <em>(Unconfirmed)</em></li>
+</ul>
+<hr />
+<h1 id="weapon-attribute-scaling">Weapon Attribute Scaling</h1>
+<p>The following table shows the <strong>base attribute contribution</strong> for each weapon
+type before Weapon Attack Power is applied.</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th style="text-align: center;">Swords</th>
+<th style="text-align: center;">Axes</th>
+<th style="text-align: center;">Maces</th>
+<th style="text-align: center;">Wands</th>
+<th style="text-align: center;">Staffs</th>
+<th style="text-align: center;">Katars</th>
+<th style="text-align: center;">Dual-Wield</th>
+<th style="text-align: center;">Bows</th>
+<th style="text-align: center;">Guns</th>
+<th style="text-align: center;">Launchers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>STR</strong></td>
+<td style="text-align: center;">0.75</td>
+<td style="text-align: center;">0.75</td>
+<td style="text-align: center;">0.75</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">0.40</td>
+<td style="text-align: center;">0.42</td>
+<td style="text-align: center;">0.63</td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">0.52</td>
+</tr>
+<tr>
+<td><strong>DEX</strong></td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">0.55</td>
+<td style="text-align: center;">0.45</td>
+<td style="text-align: center;">0.62</td>
+<td style="text-align: center;">0.40</td>
+<td style="text-align: center;">—</td>
+</tr>
+<tr>
+<td><strong>INT</strong></td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">0.60</td>
+<td style="text-align: center;">0.40</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+</tr>
+<tr>
+<td><strong>CON</strong></td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">0.50</td>
+<td style="text-align: center;">0.50</td>
+</tr>
+<tr>
+<td><strong>Level</strong></td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">0.20</td>
+<td style="text-align: center;">0.20</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="weapon-ap-scaling">Weapon AP Scaling</h1>
+<p>Several weapon types use additional attribute modifiers when calculating the
+Weapon Attack Power multiplier.</p>
+<table>
+<thead>
+<tr>
+<th>Weapon</th>
+<th>Scaling Formula</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Swords / Axes / Maces</td>
+<td><code>WeaponAP × (STR × 0.05 + 29) / 30</code></td>
+</tr>
+<tr>
+<td>Staffs</td>
+<td><code>WeaponAP × (INT × 0.05 + 29) / 30</code></td>
+</tr>
+<tr>
+<td>Wands</td>
+<td><code>WeaponAP × (SEN × 0.10 + 26) / 27</code></td>
+</tr>
+<tr>
+<td>Katars</td>
+<td><code>WeaponAP × (DEX × 0.05 + 20) / 21</code></td>
+</tr>
+<tr>
+<td>Dual-Wield</td>
+<td><code>WeaponAP × (DEX × 0.05 + 25) / 26</code></td>
+</tr>
+<tr>
+<td>Bows</td>
+<td><code>WeaponAP × (DEX × 0.04 + SEN × 0.03 + 29) / 30</code></td>
+</tr>
+<tr>
+<td>Guns</td>
+<td><code>WeaponAP × (CON × 0.03 + SEN × 0.05 + 29) / 30</code></td>
+</tr>
+<tr>
+<td>Launchers</td>
+<td><code>WeaponAP × (CON × 0.04 + SEN × 0.05 + 29) / 30</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="attribute-interaction-summary">Attribute Interaction Summary</h1>
+<table>
+<thead>
+<tr>
+<th>Gameplay System</th>
+<th>Primary Attributes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sword Damage</td>
+<td>STR</td>
+</tr>
+<tr>
+<td>Axe Damage</td>
+<td>STR</td>
+</tr>
+<tr>
+<td>Mace Damage</td>
+<td>STR</td>
+</tr>
+<tr>
+<td>Staff Damage</td>
+<td>STR + INT</td>
+</tr>
+<tr>
+<td>Wand Damage</td>
+<td>INT + SEN</td>
+</tr>
+<tr>
+<td>Bow Damage</td>
+<td>DEX + STR + SEN</td>
+</tr>
+<tr>
+<td>Gun Damage</td>
+<td>DEX + CON + SEN</td>
+</tr>
+<tr>
+<td>Launcher Damage</td>
+<td>STR + CON + SEN</td>
+</tr>
+<tr>
+<td>Katar Damage</td>
+<td>STR + DEX</td>
+</tr>
+<tr>
+<td>Dual-Wield Damage</td>
+<td>STR + DEX</td>
+</tr>
+<tr>
+<td>Critical Rate</td>
+<td>SEN + CON</td>
+</tr>
+<tr>
+<td>Hit Rate</td>
+<td>CON</td>
+</tr>
+<tr>
+<td>Defence</td>
+<td>STR</td>
+</tr>
+<tr>
+<td>Resistance</td>
+<td>INT</td>
+</tr>
+<tr>
+<td>Health Points</td>
+<td>STR</td>
+</tr>
+<tr>
+<td>Mana Points</td>
+<td>INT</td>
+</tr>
+<tr>
+<td>Movement Speed</td>
+<td>DEX</td>
+</tr>
+<tr>
+<td>Dodge Rate</td>
+<td>DEX</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="references">References</h1>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Cal_ATTACKPOWER()</code></td>
+<td><code>cobjavt.cpp</code></td>
+</tr>
+<tr>
+<td><code>Cal_RunSPEED()</code></td>
+<td><code>cuserdata.cpp</code></td>
+</tr>
+<tr>
+<td><code>Cal_AvoidRATE()</code></td>
+<td><code>cuserdata.cpp</code></td>
+</tr>
+<tr>
+<td><code>Cal_CRITICAL()</code></td>
+<td><code>cuserdata.cpp</code></td>
+</tr>
+<tr>
+<td><code>Cal_HIT()</code></td>
+<td><code>cobjavt.cpp</code></td>
+</tr>
+<tr>
+<td><code>Cal_DEFENCE()</code></td>
+<td><code>cuserdata.cpp</code></td>
+</tr>
+<tr>
+<td><code>Cal_RESIST()</code></td>
+<td><code>cuserdata.cpp</code></td>
+</tr>
+<tr>
+<td><code>Cal_MaxHP()</code></td>
+<td><code>cuserdata.cpp</code></td>
+</tr>
+<tr>
+<td><code>Cal_MaxMP()</code></td>
+<td><code>cuserdata.cpp</code></td>
+</tr>
+<tr>
+<td><code>Cal_MaxWEIGHT()</code></td>
+<td><code>cuserdata.cpp</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<blockquote>
+<p>Note that for leveling up the AP and SP given to the player is to be determined by you specifically.
+If you plan to add more skills the skill points given should be determined based on feel.</p>
+</blockquote></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

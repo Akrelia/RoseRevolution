@@ -43,7 +43,7 @@ level progression (stat points), or modified through equipment bonus stats, and 
 | **CON** | Increases Accuracy (Hit Rate), Critical Rate, and contributes heavily to Gun and Launcher damage. Also affects crafting success rates. |
 | **INT** | GIncreases Mana Points, Magical Resistance, Buff potency, Healing effectiveness and Magic Weapon damage. |
 | **SEN** | Increases Critical Rate while improving Weapon Attack Power scaling for ranged and magical weapons. Also affects crafting success rates. |
-| **CHA** | Primarily affects NPC interactions, quest rewards and drop rewards. *(Current implementation unconfirmed.)* |
+| **CHA** | Primarily affects NPC interactions, quest rewards and drop rewards.  |
 
 ---
 
@@ -170,11 +170,15 @@ level progression (stat points), or modified through equipment bonus stats, and 
 # Charm (CHA)
 
 
-## Primary Effects *(Unconfirmed)*
+## Primary Effects
 
-- Quest Rewards *(Unconfirmed)*
-- Drop Rewards *(Unconfirmed)*
-- NPC Interaction *(Unconfirmed)*
+- Quest Rewards 
+- Drop Rewards *unconfirmed*
+
+- Upon investigating further charm does indeed effect quest rewards. It effects in many cases exp rewards, and zulie rewards from quests *needs to be confirmed further since ccalc is a cluster fuck*.
+- You can check the client's CQuestData specifically these sources: src/common/shared/io_quest.{h.cpp}: CQuestData::CheckQuests + CQuestTrigger:Proc and the FQSTCOND/F_QSTREWD tables. 
+- Quest condition UI can be checked in RoseDialog.cpp.
+- Monster conditions can be checked in CObjMOB::Do_DeadEvent to check whether monster has been killed.
 
 ---
 

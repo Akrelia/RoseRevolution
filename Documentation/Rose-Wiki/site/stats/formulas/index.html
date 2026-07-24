@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Formula Reference - ROSE-Docs</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">ROSE-Docs</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Welcome to Rose wiki.</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Stats</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../base-stats/" class="dropdown-item">Base Character Stats</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Formula Reference</a>
+</li>
+                                    
+<li>
+    <a href="../skill-damage/" class="dropdown-item">Skill Damage Formula Reference</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../base-stats/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../skill-damage/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#formula-reference" class="nav-link">Formula Reference</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#character-statistics" class="nav-link">Character Statistics</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#run-speed" class="nav-link">Run Speed</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#avoid-rate" class="nav-link">Avoid Rate</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#critical-rate" class="nav-link">Critical Rate</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#hit-rate-armed" class="nav-link">Hit Rate (Armed)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#hit-rate-unarmed" class="nav-link">Hit Rate (Unarmed)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#defence" class="nav-link">Defence</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#resistance" class="nav-link">Resistance</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#maximum-hp" class="nav-link">Maximum HP</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#maximum-mp" class="nav-link">Maximum MP</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#maximum-weight" class="nav-link">Maximum Weight</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#attack-speed" class="nav-link">Attack Speed</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#attack-power" class="nav-link">Attack Power</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#unarmed" class="nav-link">Unarmed</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#one-hand-two-hand" class="nav-link">One-Hand / Two-Hand</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#bow" class="nav-link">Bow</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#gun" class="nav-link">Gun</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#launcher" class="nav-link">Launcher</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#magic-staff" class="nav-link">Magic Staff</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#magic-wand" class="nav-link">Magic Wand</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#katar" class="nav-link">Katar</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#dual-weapon" class="nav-link">Dual Weapon</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#animation" class="nav-link">Animation</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#run-animation-rate-this-is-personally-done-for-my-unreal-engine-project-find-what-suits-you-best-it-was-also-winged-by-ai-with-manual-tweaking-from-my-side" class="nav-link">Run Animation Rate (This is personally done for my unreal engine project, find what suits you best. It was also winged by AI with manual tweaking from my side)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#combat" class="nav-link">Combat</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#success-rate" class="nav-link">Success Rate</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#critical-roll" class="nav-link">Critical Roll</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#normal-damage" class="nav-link">Normal Damage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#critical-damage" class="nav-link">Critical Damage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#skill-damage" class="nav-link">Skill Damage</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#weapon-skill" class="nav-link">Weapon Skill</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#magic-skill" class="nav-link">Magic Skill</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#unarmed-skill" class="nav-link">Unarmed Skill</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#buff-scaling" class="nav-link">Buff Scaling</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#constants" class="nav-link">Constants</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#original-server-functions" class="nav-link">Original Server Functions</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="formula-reference">Formula Reference</h1>
+<blockquote>
+<p><strong>Source</strong></p>
+<p>Original ROSE Online Server</p>
+<p>This document serves as a mathematical reference for all combat and character
+formulas currently implemented in <code>RoseStats.h</code>.</p>
+<p>Each section includes the original server function from which the formula was ripped from.</p>
+</blockquote>
+<hr />
+<h1 id="character-statistics">Character Statistics</h1>
+<h2 id="run-speed">Run Speed</h2>
+<p><strong>Source</strong></p>
+<pre><code>Cal_RunSPEED()
+</code></pre>
+<p><strong>Formula</strong></p>
+<pre><code class="language-text">RunSpeed =
+(BootsSpeed + BackSpeed + 20)
+× (DEX + 500)
+÷ 100
++ AdditiveBonus
+</code></pre>
+<hr />
+<h2 id="avoid-rate">Avoid Rate</h2>
+<p><strong>Source</strong></p>
+<pre><code>Cal_AvoidRATE()
+</code></pre>
+<p><strong>Formula</strong></p>
+<pre><code class="language-text">Avoid =
+(DEX + 10) × 0.8
++
+(Level × 0.5)
+</code></pre>
+<hr />
+<h2 id="critical-rate">Critical Rate</h2>
+<p><strong>Source</strong></p>
+<pre><code>Cal_CRITICAL()
+</code></pre>
+<p><strong>Formula</strong></p>
+<pre><code class="language-text">Critical =
+SEN
++
+(CON + 20) × 0.2
+</code></pre>
+<hr />
+<h2 id="hit-rate-armed">Hit Rate (Armed)</h2>
+<p><strong>Source</strong></p>
+<pre><code>Cal_HIT()
+</code></pre>
+<pre><code class="language-text">Hit =
+(CON + 10) × 0.8
++
+WeaponQuality × 0.6
++
+WeaponDurability × 0.8
+</code></pre>
+<hr />
+<h2 id="hit-rate-unarmed">Hit Rate (Unarmed)</h2>
+<pre><code class="language-text">Hit =
+(CON + 10) × 0.5
++
+15
+</code></pre>
+<hr />
+<h2 id="defence">Defence</h2>
+<p><strong>Source</strong></p>
+<pre><code>Cal_DEFENCE()
+</code></pre>
+<pre><code class="language-text">Defence =
+ItemDEF
++
+(STR + 5) × 0.35
++
+(Level + 15) × 0.7
+</code></pre>
+<hr />
+<h2 id="resistance">Resistance</h2>
+<p><strong>Source</strong></p>
+<pre><code>Cal_RESIST()
+</code></pre>
+<pre><code class="language-text">Resistance =
+ItemRES
++
+(INT + 5) × 0.6
++
+(Level + 15) × 0.8
+</code></pre>
+<hr />
+<h2 id="maximum-hp">Maximum HP</h2>
+<pre><code class="language-text">HP =
+(Level + 12) × 8
++
+STR × 2
+</code></pre>
+<hr />
+<h2 id="maximum-mp">Maximum MP</h2>
+<pre><code class="language-text">MP =
+(Level + 4) × 3
++
+INT × 4
+</code></pre>
+<hr />
+<h2 id="maximum-weight">Maximum Weight</h2>
+<pre><code class="language-text">Weight =
+1100
++
+Level × 5
++
+STR × 6
+</code></pre>
+<hr />
+<h2 id="attack-speed">Attack Speed</h2>
+<p><strong>Source</strong></p>
+<pre><code>Cal_ATTACKSPEED()
+</code></pre>
+<pre><code class="language-text">AttackSpeed =
+1500
+÷
+(WeaponAttackSpeed + 5)
+</code></pre>
+<hr />
+<h1 id="attack-power">Attack Power</h1>
+<hr />
+<h2 id="unarmed">Unarmed</h2>
+<pre><code class="language-text">Attack =
+STR × 0.5
++
+DEX × 0.3
++
+Level × 0.2
+</code></pre>
+<hr />
+<h2 id="one-hand-two-hand">One-Hand / Two-Hand</h2>
+<pre><code class="language-text">Attack =
+STR × 0.75
++
+Level × 0.2
++
+WeaponAP ×
+(STR × 0.05 + 29)
+/ 30
+</code></pre>
+<hr />
+<h2 id="bow">Bow</h2>
+<pre><code class="language-text">Attack =
+DEX × 0.62
++
+STR × 0.20
++
+Level × 0.20
++
+ItemQuality
+
++
+
+(WeaponAP + ItemQuality × 0.5 + 8)
+
+×
+
+(DEX × 0.04 + SEN × 0.03 + 29)
+
+÷ 30
+</code></pre>
+<hr />
+<h2 id="gun">Gun</h2>
+<pre><code class="language-text">Attack =
+DEX × 0.40
++
+CON × 0.50
++
+Level × 0.20
++
+ItemQuality
+
++
+
+(WeaponAP + ItemQuality × 0.6 + 8)
+
+×
+
+(CON × 0.03 + SEN × 0.05 + 29)
+
+÷ 30
+</code></pre>
+<hr />
+<h2 id="launcher">Launcher</h2>
+<pre><code class="language-text">Attack =
+STR × 0.52
++
+CON × 0.50
++
+Level × 0.20
++
+ItemQuality
+
++
+
+(WeaponAP + ItemQuality + 12)
+
+×
+
+(CON × 0.04 + SEN × 0.05 + 29)
+
+÷ 30
+</code></pre>
+<hr />
+<h2 id="magic-staff">Magic Staff</h2>
+<pre><code class="language-text">Attack =
+STR × 0.40
++
+INT × 0.40
++
+Level × 0.20
+
++
+
+WeaponAP ×
+(INT × 0.05 + 29)
+÷ 30
+</code></pre>
+<hr />
+<h2 id="magic-wand">Magic Wand</h2>
+<pre><code class="language-text">Attack =
+INT × 0.60
++
+Level × 0.20
+
++
+
+WeaponAP ×
+(SEN × 0.10 + 26)
+÷ 27
+</code></pre>
+<hr />
+<h2 id="katar">Katar</h2>
+<pre><code class="language-text">Attack =
+STR × 0.42
++
+DEX × 0.55
++
+Level × 0.20
+
++
+
+WeaponAP ×
+(DEX × 0.05 + 20)
+÷ 21
+</code></pre>
+<hr />
+<h2 id="dual-weapon">Dual Weapon</h2>
+<pre><code class="language-text">Attack =
+STR × 0.63
++
+DEX × 0.45
++
+Level × 0.20
+
++
+
+WeaponAP ×
+(DEX × 0.05 + 25)
+÷ 26
+</code></pre>
+<hr />
+<h1 id="animation">Animation</h1>
+<h2 id="run-animation-rate-this-is-personally-done-for-my-unreal-engine-project-find-what-suits-you-best-it-was-also-winged-by-ai-with-manual-tweaking-from-my-side">Run Animation Rate (This is personally done for my unreal engine project, find what suits you best. It was also winged by AI with manual tweaking from my side)</h2>
+<pre><code class="language-text">AnimationRate =
+(RunSpeed + 180)
+÷ 600
+</code></pre>
+<hr />
+<h1 id="combat">Combat</h1>
+<h2 id="success-rate">Success Rate</h2>
+<pre><code class="language-text">Success =
+((AtkLevel + 10)
+-
+DefLevel × 1.1
++
+Random(1-50))
+
+×
+
+(AtkHit × 1.1
+-
+DefAvoid × 0.93
++
+Random(1-60)
++
+5
++
+AtkLevel × 0.2)
+
+÷ 80
+</code></pre>
+<hr />
+<h2 id="critical-roll">Critical Roll</h2>
+<pre><code class="language-text">CriticalSuccess =
+
+((Random(1-100)+1) × 3
++
+Level
++
+30)
+
+×
+
+16
+
+÷
+
+(Critical + 70)
+
+Critical if &lt; 20
+</code></pre>
+<hr />
+<h2 id="normal-damage">Normal Damage</h2>
+<pre><code class="language-text">Damage =
+
+AttackPower
+
+×
+
+(Success × 0.03 + 26)
+
+×
+
+(AttackPower - Defence + 250)
+
+÷
+
+((Defence + Avoid × 0.4 + 5)
+×145)
+</code></pre>
+<p>Minimum Damage</p>
+<pre><code>5
+</code></pre>
+<hr />
+<h2 id="critical-damage">Critical Damage</h2>
+<pre><code class="language-text">Damage =
+
+AttackPower
+
+×
+
+(Success × 0.05 + 29)
+
+×
+
+(AttackPower - Defence + 230)
+
+÷
+
+((Defence + Avoid × 0.3 + 5)
+×100)
+</code></pre>
+<p>Minimum Damage</p>
+<pre><code>10
+</code></pre>
+<hr />
+<h1 id="skill-damage">Skill Damage</h1>
+<h2 id="weapon-skill">Weapon Skill</h2>
+<pre><code>Get_SkillDAMAGE()
+DamageType = 1
+</code></pre>
+<p>Uses</p>
+<ul>
+<li>Attack Power</li>
+<li>Defence</li>
+<li>Resistance</li>
+<li>Avoid</li>
+<li>Sense</li>
+<li>Hit Rate</li>
+<li>Skill Power</li>
+</ul>
+<hr />
+<h2 id="magic-skill">Magic Skill</h2>
+<pre><code>DamageType = 2
+</code></pre>
+<p>Uses</p>
+<ul>
+<li>Intelligence</li>
+<li>Resistance</li>
+<li>Attack Power</li>
+<li>Sense</li>
+<li>Skill Power</li>
+</ul>
+<hr />
+<h2 id="unarmed-skill">Unarmed Skill</h2>
+<pre><code>DamageType = 3
+</code></pre>
+<p>Uses</p>
+<ul>
+<li>Intelligence</li>
+<li>Skill Power</li>
+<li>Sense</li>
+<li>Defence</li>
+<li>Resistance</li>
+</ul>
+<hr />
+<h1 id="buff-scaling">Buff Scaling</h1>
+<pre><code>Get_SkillAdjustVALUE()
+</code></pre>
+<pre><code class="language-text">FinalValue =
+
+AbilityValue × Rate
+
+÷100
+
++
+
+Value ×
+
+(CasterINT + 300)
+
+÷315
+</code></pre>
+<hr />
+<h1 id="constants">Constants</h1>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th style="text-align: right;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Maximum Damage</td>
+<td style="text-align: right;">9999</td>
+</tr>
+<tr>
+<td>Minimum Damage</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>Minimum Critical Damage</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr>
+<td>Success RNG</td>
+<td style="text-align: right;">1-50</td>
+</tr>
+<tr>
+<td>Hit RNG</td>
+<td style="text-align: right;">1-60</td>
+</tr>
+<tr>
+<td>Critical RNG</td>
+<td style="text-align: right;">1-100</td>
+</tr>
+<tr>
+<td>Damage RNG</td>
+<td style="text-align: right;">1-30</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="original-server-functions">Original Server Functions</h1>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cal_RunSPEED</td>
+<td>cuserdata.cpp</td>
+</tr>
+<tr>
+<td>Cal_AvoidRATE</td>
+<td>cuserdata.cpp</td>
+</tr>
+<tr>
+<td>Cal_CRITICAL</td>
+<td>cuserdata.cpp</td>
+</tr>
+<tr>
+<td>Cal_HIT</td>
+<td>cobjavt.cpp</td>
+</tr>
+<tr>
+<td>Cal_DEFENCE</td>
+<td>cuserdata.cpp</td>
+</tr>
+<tr>
+<td>Cal_RESIST</td>
+<td>cuserdata.cpp</td>
+</tr>
+<tr>
+<td>Cal_ATTACKPOWER</td>
+<td>cobjavt.cpp</td>
+</tr>
+<tr>
+<td>Cal_RunAniSPEED</td>
+<td>cobjai.h</td>
+</tr>
+<tr>
+<td>Get_SuccessRATE</td>
+<td>calculation.cpp</td>
+</tr>
+<tr>
+<td>Get_CriSuccessRATE</td>
+<td>calculation.cpp</td>
+</tr>
+<tr>
+<td>Get_BasicDAMAGE</td>
+<td>calculation.cpp</td>
+</tr>
+<tr>
+<td>Get_SkillDAMAGE</td>
+<td>calculation.cpp</td>
+</tr>
+<tr>
+<td>Get_SkillAdjustVALUE</td>
+<td>calculation.cpp</td>
+</tr>
+</tbody>
+</table></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
