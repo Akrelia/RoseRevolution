@@ -71,7 +71,7 @@ namespace UnityRose
 
 		public void OnChangeEquip(BodyPartType bodyPart, int id)
 		{
-			rosePlayer.equip(bodyPart, id);
+			rosePlayer.Equip(bodyPart, id);
 		}
 
 

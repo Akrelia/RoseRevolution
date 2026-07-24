@@ -1,6 +1,5 @@
 using System.Linq;
 using UnityEngine;
-using static UnityRose.Formats.ZSC.Object;
 
 /// <summary>
 /// Model preview component that allows displaying a 3D model in a UI element using a RenderTexture.

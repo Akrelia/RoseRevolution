@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityRose.Game;
-using static UnityRose.Formats.ZON;
 
 /// <summary>
 /// Rose map database.
 /// </summary>
-public class RoseMapDatabase : ScriptableObject
+public class MapDatabase : ScriptableObject
 {
     public List<RoseMapEntry> maps = new();
 

@@ -11,12 +11,18 @@ using UnityRose;
 /// </summary>
 public class WorldManager : MonoBehaviour
 {
+    public SandboxManager sandboxManager;
     [Header("Prefabs")]
     public GameObject mainPlayer;
     public GameObject mobSpawner;
     public GameObject entityGUI;
     [Header("Components")]
     public CameraController cameraController;
+
+    private void Awake()
+    {
+        Screen.SetResolution(1600, 800, FullScreenMode.Windowed);
+    }
 
     /// <summary>
     /// Spawn a character player.
@@ -29,24 +35,17 @@ public class WorldManager : MonoBehaviour
         model.rig = RigType.FOOT;
         model.state = States.STANDING;
         model.pos = position;
-        model.gender = appearence.Gender;
 
-        model.changeID(BodyPartType.HAIR, appearence.Hair);
-        model.changeID(BodyPartType.FACE, appearence.Face);
-
-        model.changeID(BodyPartType.BACK, appearence.Back);
-        model.changeID(BodyPartType.BODY, appearence.Body);
-        model.changeID(BodyPartType.ARMS, appearence.Gloves);
-        model.changeID(BodyPartType.FOOT, appearence.Shoes);
-        model.changeID(BodyPartType.FACEITEM, appearence.Mask);
-        model.changeID(BodyPartType.CAP, appearence.Hat);
+        model.ApplyAppearence(appearence);
 
         var rosePlayer = new RosePlayer(model);
 
+        rosePlayer.LoadPlayer(model, sandboxManager.equipmentDatabase);
+
         rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = mainPlayer;
 
-        rosePlayer.equip(BodyPartType.FACEITEM, appearence.Mask);
-        rosePlayer.equip(BodyPartType.WEAPON, appearence.Weapon);
+        rosePlayer.Equip(BodyPartType.FACEITEM, appearence.Mask);
+        rosePlayer.Equip(BodyPartType.WEAPON, appearence.Weapon);
         //rosePlayer.equip(BodyPartType.SUBWEAPON, subWeaponID);
 
         if (mainPlayer)
@@ -74,7 +73,7 @@ public class WorldManager : MonoBehaviour
     /// <param name="dataId">Data id.</param>
     /// <param name="position">Position.</param>
     /// <returns>Entity spawned.</returns>
-    public RoseNpc SpawnEntity(int id, int dataId, Vector3 position)
+    public NPCEntityBehavior SpawnEntity(int id, int dataId, Vector3 position)
     {
         /* RoseImport.ImportNPC(dataId);
 

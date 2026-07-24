@@ -26,12 +26,9 @@ namespace UnityRose.Import
 
         public static Mesh Import(string rosePath)
         {
-            if (_cache.TryGetValue(rosePath, out var cached) && cached != null)
-                return cached;
-
             var fullPath = Utils.CombinePath(RoseDataSource.DataPath, rosePath);
-            if (!System.IO.
-                File.Exists(fullPath))
+
+            if (!File.Exists(fullPath))
             {
                 Debug.LogWarning("Could not find referenced mesh: " + fullPath);
                 return null;
@@ -40,7 +37,6 @@ namespace UnityRose.Import
             var mesh = new ZMS(fullPath).getMesh();
             mesh.name = Path.GetFileNameWithoutExtension(rosePath);
 
-            _cache[rosePath] = mesh;
             return mesh;
         }
 
@@ -57,9 +53,11 @@ namespace UnityRose.Import
                 return cached;
 
             var fullPath = Utils.CombinePath(RoseDataSource.DataPath, rosePath);
-            if (!System.IO.File.Exists(fullPath))
+            
+            if (!File.Exists(fullPath))
             {
                 Debug.LogWarning("Could not find referenced skeleton: " + fullPath);
+            
                 return null;
             }
 
@@ -98,9 +96,6 @@ namespace UnityRose.Import
 
     public static class RoseAnimationImporter
     {
-        // Deliberately no cache here: the original code had one commented-out check
-        // (`//if (!File.Exists(animPath))`) meaning it always rebuilt anyway. Animation
-        // clips are cheap enough and skeleton-dependent, so we just build fresh each call.
         public static AnimationClip Import(string rosePath, RoseSkeletonData skeleton)
         {
             var fullPath = Utils.CombinePath(RoseDataSource.DataPath, rosePath);
@@ -146,9 +141,6 @@ namespace UnityRose.Import
 
     public static class RoseMaterialImporter
     {
-        // Materials are cheap and per-usage in the original code too (a new Material()
-        // per call), so no cache - callers (RoseZscImporter) cache at the level that
-        // makes sense for them (per material index within one ZSC).
         public static Material Build(string texturePath, string shaderName = "Universal Render Pipeline/Unlit")
         {
             var shader = Shader.Find(shaderName);
@@ -170,12 +162,6 @@ namespace UnityRose.Import
         }
     }
 
-    /// <summary>
-    /// Runtime-safe equivalent of the old nested ZscImporter. No more AssetDatabase path
-    /// classification (NPC parts vs. MapObjects vs. CharParts folders) - that only ever
-    /// mattered for deciding where to write .asset files, which is now the Editor
-    /// baker's problem, not the importer's.
-    /// </summary>
     public class RoseZscImporter
     {
         public readonly ZSC zsc;
@@ -250,17 +236,11 @@ namespace UnityRose.Import
         }
     }
 
-    /// <summary>
-    /// Runtime-safe equivalent of the old nested ChrImporter. Display name is now an
-    /// optional parameter instead of being pulled from ResourceManager.Instance directly,
-    /// since that singleton may or may not be initialized the same way at runtime -
-    /// pass it in from wherever your STB/STL data actually lives.
-    /// </summary>
     public class RoseNpcImporter
     {
         public readonly CHR chr;
         private readonly RoseZscImporter zsc;
-        private readonly Dictionary<int, RoseNPCInfos> _cache = new();
+        private readonly Dictionary<int, NPCEntitySO> _cache = new();
 
         public RoseNpcImporter()
         {
@@ -268,7 +248,7 @@ namespace UnityRose.Import
             zsc = new RoseZscImporter("3DDATA/NPC/PART_NPC.ZSC");
         }
 
-        public RoseNPCInfos ImportNpc(int npcIdx, string displayName = null)
+        public NPCEntitySO ImportNpc(int npcIdx, string displayName = null)
         {
             if (!chr.Characters[npcIdx].IsEnabled)
                 return null;
@@ -277,9 +257,9 @@ namespace UnityRose.Import
                 return cached;
 
             var chrObj = chr.Characters[npcIdx];
-            var npc = ScriptableObject.CreateInstance<RoseNPCInfos>();
-            npc.id = npcIdx;
-            npc.npcName = displayName ?? npcIdx.ToString();
+            var npc = ScriptableObject.CreateInstance<NPCEntitySO>();
+            npc.monsterData.id = npcIdx;
+            npc.monsterData.displayName = displayName ?? npcIdx.ToString();
             npc.skeleton = RoseSkeletonImporter.Import(chr.SkeletonFiles[chrObj.ID]);
 
             foreach (var zscPart in chrObj.Objects)
@@ -300,7 +280,7 @@ namespace UnityRose.Import
             return npc;
         }
 
-        public IEnumerable<RoseNPCInfos> ImportAll()
+        public IEnumerable<NPCEntitySO> ImportAll()
         {
             for (var i = 0; i < chr.Characters.Count; ++i)
             {

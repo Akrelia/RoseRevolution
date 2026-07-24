@@ -17,7 +17,7 @@ namespace UnityRose.ImportEditor
     /// </summary>
     public class RoseTerrainWindow : EditorWindow
     {
-        BodyPartType bodyPart;
+     /*   BodyPartType bodyPart;
         int objID;
         RosePlayer player;
         Transform transform;
@@ -91,6 +91,7 @@ namespace UnityRose.ImportEditor
                 ResourceManager.Instance.GenerateAnimationAsset(gender, RigType.CHARSELECT, clips);
             }
         }
+     */
     }
 }
 #endif

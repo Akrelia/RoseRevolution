@@ -13,19 +13,22 @@ namespace UnityRose.Import
 
         public static Texture2D LoadFromFile(string path)
         {
-            if (!System.IO.File.Exists(path))
+            if (!File.Exists(path))
             {
                 Debug.LogWarning("RoseDdsLoader: File not found: " + path);
+
                 return null;
             }
 
             try
             {
-                return LoadFromBytes(System.IO.File.ReadAllBytes(path));
+                return LoadFromBytes(File.ReadAllBytes(path));
             }
+
             catch (Exception ex)
             {
                 Debug.LogWarning($"RoseDdsLoader: Failed to load '{path}': {ex.Message}");
+
                 return null;
             }
         }
@@ -59,16 +62,14 @@ namespace UnityRose.Import
 
             byte[] pixelData = reader.ReadBytes((int)(ddsBytes.Length - stream.Position));
 
-            // Détermination du format
             TextureFormat format = GetTextureFormat(fourCC, rgbBitCount, pfFlags);
 
             bool hasMipmaps = mipMapCount > 1;
 
             var tex = new Texture2D((int)width, (int)height, format, hasMipmaps, false);
             tex.LoadRawTextureData(pixelData);
-            tex.Apply(updateMipmaps: false, makeNoLongerReadable: true); // true = optimisation mémoire
+            tex.Apply(updateMipmaps: false, makeNoLongerReadable: true);
 
-            // Corrections ROSE
             tex = FlipVertically(tex, format);
             ConfigureTexture(tex, format);
 
@@ -95,18 +96,16 @@ namespace UnityRose.Import
         }
 
         /// <summary>
-        /// Flip vertical adapté selon que la texture est compressée ou non
+        /// Flip vertical if texture if compresed (DXT) or not. This is necessary because DDS textures are stored upside down compared to Unity's texture coordinate system.
         /// </summary>
         private static Texture2D FlipVertically(Texture2D tex, TextureFormat format)
         {
-            // Pour les textures compressées (DXT), on ne peut pas utiliser GetPixels
-            // Solution : on crée une nouvelle texture et on copie avec Graphics.Blit + flip
+            // Flip vertical via GPU for compressed textures (DXT1, DXT5)
             if (format == TextureFormat.DXT1 || format == TextureFormat.DXT5)
             {
                 RenderTexture rt = RenderTexture.GetTemporary(tex.width, tex.height, 0, RenderTextureFormat.ARGB32);
                 RenderTexture.active = rt;
 
-                // Flip via shader implicite avec scale négative en Y
                 Graphics.Blit(tex, rt, new Vector2(1, -1), new Vector2(0, 1));
 
                 Texture2D flipped = new Texture2D(tex.width, tex.height, TextureFormat.RGBA32, tex.mipmapCount > 1, false);
@@ -120,7 +119,6 @@ namespace UnityRose.Import
             }
             else
             {
-                // Version CPU pour textures non compressées
                 Color[] pixels = tex.GetPixels();
                 Color[] flipped = new Color[pixels.Length];
                 int w = tex.width;
@@ -144,7 +142,7 @@ namespace UnityRose.Import
 
             if (format == TextureFormat.DXT5 || format == TextureFormat.BGRA32)
             {
-                tex.alphaIsTransparency = true;
+                //tex.alphaIsTransparency = true;
             }
         }
     }

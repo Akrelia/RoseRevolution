@@ -1,15 +1,23 @@
 ﻿using UnityEngine;
 
-public class RoseNpc : MonoBehaviour
+/// <summary>
+/// NPC Behavior.
+/// </summary>
+public class NPCEntityBehavior : MonoBehaviour
 {
-    public RoseNPCInfos data;
+    public NPCEntitySO data;
 
+    /// <summary>
+    /// Start.
+    /// </summary>
     private void Start()
     {
         var animator = GetComponent<Animator>();
 
         if (animator == null || animator.runtimeAnimatorController == null)
+        {
             return;
+        }
 
         var controller = animator.runtimeAnimatorController;
 

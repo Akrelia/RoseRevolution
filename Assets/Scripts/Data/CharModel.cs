@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using RevolutionShared.Rose.Data;
+using RevolutionShared.Data;
 
 namespace UnityRose
 {
@@ -88,7 +89,7 @@ namespace UnityRose
 
 		public CharModel()
 		{
-			LoadModel("Player Character (P)", GenderType.MALE, WeaponType.EMPTY, Job1Type.VISITOR, Job2Type.NONE, 1, new Vector3(0, 0, 0), new Stats(), new Equip());
+			LoadModel("Player Character", GenderType.MALE, WeaponType.EMPTY, Job1Type.VISITOR, Job2Type.NONE, 1, new Vector3(0, 0, 0), new Stats(), new Equip());
 		}
 
 		public void LoadModel(string name, GenderType gender, WeaponType weapon, Job1Type job1, Job2Type job2, int level, Vector3 pos, Stats stats, Equip equip)
@@ -105,6 +106,22 @@ namespace UnityRose
 			this.rig = RigType.FOOT;
 			this.state = States.STANDING;
 		}
+
+		public void ApplyAppearence(CharacterAppearance appearence)
+		{
+            gender = appearence.Gender;
+
+            changeID(BodyPartType.HAIR, appearence.Hair);
+            changeID(BodyPartType.FACE, appearence.Face);
+
+            changeID(BodyPartType.BACK, appearence.Back);
+            changeID(BodyPartType.BODY, appearence.Body);
+            changeID(BodyPartType.ARMS, appearence.Gloves);
+            changeID(BodyPartType.FOOT, appearence.Shoes);
+            changeID(BodyPartType.FACEITEM, appearence.Mask);
+            changeID(BodyPartType.CAP, appearence.Hat);
+			changeID(BodyPartType.WEAPON, appearence.Weapon);
+        }
 
 		public void changeID(BodyPartType bodyPart, int id)
 		{

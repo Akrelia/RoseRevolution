@@ -17,7 +17,8 @@ using UnityRose;
 public class SandboxManager : MonoBehaviour
 {
     [Header("Data")]
-    public RoseMapDatabase mapDatabase;
+    public MapDatabase mapDatabase;
+    public EquipmentDatabase equipmentDatabase;
     [Header("Server")]
     public string address;
     public short port;
@@ -42,7 +43,7 @@ public class SandboxManager : MonoBehaviour
 
     CharacterAppearance appearance;
     Dictionary<long, RosePlayer> players;
-    Dictionary<int, RoseNpc> entities;
+    Dictionary<int, NPCEntityBehavior> entities;
 
     /// <summary>
     /// Awake.
@@ -50,26 +51,47 @@ public class SandboxManager : MonoBehaviour
     private void Awake()
     {
         players = new Dictionary<long, RosePlayer>();
-        entities = new Dictionary<int, RoseNpc>();
+        entities = new Dictionary<int, NPCEntityBehavior>();
 
 #if UNITY_EDITOR
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 #endif
+        try
+        {
+            if (mapDatabase == null)
+                Addressables.LoadAssetAsync<MapDatabase>(nameof(MapDatabase)).Completed += OnDatabaseLoaded;
 
-        Addressables.LoadAssetAsync<RoseMapDatabase>(nameof(RoseMapDatabase)).Completed += OnDatabaseLoaded;
+            if (equipmentDatabase == null)
+                Addressables.LoadAssetAsync<EquipmentDatabase>(nameof(EquipmentDatabase)).Completed += OnDatabaseLoaded;
+        }
+
+        catch (Exception ex)
+        {
+            Debug.Log("Coudln't load Map database : " + ex.Message);
+        }
     }
 
     /// <summary>
     /// When the map database is loaded.
     /// </summary>
     /// <param name="handle">Handle.</param>
-    private void OnDatabaseLoaded(AsyncOperationHandle<RoseMapDatabase> handle)
+    private void OnDatabaseLoaded(AsyncOperationHandle<MapDatabase> handle)
     {
         if (handle.Status == AsyncOperationStatus.Succeeded)
         {
             mapDatabase = handle.Result;
 
             Debug.Log($"Loaded {mapDatabase.maps.Count} Maps");
+        }
+    }
+
+    private void OnDatabaseLoaded(AsyncOperationHandle<EquipmentDatabase> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            equipmentDatabase = handle.Result;
+
+            Debug.Log($"Loaded Equipment Databases");
         }
     }
 
@@ -93,28 +115,18 @@ public class SandboxManager : MonoBehaviour
     [PacketEvent(ServerCommands.SandboxConnectionResponse)]
     public void Connected(Client client, PacketIn packet)
     {
-        var id = packet.GetLong();
-        var name = packet.GetString();
-        var mapID = packet.GetInt();
-
-        var x = packet.GetFloat();
-        var y = packet.GetFloat();
-        var z = packet.GetFloat();
-
-        var mapSpawn = new Vector3(x, y, z);
-
-        var mainPlayer = worldManager.SpawnPlayer(true, playerName, appearance, WorldManager.RoseToUnity(mapSpawn));
-
-        guiController.characterPreview.SetCharacterInformations(playerName, 1200, 1200, 960, 960, 1, "Visitor");
-
-        mainPlayer.charModel.name = name;
-
-        players.Add(id, mainPlayer);
-
-        RoseDebug.Log("Character for the player has been added");
-
         try
         {
+            var id = packet.GetLong();
+            var name = packet.GetString();
+            var mapID = packet.GetInt();
+
+            var x = packet.GetFloat();
+            var y = packet.GetFloat();
+            var z = packet.GetFloat();
+
+            var mapSpawn = new Vector3(x, y, z);
+
             var map = mapDatabase.GetMapById(mapID);
 
             if (map != null)
@@ -123,6 +135,16 @@ public class SandboxManager : MonoBehaviour
 
                 RoseDebug.Log($"{map.name} has been loaded");
             }
+
+            var mainPlayer = worldManager.SpawnPlayer(true, playerName, appearance, WorldManager.RoseToUnity(mapSpawn));
+
+            guiController.characterPreview.SetCharacterInformations(playerName, 1200, 1200, 960, 960, 1, "Visitor");
+
+            mainPlayer.charModel.name = name;
+
+            players.Add(id, mainPlayer);
+
+            RoseDebug.Log("Character for the player has been added");
         }
 
         catch (Exception ex)

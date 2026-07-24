@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using static UnityRose.Formats.ZON;
 
 namespace UnityRose.Game
 {

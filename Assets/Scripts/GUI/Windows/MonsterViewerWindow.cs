@@ -15,7 +15,7 @@ public class MonsterViewerWindow : MonoBehaviour
     [Header("Values")]
     public float rotationSpeed = 100f;
     [Header("Data")]
-    public RoseNPCDatabase npcDatabase;
+    public NPCDatabase npcDatabase;
     [Header("Prefabs")]
     public GameObject modelPreviewPrefab;
     [Header("References")]
@@ -31,10 +31,10 @@ public class MonsterViewerWindow : MonoBehaviour
     /// </summary>
     public void Start()
     {
-        Addressables.LoadAssetAsync<RoseNPCDatabase>(nameof(RoseNPCDatabase)).Completed += OnDatabaseLoaded;
+        Addressables.LoadAssetAsync<NPCDatabase>(nameof(NPCDatabase)).Completed += OnDatabaseLoaded;
     }
 
-    private void OnDatabaseLoaded(AsyncOperationHandle<RoseNPCDatabase> handle)
+    private void OnDatabaseLoaded(AsyncOperationHandle<NPCDatabase> handle)
     {
         if (handle.Status == AsyncOperationStatus.Succeeded)
         {
@@ -62,7 +62,7 @@ public class MonsterViewerWindow : MonoBehaviour
     /// Displays the model of the specified NPC data in the model preview.
     /// </summary>
     /// <param name="npcData">NPC Data.</param>
-    public void DisplayModel(RoseNPCEntry npcData)
+    public void DisplayModel(NPCDatabaseEntry npcData)
     {
         if (modelPreview == null)
         {

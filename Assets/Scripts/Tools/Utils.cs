@@ -85,7 +85,7 @@ public class Utils
 
     public static bool isOneHanded(WeaponType weapon)
     {
-        return weapon == WeaponType.OHAXE ||
+        return weapon == WeaponType.THAXE ||
                 weapon == WeaponType.OHMACE ||
                 weapon == WeaponType.OHSWORD ||
                 weapon == WeaponType.OHTOOL ||

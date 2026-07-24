@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "ROSE/Spawn Database")]
-public class RoseMonsterSpawnDatabase : ScriptableObject
+public class MonsterSpawnDatabase : ScriptableObject
 {
     public List<MapSpawnData> maps = new();
 }

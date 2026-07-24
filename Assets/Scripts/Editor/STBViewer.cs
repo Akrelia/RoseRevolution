@@ -10,6 +10,9 @@ public class STBViewer : EditorWindow
     private Vector2 scroll;
     private string loadedFilePath = "";
 
+    private const float ColumnWidth = 120f;
+    private const float RowIndexWidth = 40f;
+
     [MenuItem("ROSE Online/Tools/STB Viewer")]
     public static void OpenWindow()
     {
@@ -23,6 +26,7 @@ public class STBViewer : EditorWindow
         if (GUILayout.Button("Open STB File"))
         {
             string path = EditorUtility.OpenFilePanel("Open STB File", Application.dataPath, "stb");
+
             if (!string.IsNullOrEmpty(path))
             {
                 try
@@ -44,37 +48,81 @@ public class STBViewer : EditorWindow
         }
 
         GUILayout.Space(10);
-        GUILayout.Label($"Loaded File: {Path.GetFileName(loadedFilePath)}", EditorStyles.miniLabel);
+
+        GUILayout.Label(
+            $"Loaded File: {Path.GetFileName(loadedFilePath)}",
+            EditorStyles.miniLabel);
 
         if (GUILayout.Button("JSON Export"))
         {
-            string jsonPath = EditorUtility.SaveFilePanel("Export to JSON", Application.dataPath, Path.GetFileNameWithoutExtension(loadedFilePath), "json");
+            string jsonPath = EditorUtility.SaveFilePanel(
+                "Export to JSON",
+                Application.dataPath,
+                Path.GetFileNameWithoutExtension(loadedFilePath),
+                "json");
+
             if (!string.IsNullOrEmpty(jsonPath))
             {
                 ExportSTBToJson(jsonPath);
             }
         }
 
+        GUILayout.Space(10);
+
         scroll = EditorGUILayout.BeginScrollView(scroll);
 
-        EditorGUILayout.BeginHorizontal();
-        foreach (var col in stb.ColumnNames)
-        {
-            EditorGUILayout.LabelField(col, EditorStyles.boldLabel, GUILayout.MinWidth(80));
-        }
-        EditorGUILayout.EndHorizontal();
+        DrawHeader();
 
         for (int i = 0; i < stb.Cells.Count; i++)
         {
-            EditorGUILayout.BeginHorizontal();
-            for (int j = 0; j < stb.Cells[i].Count; j++)
-            {
-                EditorGUILayout.TextField(stb.Cells[i][j], GUILayout.MinWidth(80));
-            }
-            EditorGUILayout.EndHorizontal();
+            DrawRow(i, stb.Cells[i]);
         }
 
         EditorGUILayout.EndScrollView();
+    }
+
+    private void DrawHeader()
+    {
+        EditorGUILayout.BeginHorizontal();
+
+        EditorGUILayout.LabelField(
+            "#",
+            EditorStyles.boldLabel,
+            GUILayout.Width(RowIndexWidth));
+
+        for (int i = 0; i < stb.ColumnNames.Count; i++)
+        {
+            string name = $"{i}: {stb.ColumnNames[i]}";
+
+            EditorGUILayout.LabelField(
+                name,
+                EditorStyles.boldLabel,
+                GUILayout.Width(ColumnWidth));
+        }
+
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawRow(int index, List<string> cells)
+    {
+        EditorGUILayout.BeginHorizontal();
+
+        EditorGUILayout.LabelField(
+            index.ToString(),
+            GUILayout.Width(RowIndexWidth));
+
+        for (int i = 0; i < stb.ColumnNames.Count; i++)
+        {
+            string value = i < cells.Count
+                ? cells[i]
+                : "";
+
+            EditorGUILayout.TextField(
+                value,
+                GUILayout.Width(ColumnWidth));
+        }
+
+        EditorGUILayout.EndHorizontal();
     }
 
     private void ExportSTBToJson(string path)
@@ -87,7 +135,9 @@ public class STBViewer : EditorWindow
         };
 
         string json = JsonUtility.ToJson(export, true);
+
         File.WriteAllText(path, json);
+
         Debug.Log($"STB exported to JSON : {path}");
     }
 

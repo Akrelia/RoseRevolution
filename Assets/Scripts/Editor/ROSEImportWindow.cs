@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+﻿
 
 using UnityEngine;
 using UnityEditor;
@@ -17,6 +17,7 @@ using UnityRose.Game;
 using System.Linq;
 using static UnityRose.Formats.ZON;
 using RevolutionShared.Rose.Data;
+using RevolutionShared.Rose.Data.Equipment;
 
 namespace UnityRose.ImportEditor
 {
@@ -36,220 +37,8 @@ namespace UnityRose.ImportEditor
         static void Init()
         {
             var window = GetWindow<ROSEImportWindow>(true, "ROSE Data Import");
+
             window.Show();
-        }
-
-        /// <summary>
-        /// Builds the equipment items from the given STB and STL files and creates assets for them.
-        /// </summary>
-        /// <param name="stb"></param>
-        /// <param name="stl"></param>
-        /// <param name="itemTypes"></param>
-        /// <param name="itemType"></param>
-        /// <param name="path"></param>
-        /// <param name="nullCheckColumnIndex"></param>
-        /// <param name="iconColumnIndex"></param>
-        /// <param name="categoryColumnIndex"></param>
-        /// <param name="stringIDIndex"></param>
-        /// <returns></returns>
-        private List<EquipmentItemData> BuildEquipmentItems(STB stb, STL stl, IDDatabase itemTypes, ItemType itemType, string path, int nullCheckColumnIndex, int iconColumnIndex, int categoryColumnIndex, int stringIDIndex)
-        {
-            AssetDatabase.StartAssetEditing();
-
-            var items = new List<EquipmentItemData>();
-
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-
-            for (int i = 0; i < stb.Cells.Count; i++)
-            {
-                var cell = stb.Cells[i];
-
-                if (string.IsNullOrEmpty(cell[nullCheckColumnIndex])) continue;
-
-                var category = string.IsNullOrEmpty(cell[categoryColumnIndex]) ? (short)0 : Convert.ToInt16(cell[categoryColumnIndex]);
-
-                if (itemTypes.ids.ContainsKey(category) && string.IsNullOrEmpty(itemTypes.ids[category].meta))
-                {
-                    itemTypes.ids[category].meta = itemType.ToString();
-                    EditorUtility.SetDirty(itemTypes);
-                    AssetDatabase.SaveAssets();
-                }
-
-                var data = CreateInstance<EquipmentItemData>();
-
-                string name = stl.GetText(cell[stringIDIndex], STL.Language.English);
-                string description = stl.GetComment(cell[stringIDIndex], STL.Language.English);
-
-                data.itemName = name;
-                data.description = description;
-                data.id = i;
-                data.iconID = string.IsNullOrEmpty(cell[iconColumnIndex]) ? (short)0 : Convert.ToInt16(cell[iconColumnIndex]);
-                data.category = category;
-                data.type = itemType;
-                data.Labels.Add(itemType.ToString());
-                data.Labels.Add(itemTypes.ids.ContainsKey(category) ? itemTypes.ids[category].dataName : "No category");
-
-                items.Add(data);
-
-                if (!string.IsNullOrEmpty(name))
-                {
-                    AssetDatabase.CreateAsset(data, Path.Combine(path, $"({i}){name}.asset"));
-                }
-            }
-
-            AssetDatabase.StopAssetEditing();
-            AssetDatabase.SaveAssets();
-
-            return items;
-        }
-
-        /// <summary>
-        /// Builds all assets from the given importation settings, including item types and equipment items, and creates addressable databases for them.
-        /// </summary>
-        /// <param name="settings"></param>
-        private void BuildAllFromSettings(ImportationSettings settings)
-        {
-            var itemTypeSTL = new STL(Path.Combine(ROSEEditorBaker.DataPath, "3DDATA/STB/STR_ITEMTYPE.STL"));
-            var itemTypes = BuildItemTypeDatabase(itemTypeSTL);
-            AssetDatabase.CreateAsset(itemTypes, "Assets/Data/Items/Item Types.asset");
-
-            foreach (var def in settings.filesToImport)
-            {
-                var stb = new STB(Path.Combine(ROSEEditorBaker.DataPath, def.stbPath));
-                var stl = new STL(Path.Combine(ROSEEditorBaker.DataPath, def.stlPath));
-
-                var assets = BuildEquipmentItems(stb, stl, itemTypes, def.type, def.outputFolder,
-                    def.nullCheckColumn, def.iconColumn, def.categoryColumn, stb.Cells[0].Count - 1);
-
-                BuildAddressableDatabase(def.groupName, def.subgroupName, $"item-{(int)def.type}", assets);
-            }
-
-            BuildAddressableDatabase("IDs", "Item Types", "item-type", new List<IDDatabase> { itemTypes });
-        }
-
-        /// <summary>
-        /// Builds the item type database from the given STL file and creates an asset for it.
-        /// </summary>
-        /// <param name="itemTypeSTL"></param>
-        /// <returns></returns>
-        private IDDatabase BuildItemTypeDatabase(STL itemTypeSTL)
-        {
-            var itemTypes = CreateInstance<IDDatabase>();
-            itemTypes.ID = 1;
-            itemTypes.DisplayName = "Item Types";
-
-            foreach (var entry in itemTypeSTL.Entries)
-            {
-                var data = new DataID(entry.ID, itemTypeSTL.GetText(entry.StringID, STL.Language.English), "");
-                itemTypes.ids.Add(entry.ID, data);
-            }
-            return itemTypes;
-        }
-
-        /// <summary>
-        /// Builds the addressable database for the given group and subgroup names, prefix, and list of assets, and creates an index asset for it.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="groupName"></param>
-        /// <param name="subgroupName"></param>
-        /// <param name="prefix"></param>
-        /// <param name="data"></param>
-        private void BuildAddressableDatabase<T>(string groupName, string subgroupName, string prefix, List<T> data)
-            where T : UnityEngine.Object, IAddressableAsset
-        {
-            var settings = AddressableAssetSettingsDefaultObject.Settings;
-            if (settings == null)
-            {
-                Debug.LogError("AddressableAssetSettings not found. Please install and setup Addressables.");
-                return;
-            }
-
-            var group = settings.FindGroup(groupName) ?? settings.CreateGroup(groupName, false, false, false, null, typeof(BundledAssetGroupSchema));
-            var indexGroup = settings.FindGroup("Indexes") ?? settings.CreateGroup("Indexes", false, false, false, null, typeof(BundledAssetGroupSchema));
-
-            var indexPath = $"Assets/Data/Index_{groupName}.asset";
-            var index = AssetDatabase.LoadAssetAtPath<AddressableIndex>(indexPath);
-            if (index == null)
-            {
-                index = CreateInstance<AddressableIndex>();
-                AssetDatabase.CreateAsset(index, indexPath);
-            }
-
-            var groupEntry = new GroupEntry { groupName = subgroupName, addresses = new List<ItemIndexEntry>() };
-
-            AssetDatabase.StartAssetEditing();
-
-            try
-            {
-                foreach (var asset in data)
-                {
-                    if (asset == null) continue;
-                    var assetPath = AssetDatabase.GetAssetPath(asset);
-
-                    if (string.IsNullOrEmpty(assetPath)) continue;
-
-                    var guid = AssetDatabase.AssetPathToGUID(assetPath);
-
-                    if (string.IsNullOrEmpty(guid)) continue;
-
-                    var existingEntry = settings.FindAssetEntry(guid);
-
-                    if (existingEntry != null)
-                    {
-                        if (existingEntry.parentGroup != group)
-                            settings.MoveEntry(existingEntry, group, false);
-                    }
-
-                    else
-                    {
-                        var entry = settings.CreateOrMoveEntry(guid, group);
-                        entry.address = prefix + "-" + asset.ID;
-
-                        if (asset is IAddressableAsset labelSource && labelSource.Labels != null)
-                        {
-                            foreach (var label in labelSource.Labels)
-                            {
-                                if (string.IsNullOrWhiteSpace(label)) continue;
-                                if (!settings.GetLabels().Contains(label)) settings.AddLabel(label);
-                                entry.labels.Add(label);
-                            }
-                        }
-                    }
-
-                    groupEntry.addresses.Add(new ItemIndexEntry(prefix + "-" + asset.ID, asset.DisplayName));
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError("Issue while building addressables: " + ex.Message);
-            }
-            finally
-            {
-                AssetDatabase.StopAssetEditing();
-                settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, group, true);
-                AssetDatabase.SaveAssets();
-            }
-
-            index.groups.Add(groupEntry);
-            AssetDatabase.SaveAssets();
-
-            var indexGuid = AssetDatabase.AssetPathToGUID(indexPath);
-            if (!string.IsNullOrEmpty(indexGuid))
-            {
-                var existingIndexEntry = settings.FindAssetEntry(indexGuid);
-                if (existingIndexEntry != null)
-                {
-                    if (existingIndexEntry.parentGroup != indexGroup)
-                        settings.MoveEntry(existingIndexEntry, indexGroup, false);
-                }
-                else
-                {
-                    var newIndexEntry = settings.CreateOrMoveEntry(indexGuid, indexGroup);
-                    newIndexEntry.address = $"index-{groupName.ToLower()}";
-                }
-                settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, indexGroup, true);
-                AssetDatabase.SaveAssets();
-            }
         }
 
         /// <summary>
@@ -271,11 +60,11 @@ namespace UnityRose.ImportEditor
 
             string dbPath = $"{folder}/RoseMapDatabase.asset";
 
-            var database = AssetDatabase.LoadAssetAtPath<RoseMapDatabase>(dbPath);
+            var database = AssetDatabase.LoadAssetAtPath<MapDatabase>(dbPath);
 
             if (database == null)
             {
-                database = CreateInstance<RoseMapDatabase>();
+                database = CreateInstance<MapDatabase>();
 
                 AssetDatabase.CreateAsset(database, dbPath);
             }
@@ -329,6 +118,243 @@ namespace UnityRose.ImportEditor
             AssetDatabase.Refresh();
         }
 
+        private T CreateDatabase<T>(string name) where T : ScriptableObject
+        {
+            string path = $"Assets/GameData/Databases/{name}.asset";
+
+            var database = AssetDatabase.LoadAssetAtPath<T>(path);
+
+            if (database == null)
+            {
+                database = CreateInstance<T>();
+                AssetDatabase.CreateAsset(database, path);
+            }
+
+            return database;
+        }
+
+        public void ImportAllEquipment()
+        {
+            const int maxIdsPerSlot = 15;
+
+            string dbFolder = "Assets/GameData/Databases";
+
+            if (!AssetDatabase.IsValidFolder(dbFolder))
+                Utils.EnsureFolder(dbFolder);
+
+            string dbPath = $"{dbFolder}/EquipmentDatabase.asset";
+
+            var database = AssetDatabase.LoadAssetAtPath<EquipmentDatabase>(dbPath);
+
+            if (database == null)
+            {
+                database = CreateInstance<EquipmentDatabase>();
+                AssetDatabase.CreateAsset(database, dbPath);
+            }
+
+            if (database.weaponDatabase == null)
+                database.weaponDatabase = CreateDatabase<WeaponDatabase>("WeaponDatabase");
+
+            if (database.bodyDatabase == null)
+                database.bodyDatabase = CreateDatabase<ArmorDatabase>("BodyDatabase");
+
+            if (database.armDatabase == null)
+                database.armDatabase = CreateDatabase<ArmorDatabase>("ArmDatabase");
+
+            if (database.backDatabase == null)
+                database.backDatabase = CreateDatabase<ArmorDatabase>("BackDatabase");
+
+            if (database.headgearDatabase == null)
+                database.headgearDatabase = CreateDatabase<HeadgearDatabase>("HeadgearDatabase");
+
+            if (database.footwearDatabase == null)
+                database.footwearDatabase = CreateDatabase<FootwearDatabase>("FootwearDatabase");
+
+            if (database.faceItemDatabase == null)
+                database.faceItemDatabase = CreateDatabase<ArmorDatabase>("FaceItemDatabase");
+
+            if (database.appearenceDatabase == null)
+                database.appearenceDatabase = CreateDatabase<AppearenceDatabase>("AppearenceDatabase");
+
+            EditorUtility.SetDirty(database);
+            AssetDatabase.SaveAssets();
+
+            database.bodyDatabase.entries.Clear();
+            database.armDatabase.entries.Clear();
+            database.backDatabase.entries.Clear();
+            database.weaponDatabase.entries.Clear();
+            database.headgearDatabase.entries.Clear();
+            database.footwearDatabase.entries.Clear();
+
+            database.appearenceDatabase.faces.Clear();
+            database.appearenceDatabase.hairs.Clear();
+
+            var rm = ResourceManager.Instance;
+            var baker = new RoseEquipmentBaker();
+
+            //        AssetDatabase.StartAssetEditing();
+
+            try
+            {
+                BakeSlot<ArmorData, ArmorDataImporter>(baker, database.bodyDatabase, "Body_M", rm.zsc_body_male, "3DDATA/AVATAR/BODY/BODY_M.ZSC", BodyPartType.BODY, GenderType.MALE, maxIdsPerSlot, ResourceManager.Instance.stb_armor_list);
+                BakeSlot<ArmorData, ArmorDataImporter>(baker, database.bodyDatabase, "Body_F", rm.zsc_body_female, "3DDATA/AVATAR/BODY/BODY_F.ZSC", BodyPartType.BODY, GenderType.FEMALE, maxIdsPerSlot, ResourceManager.Instance.stb_armor_list);
+
+                BakeSlot<ArmorData, ArmorDataImporter>(baker, database.armDatabase, "Arms_M", rm.zsc_arms_male, "3DDATA/AVATAR/ARMS/ARMS_M.ZSC", BodyPartType.ARMS, GenderType.MALE, maxIdsPerSlot, ResourceManager.Instance.stb_arms_list);
+                BakeSlot<ArmorData, ArmorDataImporter>(baker, database.armDatabase, "Arms_F", rm.zsc_arms_female, "3DDATA/AVATAR/ARMS/ARMS_F.ZSC", BodyPartType.ARMS, GenderType.FEMALE, maxIdsPerSlot, ResourceManager.Instance.stb_arms_list);
+
+                BakeSlot<FootwearData, FootwearDataImporter>(baker, database.footwearDatabase, "Foot_M", rm.zsc_foot_male, "3DDATA/AVATAR/FOOT/FOOT_M.ZSC", BodyPartType.FOOT, GenderType.MALE, maxIdsPerSlot, ResourceManager.Instance.stb_foot_list);
+                BakeSlot<FootwearData, FootwearDataImporter>(baker, database.footwearDatabase, "Foot_F", rm.zsc_foot_female, "3DDATA/AVATAR/FOOT/FOOT_F.ZSC", BodyPartType.FOOT, GenderType.FEMALE, maxIdsPerSlot, ResourceManager.Instance.stb_foot_list);
+
+                BakeAppearenceSlot(baker, database.appearenceDatabase.faces, "Face_M", rm.zsc_face_male, "3DDATA/AVATAR/FACE/FACE_M.ZSC", BodyPartType.FACE, GenderType.MALE, maxIdsPerSlot);
+                BakeAppearenceSlot(baker, database.appearenceDatabase.faces, "Face_F", rm.zsc_face_female, "3DDATA/AVATAR/FACE/FACE_F.ZSC", BodyPartType.FACE, GenderType.FEMALE, maxIdsPerSlot);
+
+                BakeAppearenceSlot(baker, database.appearenceDatabase.hairs, "Hair_M", rm.zsc_hair_male, "3DDATA/AVATAR/HAIR/HAIR_M.ZSC", BodyPartType.HAIR, GenderType.MALE, maxIdsPerSlot);
+                BakeAppearenceSlot(baker, database.appearenceDatabase.hairs, "Hair_F", rm.zsc_hair_female, "3DDATA/AVATAR/HAIR/HAIR_F.ZSC", BodyPartType.HAIR, GenderType.FEMALE, maxIdsPerSlot);
+
+                BakeSlot<HeadgearData, HeadgearDataImporter>(baker, database.headgearDatabase, "Cap_M", rm.zsc_cap_male, "3DDATA/AVATAR/CAP/CAP_M.ZSC", BodyPartType.CAP, GenderType.MALE, maxIdsPerSlot, ResourceManager.Instance.stb_cap_list);
+                BakeSlot<HeadgearData, HeadgearDataImporter>(baker, database.headgearDatabase, "Cap_F", rm.zsc_cap_female, "3DDATA/AVATAR/CAP/CAP_F.ZSC", BodyPartType.CAP, GenderType.FEMALE, maxIdsPerSlot, ResourceManager.Instance.stb_cap_list);
+
+                BakeSlot<WeaponData, WeaponDataImporter>(baker, database.weaponDatabase, "Weapon", rm.zsc_weapon, "3DDATA/WEAPON/LIST_WEAPON.ZSC", BodyPartType.WEAPON, GenderType.NONE, maxIdsPerSlot, ResourceManager.Instance.stb_weapon_list);
+
+                BakeSlot<ArmorData, ArmorDataImporter>(baker, database.faceItemDatabase, "FaceItem", rm.zsc_faceItem, "3DDATA/AVATAR/FACEITEM/FACEITEM.ZSC", BodyPartType.FACEITEM, GenderType.NONE, maxIdsPerSlot, ResourceManager.Instance.stb_faceitem_list);
+
+                BakeSlot<ArmorData, ArmorDataImporter>(baker, database.backDatabase, "Back", rm.zsc_back, "3DDATA/AVATAR/BACK/BACK.ZSC", BodyPartType.BACK, GenderType.NONE, maxIdsPerSlot, ResourceManager.Instance.stb_back_list);
+            }
+
+            catch (Exception ex)
+            {
+                Debug.LogError("Error while importing base equipment: " + ex.Message + "\n" + ex.StackTrace);
+            }
+
+            finally
+            {
+                //       AssetDatabase.StopAssetEditing();
+            }
+
+            EditorUtility.SetDirty(database);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            Debug.Log($"Base equipment import done ({maxIdsPerSlot} ids/slot max");
+        }
+
+        private static bool IsInvalidSTBEntry(string name, BodyPartType bodyPart, int id)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return true;
+
+            if (name.Contains("???") || string.IsNullOrEmpty(name)) // Easy way to filter invalid or empty entries, but still
+            {
+                if (bodyPart == BodyPartType.BODY && id <= 1)
+                    return false;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private void BakeSlot<T, U>(RoseEquipmentBaker baker, ItemDatabase<T> database, string namePrefix, ZSC zsc, string zscPath, BodyPartType bodyPart, GenderType gender, int maxIds, STB stb) where T : EquipmentData where U : EquipmentDataImporter<T>, new()
+        {
+            if (zsc == null)
+            {
+                Debug.LogWarning($"BakeSlot: ZSC null for {namePrefix}");
+
+                return;
+            }
+
+            var importer = new U();
+
+            int baked = 0;
+            int id = 0;
+
+            while (baked < maxIds && id < zsc.Objects.Count && id < stb.Cells.Count)
+            {
+                var name = stb.Cells[id][1];
+
+                if (IsInvalidSTBEntry(name, bodyPart, id))
+                {
+                    id++;
+                    continue;
+                }
+
+                GameObject prefab;
+
+                try
+                {
+                    prefab = baker.BakeEquipment($"{namePrefix}_{id}", bodyPart, zsc, zscPath, id);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"Failed baking {namePrefix}_{id}: {ex.Message}");
+
+                    id++;
+                    continue;
+                }
+
+                if (prefab == null)
+                {
+                    id++;
+                    continue;
+                }
+
+                database.entries.Add(new ItemDatabaseEntry<T>
+                {
+                    id = id,
+                    prefab = prefab,
+                    gender = gender,
+                    item = importer.Import(id, stb)
+                });
+
+                baked++;
+                id++;
+            }
+
+            Debug.Log($"{namePrefix}: baked {baked}/{maxIds} items");
+        }
+        private void BakeAppearenceSlot(RoseEquipmentBaker baker, List<AppearenceEntry> target, string namePrefix, ZSC zsc, string zscPath, BodyPartType bodyPart, GenderType gender, int maxIds)
+        {
+            if (zsc == null)
+            {
+                Debug.LogWarning($"BakeAppearenceSlot: ZSC is null for {namePrefix} ({bodyPart}), skipping.");
+                return;
+            }
+
+            int count = Mathf.Min(maxIds, zsc.Objects.Count);
+
+            for (int id = 0; id < count; id++)
+            {
+                GameObject prefab;
+
+                try
+                {
+                    prefab = baker.BakeEquipment(
+                        $"{namePrefix}_{id}",
+                        bodyPart,
+                        zsc,
+                        zscPath,
+                        id);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"Failed to bake {namePrefix}_{id}: {ex.Message}");
+                    continue;
+                }
+
+                if (prefab == null)
+                    continue;
+
+
+                target.Add(new AppearenceEntry
+                {
+                    id = id,
+                    gender = gender,
+                    prefab = prefab
+                });
+            }
+        }
+
         /// <summary>
         /// Register a map in the internal database.
         /// </summary>
@@ -346,16 +372,16 @@ namespace UnityRose.ImportEditor
 
             string path = $"{folder}/RoseMapDatabase.asset";
 
-            var database = AssetDatabase.LoadAssetAtPath<RoseMapDatabase>(path);
+            var database = AssetDatabase.LoadAssetAtPath<MapDatabase>(path);
 
             if (database == null)
             {
-                database = CreateInstance<RoseMapDatabase>();
+                database = CreateInstance<MapDatabase>();
 
                 AssetDatabase.CreateAsset(database, path);
             }
 
-            AddressableUtils.EnsureAddressable(path, nameof(RoseMapDatabase));
+            AddressableUtils.EnsureAddressable(path, nameof(MapDatabase));
 
             string displayName = mapData.stl.GetText(mapData.stb.Cells[id][27], STL.Language.English);
 
@@ -409,14 +435,14 @@ namespace UnityRose.ImportEditor
 
             if (database == null)
             {
-                database = CreateInstance<RoseMonsterSpawnDatabase>();
+                database = CreateInstance<MonsterSpawnDatabase>();
 
                 Utils.EnsureFolder(Path.GetDirectoryName(ROSEDatabaseWindow.MonsterSpawnDatabasePath));
 
                 AssetDatabase.CreateAsset(database, ROSEDatabaseWindow.MonsterSpawnDatabasePath);
             }
 
-            AddressableUtils.EnsureAddressable(ROSEDatabaseWindow.MonsterSpawnDatabasePath, nameof(RoseMonsterSpawnDatabase)); // Shouldn't be useful but just in case
+            AddressableUtils.EnsureAddressable(ROSEDatabaseWindow.MonsterSpawnDatabasePath, nameof(MonsterSpawnDatabase)); // Shouldn't be useful but just in case
 
             database.maps.RemoveAll(x => x.MapID == mapID);
 
@@ -428,7 +454,7 @@ namespace UnityRose.ImportEditor
             AssetDatabase.SaveAssets();
         }
 
-        private void RegisterNpcInInternalDB(GameObject prefab, RoseNPCInfos npc)
+        private void RegisterNpcInInternalDB(GameObject prefab, NPCEntitySO npc)
         {
             string folder = ImportPaths.Database.Root;
 
@@ -439,32 +465,32 @@ namespace UnityRose.ImportEditor
 
             string path = $"{folder}/RoseNpcDatabase.asset";
 
-            var database = AssetDatabase.LoadAssetAtPath<RoseNPCDatabase>(path);
+            var database = AssetDatabase.LoadAssetAtPath<NPCDatabase>(path);
 
             if (database == null)
             {
-                database = CreateInstance<RoseNPCDatabase>();
+                database = CreateInstance<NPCDatabase>();
 
                 AssetDatabase.CreateAsset(database, path);
             }
 
-            AddressableUtils.EnsureAddressable(path, nameof(RoseNPCDatabase));
+            AddressableUtils.EnsureAddressable(path, nameof(NPCDatabase));
 
-            var existing = database.npcs.Find(x => x.id == npc.id);
+            var existing = database.npcs.Find(x => x.id == npc.monsterData.id);
 
             if (existing != null)
             {
-                existing.name = npc.npcName;
+                existing.name = npc.monsterData.displayName;
                 existing.prefab = prefab;
                 existing.data = npc;
             }
 
             else
             {
-                database.npcs.Add(new RoseNPCEntry
+                database.npcs.Add(new NPCDatabaseEntry
                 {
-                    id = npc.id,
-                    name = npc.npcName,
+                    id = npc.monsterData.id,
+                    name = npc.monsterData.displayName,
                     prefab = prefab,
                     data = npc
                 });
@@ -493,7 +519,7 @@ namespace UnityRose.ImportEditor
                 var valid = patch.Load(mapID);
 
                 if (valid)
-                patches.Add(patch);
+                    patches.Add(patch);
             }
 
 
@@ -578,18 +604,18 @@ namespace UnityRose.ImportEditor
         /// Loads the RoseMapDatabase asset.
         /// </summary>
         /// <returns>Map database.</returns>
-        private RoseMapDatabase LoadMapDatabase()
+        private MapDatabase LoadMapDatabase()
         {
-            return AssetDatabase.LoadAssetAtPath<RoseMapDatabase>(ROSEDatabaseWindow.MapDatabasePath);
+            return AssetDatabase.LoadAssetAtPath<MapDatabase>(ROSEDatabaseWindow.MapDatabasePath);
         }
 
         /// <summary>
         /// Loads the RoseMapDatabase asset.
         /// </summary>
         /// <returns>Map database.</returns>
-        private RoseMonsterSpawnDatabase LoadMonsterSpawnDatabase()
+        private MonsterSpawnDatabase LoadMonsterSpawnDatabase()
         {
-            return AssetDatabase.LoadAssetAtPath<RoseMonsterSpawnDatabase>(ROSEDatabaseWindow.MonsterSpawnDatabasePath);
+            return AssetDatabase.LoadAssetAtPath<MonsterSpawnDatabase>(ROSEDatabaseWindow.MonsterSpawnDatabasePath);
         }
 
         private bool MapPrefabExists(int mapID)
@@ -650,24 +676,6 @@ namespace UnityRose.ImportEditor
 
             GUILayout.EndHorizontal();
 
-            /*    GUILayout.Label("Importation Settings", EditorStyles.boldLabel);
-                settings = (ImportationSettings)EditorGUILayout.ObjectField("Settings Asset", settings, typeof(ImportationSettings), false);
-
-                if (GUILayout.Button("Open Addressables"))
-                    EditorApplication.ExecuteMenuItem("Window/Asset Management/Addressables/Groups");
-
-                if (settings != null)
-                {
-                    EditorGUILayout.LabelField("Items to Import:", settings.filesToImport.Count.ToString());
-                }
-
-                else
-                {
-                    EditorGUILayout.HelpBox("Please assign an ImportationSettings asset.", MessageType.Info);
-                }
-
-                */
-
             GUILayout.Label("Importing", EditorStyles.boldLabel);
             GUILayout.Label("Current Path: " + ROSEEditorBaker.DataPath);
 
@@ -679,6 +687,14 @@ namespace UnityRose.ImportEditor
                 }
             }
 
+            if (GUILayout.Button("Import ALL Equipment"))
+            {
+                if (EditorUtility.DisplayDialog("Import ALL Equipment", "This will bake every body/armor/weapon/etc. ZSC into prefabs and rebuild the Avatar database.", "Yes", "No"))
+                {
+                    ImportAllEquipment();
+                }
+            }
+
             if (GUILayout.Button("Import ALL Maps"))
             {
                 if (EditorUtility.DisplayDialog("Import ALL Maps", "This will import every ROSE map and rebuild the map database.", "Yes", "No"))
@@ -686,18 +702,6 @@ namespace UnityRose.ImportEditor
                     ImportAllMaps();
                 }
             }
-
-            /*
-            if (GUILayout.Button("Import ALL NPC"))
-            {
-                if (EditorUtility.DisplayDialog("Confirmation", "This will take a lot of time, are you sure ?", "Yes", "No"))
-                {
-                    ROSEEditorBaker.ImportAllNPC();
-                }
-            }
-
-            */
-
 
             GUILayout.BeginHorizontal();
 
@@ -709,7 +713,7 @@ namespace UnityRose.ImportEditor
 
                 if (npc)
                 {
-                    RegisterNpcInInternalDB(npc, npc.GetComponent<RoseNpc>().data);
+                    RegisterNpcInInternalDB(npc, npc.GetComponent<NPCEntityBehavior>().data);
                 }
 
                 else
@@ -722,7 +726,7 @@ namespace UnityRose.ImportEditor
 
             if (GUILayout.Button("Clear ROSE Data"))
             {
-            //    ROSEEditorBaker.ClearData();
+                ROSEEditorBaker.ClearData();
             }
 
             GUILayout.Label("Maps", EditorStyles.boldLabel);
@@ -772,7 +776,6 @@ namespace UnityRose.ImportEditor
                         RegisterMapInInternalDB(i);
                         RegisterSpawnInInternalDB(i);
                     }
-
 
                     GUILayout.EndHorizontal();
                 }
@@ -851,5 +854,74 @@ namespace UnityRose.ImportEditor
             };
         }
     }
+
+    public abstract class EquipmentDataImporter<T> where T : EquipmentData
+    {
+        public T Import(int id, STB stb)
+        {
+            var data = CreateInstance();
+
+            ReadBaseFields(data, stb, id);
+            ReadFields(data, stb, id);
+
+            return data;
+        }
+
+        protected abstract T CreateInstance();
+
+        protected virtual void ReadBaseFields(T data, STB stb, int id)
+        {
+            data.id = id;
+
+            data.name = stb.Cells[id][1];
+            data.price = Utils.ParseInt(stb.Cells[id][6]);
+        }
+
+        protected abstract void ReadFields(T data, STB stb, int id);
+    }
+
+    public class ArmorDataImporter : EquipmentDataImporter<ArmorData>
+    {
+        protected override ArmorData CreateInstance() => new ArmorData();
+
+        protected override void ReadFields(ArmorData data, STB stb, int id) => ReadArmorFields(data, stb, id);
+
+        public static void ReadArmorFields(ArmorData data, STB stb, int id)
+        {
+        }
+    }
+
+    public class FootwearDataImporter : EquipmentDataImporter<FootwearData>
+    {
+        protected override FootwearData CreateInstance() => new FootwearData();
+
+        protected override void ReadFields(FootwearData data, STB stb, int id)
+        {
+            ArmorDataImporter.ReadArmorFields(data, stb, id);
+        }
+    }
+
+    // ---- Weapon: juste EquipmentData, pas de cascade ----
+    public class WeaponDataImporter : EquipmentDataImporter<WeaponData>
+    {
+        protected override WeaponData CreateInstance() => new WeaponData();
+
+        protected override void ReadFields(WeaponData data, STB stb, int id)
+        {
+            data.weaponType = (WeaponType)Utils.ParseInt(stb.Cells[id][5]);
+        }
+    }
+
+    public class HeadgearDataImporter : EquipmentDataImporter<HeadgearData>
+    {
+        protected override HeadgearData CreateInstance() => new HeadgearData();
+
+        protected override void ReadFields(HeadgearData data, STB stb, int id)
+        {
+            ArmorDataImporter.ReadArmorFields(data, stb, id);
+
+            data.hair = (byte)Utils.ParseInt(stb.Cells[id][34]);
+        }
+    }
 }
-#endif
+

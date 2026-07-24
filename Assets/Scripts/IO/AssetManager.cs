@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityRose;
-using UnityRose.Formats;
 
 /// <summary>
 /// Asset manager.
@@ -13,7 +12,6 @@ using UnityRose.Formats;
 public class AssetManager
 {
     public Dictionary<int, Sprite> icons;
-    public IDDatabase itemTypes;
 
     private static AssetManager instance;
 
@@ -33,15 +31,15 @@ public class AssetManager
       //  LoadItemTypes();
     }
 
-    public string GetItemCategory(int id)
-    {
-        if (itemTypes.ids.ContainsKey(id))
-        {
-            return itemTypes.ids[id].dataName;
-        }
+    //public string GetItemCategory(int id)
+    //{
+    //    if (itemTypes.ids.ContainsKey(id))
+    //    {
+    //        return itemTypes.ids[id].dataName;
+    //    }
 
-        return null;
-    }
+    //    return null;
+    //}
 
     public Sprite GetItemIcon(int id)
     {
@@ -53,38 +51,38 @@ public class AssetManager
         return icons[0];
     }
 
-    public void LoadItemTypes()
-    {
-        try
-        {
-            var handle = Addressables.LoadAssetAsync<AddressableIndex>("index-ids");
+    //public void LoadItemTypes()
+    //{
+    //    try
+    //    {
+    //        var handle = Addressables.LoadAssetAsync<AddressableIndex>("index-ids");
 
-            handle.WaitForCompletion();
+    //        handle.WaitForCompletion();
 
-            var index = handle.Result;
+    //        var index = handle.Result;
 
-            if (index.groups.Count == 0 || index.groups[0].addresses.Count == 0)
-            {
-                Debug.LogWarning("Index is empty.");
+    //        if (index.groups.Count == 0 || index.groups[0].addresses.Count == 0)
+    //        {
+    //            Debug.LogWarning("Index is empty.");
 
-                return;
-            }
+    //            return;
+    //        }
 
-            var address = index.groups[0].addresses[0].address;
+    //        var address = index.groups[0].addresses[0].address;
 
-            var handle2 = Addressables.LoadAssetAsync<IDDatabase>(address);
+    //        var handle2 = Addressables.LoadAssetAsync<IDDatabase>(address);
 
-            handle2.WaitForCompletion();
+    //        handle2.WaitForCompletion();
 
-            itemTypes = handle2.Result;
+    //        itemTypes = handle2.Result;
 
-            Debug.Log("Types loaded");
-        }
-        catch (Exception ex)
-        {
-            Debug.Log("Error loading types: " + ex.Message);
-        }
-    }
+    //        Debug.Log("Types loaded");
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Debug.Log("Error loading types: " + ex.Message);
+    //    }
+    //}
 
     /// <summary>
     /// Load the icons.

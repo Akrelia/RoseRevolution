@@ -50,8 +50,6 @@ namespace UnityRose.Formats
 
         public class CharacterEffect
         {
-            #region Properties
-
             /// <summary>
             /// Gets or sets the bone index.
             /// </summary>
@@ -69,8 +67,6 @@ namespace UnityRose.Formats
                 get;
                 set;
             }
-
-            #endregion
         }
 
         public class CharacterObject

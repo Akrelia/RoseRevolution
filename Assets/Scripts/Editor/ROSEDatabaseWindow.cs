@@ -12,12 +12,12 @@ namespace UnityRose.ImportEditor
 {
     public class ROSEDatabaseWindow : EditorWindow
     {
-        private RoseMapDatabase mapDatabase;
-        private RoseMonsterSpawnDatabase spawnDatabase;
+        private MapDatabase mapDatabase;
+        private MonsterSpawnDatabase spawnDatabase;
         private Vector2 scroll;
 
-        public const string MapDatabasePath = ImportPaths.Database.Root + "/RoseMapDatabase.asset";
-        public const string MonsterSpawnDatabasePath = ImportPaths.Database.Root + "/RoseMonsterSpawnDatabase.asset";
+        public const string MapDatabasePath = ImportPaths.Database.Root + "/MapDatabase.asset";
+        public const string MonsterSpawnDatabasePath = ImportPaths.Database.Root + "/MonsterSpawnDatabase.asset";
 
         [MenuItem("ROSE Online/Database Viewer")]
         static void Open()
@@ -32,8 +32,8 @@ namespace UnityRose.ImportEditor
 
         private void LoadDatabases()
         {
-            mapDatabase = AssetDatabase.LoadAssetAtPath<RoseMapDatabase>(MapDatabasePath);
-            spawnDatabase = AssetDatabase.LoadAssetAtPath<RoseMonsterSpawnDatabase>(MonsterSpawnDatabasePath);
+            mapDatabase = AssetDatabase.LoadAssetAtPath<MapDatabase>(MapDatabasePath);
+            spawnDatabase = AssetDatabase.LoadAssetAtPath<MonsterSpawnDatabase>(MonsterSpawnDatabasePath);
         }
 
         private void OnGUI()

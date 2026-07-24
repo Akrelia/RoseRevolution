@@ -5,29 +5,6 @@ using System;
 [Serializable]
 public struct PlayerInfo
 {
-	public enum Job1Type // TODO : remove
-	{
-		PEASANT,
-		HAWKER,
-		SOLDIER,
-		MUSE,
-		DEALER,
-		numJobTypes
-	}
-
-	public enum Job2Type // TODO : remove
-	{
-		SCOUT,
-		RAIDER,
-		KNIGHT,
-		CHAMPION,
-		MAGE,
-		CLERIC,
-		ARTISAN,
-		BOURGEOIS,
-		numJobTypes
-	}
-
 	public string name;
 
 	public int level;

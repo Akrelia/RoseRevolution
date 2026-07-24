@@ -32,7 +32,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 726df178ad1419949b7399c139ef08a5, type: 3}
+        m_Texture: {fileID: 2800000, guid: 04c03aa4c0577f646b96dac0d792d22e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
@@ -46,7 +46,7 @@ Material:
     - _Cutoff: 0.5
     - _DstBlend: 10
     - _DstBlendAlpha: 10
-    - _EmissiveIntensity: 5
+    - _EmissiveIntensity: 3.48
     - _GlowIntensity: 5
     - _QueueOffset: 0
     - _SampleGI: 0
@@ -58,7 +58,7 @@ Material:
     - _AmbientColor: {r: 0.9622642, g: 0.013616921, b: 0.013616921, a: 1}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissiveColor: {r: 0.97555083, g: 0.5424528, b: 1, a: 1}
+    - _EmissiveColor: {r: 1, g: 0.93365335, b: 0.7311321, a: 1}
     - _FogColor: {r: 1, g: 1, b: 1, a: 1}
     - _GlowColor: {r: 1, g: 0.6556604, b: 0.89729637, a: 1}
     - _SkinColor: {r: 1, g: 0.8, b: 0.7, a: 1}

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -6,16 +8,9 @@ using UnityRose;
 using UnityRose.Formats;
 using UnityRose.Game;
 using Newtonsoft.Json.Linq;
-using static UnityRose.Formats.ZON;
-using UnityEngine.Rendering.Universal;
 using UnityRose.ImportEditor;
 
-
-
-
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 
 namespace UnityRose.Import
 {
@@ -282,7 +277,7 @@ namespace UnityRose.Import
                     npc.transform.localPosition = ifoNpc.Position / 100F;
                     npc.transform.rotation = Quaternion.identity;
 
-                    var roseNpc = npc.AddComponent<RoseNpc>();
+                    var roseNpc = npc.AddComponent<NPCEntityBehavior>();
                     roseNpc.data = npcData;
                 }
             }
@@ -389,3 +384,5 @@ namespace UnityRose.Import
         }
     }
 }
+
+#endif

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System;
 using RevolutionShared.Rose.Data.NPC;
 
-public class RoseNPCInfos : ScriptableObject
+/// <summary>
+/// Rose NPC Infos.
+/// </summary>
+public class NPCEntitySO : ScriptableObject
 {
-    public int id;
-    public string npcName;
     public MonsterData monsterData;
     public RoseSkeletonData skeleton;
     public List<RoseCharPartData> parts = new List<RoseCharPartData>();
