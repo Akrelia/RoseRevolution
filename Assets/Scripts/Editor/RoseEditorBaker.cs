@@ -304,7 +304,6 @@ namespace UnityRose.ImportEditor
             return texture;
         }
 
-
         public static Material BakeMaterial(int materialIdx, ZSC zsc, string pathZ, ImportContext context)
         {
             var zscName = Path.GetFileNameWithoutExtension(pathZ);
@@ -350,6 +349,44 @@ namespace UnityRose.ImportEditor
             {
                 mat.SetTexture("_BaseMap", texture);
                 mat.mainTexture = texture;
+
+                // Transparency
+                if (zscMat.AlphaEnabled || zscMat.Alpha < 1f)
+                {
+                    mat.SetFloat("_Surface", 1); // Transparent
+                    mat.SetFloat("_Blend", 0);   // Alpha
+
+                    mat.SetOverrideTag("RenderType", "Transparent");
+
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", zscMat.ZWriteEnabled ? 1 : 0);
+
+                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+                    var color = mat.color;
+                    color.a = Mathf.Clamp01(zscMat.Alpha);
+                    mat.color = color;
+                }
+                else
+                {
+                    mat.SetFloat("_Surface", 0);
+                    mat.SetInt("_ZWrite", 1);
+                }
+
+                // Backface culling
+                mat.SetInt("_Cull", zscMat.TwoSided? (int)UnityEngine.Rendering.CullMode.Off: (int)UnityEngine.Rendering.CullMode.Back);
+
+                // ZTest
+                mat.SetInt("_ZTest", zscMat.ZTestEnabled ? (int)UnityEngine.Rendering.CompareFunction.LessEqual : (int)UnityEngine.Rendering.CompareFunction.Always);
+
+                // Alpha test
+                if (zscMat.AlphaTestEnabled)
+                {
+                    mat.EnableKeyword("_ALPHATEST_ON");
+                    mat.SetFloat("_Cutoff", zscMat.AlphaReference / 255f);
+                }
             }
 
             AssetDatabase.CreateAsset(mat, matPath);
@@ -737,12 +774,6 @@ namespace UnityRose.ImportEditor
             return prefab;
         }
 
-        /// <summary>
-        /// Note: still specifically NPC-shaped (ImportPart wraps into RoseCharPartData,
-        /// which is the NPC parts container) - kept unchanged for the NPC pipeline.
-        /// Player equipment uses RoseEquipmentBaker instead, which builds a prefab
-        /// directly rather than a RoseCharPartData asset.
-        /// </summary>
         public class ZscImporter
         {
             public readonly ZSC zsc;

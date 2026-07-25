@@ -48,8 +48,6 @@ public class EquipmentDatabase : ScriptableObject
 
     public GameObject GetPrefab(BodyPartType slot, int id, GenderType gender)
     {
-        Debug.Log($"GetPrefab {slot} {id}");
-
         switch (slot)
         {
             case BodyPartType.FACE:

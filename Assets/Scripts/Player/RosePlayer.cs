@@ -2,11 +2,7 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using RevolutionShared.Rose.Data;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 using RevolutionShared.Rose.Data.Equipment;
-using static Unity.Burst.Intrinsics.X86.Avx;
-using UnityEngine.Analytics;
 
 namespace UnityRose
 {
@@ -14,39 +10,56 @@ namespace UnityRose
     {
         public static GameObject LoadSkeleton(GenderType gender, WeaponType weapon)
         {
-            var prefab = Resources.Load($"Animation/{gender}/{weapon}/skeleton");
-            if (prefab == null)
+            string weaponName = Enum.GetName(typeof(WeaponType), weapon); // This was added because the old system used the WeaponType as a name when no value, but if there is a value, its using the ID. So explicity calling the name
+
+            if (string.IsNullOrEmpty(weaponName))
             {
-                Debug.LogError($"No skeleton prefab at Animation/{gender}/{weapon}/skeleton");
+                Debug.LogError($"Invalid WeaponType value: {(int)weapon}");
 
                 return null;
             }
+
+            var prefab = Resources.Load($"Animation/{gender}/{weaponName}/skeleton");
+
+            if (prefab == null)
+            {
+                Debug.LogError($"No skeleton prefab at Animation/{gender}/{weaponName}/skeleton");
+                return null;
+            }
+
             return GameObject.Instantiate(prefab) as GameObject;
         }
-
         public static GameObject LoadSkeleton(GenderType gender, RigType rig)
         {
             var prefab = Resources.Load($"Animation/{gender}/{rig}/skeleton");
+
             if (prefab == null)
             {
                 Debug.LogError($"No skeleton prefab at Animation/{gender}/{rig}/skeleton");
+
                 return null;
             }
+
             return GameObject.Instantiate(prefab) as GameObject;
         }
 
         public static BindPoses LoadBindPoses(GameObject skeleton, GenderType gender, WeaponType weapon)
         {
             var source = Resources.Load<BindPoses>($"Animation/{gender}/{weapon}/bindPoses");
+
             if (source == null)
             {
                 Debug.LogWarning($"No BindPoses at Animation/{gender}/{weapon}/bindPoses");
+
                 return null;
             }
 
             var poses = ScriptableObject.Instantiate(source);
+
             for (int i = 0; i < poses.boneNames.Length; i++)
+            {
                 poses.boneTransforms[i] = Utils.findChild(skeleton, poses.boneNames[i]);
+            }
 
             return poses;
         }
@@ -159,6 +172,8 @@ namespace UnityRose
 
         private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, RigType rig, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield, int faceitem)
         {
+            Debug.Log($"Skeleton weapon = {weapon} ({(int)weapon})");
+
             int childs = player.transform.childCount;
 
             for (int i = childs - 1; i > 0; i--)

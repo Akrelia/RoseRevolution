@@ -401,6 +401,7 @@ namespace UnityRose.RoseFile
             if (fileOpenMode == FileOpenMode.Reading)
             {
                 fileStream = File.OpenRead(filePath);
+
                 binaryReader = new BinaryReader(fileStream, encodeType ?? Encoding.Default);
             }
 

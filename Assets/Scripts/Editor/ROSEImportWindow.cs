@@ -1,6 +1,4 @@
-﻿
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using UnityRose.Formats;
 using UnityEditor.AddressableAssets;
@@ -234,6 +232,10 @@ namespace UnityRose.ImportEditor
             EditorUtility.SetDirty(database);
 
             AssetDatabase.SaveAssets();
+
+            RegisterEquipmentDatabaseAddressables(database, dbPath);
+
+            AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             Debug.Log($"Base equipment import done ({maxIdsPerSlot} ids/slot max");
@@ -313,6 +315,7 @@ namespace UnityRose.ImportEditor
 
             Debug.Log($"{namePrefix}: baked {baked}/{maxIds} items");
         }
+
         private void BakeAppearenceSlot(RoseEquipmentBaker baker, List<AppearenceEntry> target, string namePrefix, ZSC zsc, string zscPath, BodyPartType bodyPart, GenderType gender, int maxIds)
         {
             if (zsc == null)
@@ -329,22 +332,18 @@ namespace UnityRose.ImportEditor
 
                 try
                 {
-                    prefab = baker.BakeEquipment(
-                        $"{namePrefix}_{id}",
-                        bodyPart,
-                        zsc,
-                        zscPath,
-                        id);
+                    prefab = baker.BakeEquipment($"{namePrefix}_{id}", bodyPart, zsc, zscPath, id);
                 }
+
                 catch (Exception ex)
                 {
                     Debug.LogWarning($"Failed to bake {namePrefix}_{id}: {ex.Message}");
+                
                     continue;
                 }
 
                 if (prefab == null)
                     continue;
-
 
                 target.Add(new AppearenceEntry
                 {
@@ -629,6 +628,39 @@ namespace UnityRose.ImportEditor
             return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) != null;
         }
 
+        private void RegisterEquipmentDatabaseAddressables(EquipmentDatabase database, string path)
+        {
+            AddressableUtils.EnsureAddressable(path, nameof(EquipmentDatabase));
+
+            var subDatabases = new ScriptableObject[]
+            {
+        database.weaponDatabase,
+        database.bodyDatabase,
+        database.armDatabase,
+        database.backDatabase,
+        database.headgearDatabase,
+        database.footwearDatabase,
+        database.faceItemDatabase,
+        database.appearenceDatabase
+            };
+
+            foreach (var subDatabase in subDatabases)
+            {
+                if (subDatabase == null)
+                    continue;
+
+                var subPath = AssetDatabase.GetAssetPath(subDatabase);
+
+                if (string.IsNullOrEmpty(subPath))
+                {
+                    Debug.LogWarning($"Cannot find asset path for {subDatabase.name}");
+                    continue;
+                }
+
+                AddressableUtils.EnsureAddressable(subPath, subDatabase.GetType().Name);
+            }
+        }
+
         public static class AddressableUtils
         {
             public static void EnsureAddressable(string assetPath, string address)
@@ -683,7 +715,10 @@ namespace UnityRose.ImportEditor
             {
                 if (EditorUtility.DisplayDialog("Confirmation", "This will import every assets for Characters (animations, meshs)", "Yes", "No"))
                 {
-                    ROSEEditorBaker.CreatePlayerPrefabs();
+                    ResourceManager.Instance.GenerateAnimationAssets();
+
+                    //         ROSEEditorBaker.CreatePlayerPrefabs();
+
                 }
             }
 
@@ -901,7 +936,6 @@ namespace UnityRose.ImportEditor
         }
     }
 
-    // ---- Weapon: juste EquipmentData, pas de cascade ----
     public class WeaponDataImporter : EquipmentDataImporter<WeaponData>
     {
         protected override WeaponData CreateInstance() => new WeaponData();

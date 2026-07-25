@@ -2653,7 +2653,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mapDatabase: {fileID: 11400000, guid: 65dbb7d06ae2d47408df2c173317ac62, type: 2}
-  equipmentDatabase: {fileID: 11400000, guid: bf58be5b85468e645a0accc47875a5b8, type: 2}
+  equipmentDatabase: {fileID: 0}
   address: 192.168.1.198
   port: 27350
   playerName: '[DEV]Akima'

@@ -1,30 +1,12 @@
-// ResourceManager.cs
-//
-// Restored to keep every resource that's used elsewhere in the codebase (RosePatch reads
-// stb_zone directly, for instance) - only two things were actually removed from the
-// original:
-//
-//   1. getZSC(gender, bodyPart) + LoadPart(...): the player-equipment pipeline that
-//      parsed ZSC/ZMS/DDS at runtime to build a body part on the fly. RosePlayer no
-//      longer needs this - it instantiates pre-baked prefabs from RoseAvatarDatabase
-//      instead. Nothing else in the codebase called these two methods.
-//
-//   2. GenerateAnimationAsset(s) / LoadClips(...): Editor-only baking (AssetDatabase,
-//      PrefabUtility) that doesn't belong in a class with no UnityEditor dependency.
-//      That logic should live in ROSEEditorBaker instead, not here.
-//
-// Everything else - every ZSC/STB/STL/ZMD field, loadResource, cachedLoad, getWeaponType,
-// GetZMOPath - is unchanged from the original, still runtime-safe (no UnityEditor usings
-// were ever needed for any of this), just no longer routed through the old ROSEImport
-// static path (uses RoseDataSource.DataPath, same as before).
-
 using RevolutionShared.Rose.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 using UnityRose.Formats;
 using UnityRose.Import;
+using UnityRose.ImportEditor;
 
 namespace UnityRose
 {
@@ -197,11 +179,57 @@ namespace UnityRose
         /// </summary>
         public string GetZMOPath(WeaponType WeaponType, ActionType Action, GenderType Gender)
         {
-            string filePath = stb_animation_list.Cells[int.Parse(stb_animation_type.Cells[(int)Action][(int)WeaponType])][(int)Gender];
+            int actionIdx = (int)Action;
 
-            //if no female animation then use male one
+            if (!weaponAnimationColumn.TryGetValue(WeaponType, out int weaponIdx))
+            {
+                Debug.LogWarning($"GetZMOPath: no animation column mapping for {WeaponType}.");
+
+                return "";
+            }
+
+            if (actionIdx < 0 || actionIdx >= stb_animation_type.Cells.Count)
+            {
+                Debug.LogWarning($"GetZMOPath: ActionType {Action} ({actionIdx}) is out of range for stb_animation_type ({stb_animation_type.Cells.Count} rows).");
+                return "";
+            }
+
+            var row = stb_animation_type.Cells[actionIdx];
+
+            if (weaponIdx < 0 || weaponIdx >= row.Count)
+            {
+                Debug.LogWarning($"GetZMOPath: WeaponType {WeaponType} ({weaponIdx}) is out of range for stb_animation_type row {actionIdx} ({row.Count} columns).");
+
+                return "";
+            }
+
+            string motionTypeCell = row[weaponIdx];
+
+            if (string.IsNullOrWhiteSpace(motionTypeCell) || !int.TryParse(motionTypeCell, out int motionTypeIdx))
+            {
+                Debug.LogWarning($"GetZMOPath: no valid motion type for {Gender}/{WeaponType}/{Action} (cell value: '{motionTypeCell}').");
+               
+                return "";
+            }
+
+            if (motionTypeIdx < 0 || motionTypeIdx >= stb_animation_list.Cells.Count)
+            {
+                Debug.LogWarning($"GetZMOPath: motion type index {motionTypeIdx} out of range for stb_animation_list ({stb_animation_list.Cells.Count} rows).");
+           
+                return "";
+            }
+
+            var animRow = stb_animation_list.Cells[motionTypeIdx];
+            int genderIdx = (int)Gender;
+
+            string filePath = (genderIdx >= 0 && genderIdx < animRow.Count) ? animRow[genderIdx] : "";
+
             if (filePath == "")
-                filePath = stb_animation_list.Cells[int.Parse(stb_animation_type.Cells[(int)Action][(int)WeaponType])][(int)GenderType.MALE];
+            {
+                int maleIdx = (int)GenderType.MALE;
+               
+                filePath = (maleIdx >= 0 && maleIdx < animRow.Count) ? animRow[maleIdx] : "";
+            }
 
             return filePath;
         }
@@ -224,17 +252,216 @@ namespace UnityRose
             return type;
         }
 
-        // NOTE: getZSC(GenderType, BodyPartType) and LoadPart(...) were removed here -
-        // that was the runtime ZSC/ZMS/texture parsing pipeline for building a player
-        // body part on the fly, now fully replaced by RosePlayer instantiating baked
-        // prefabs via RoseAvatarDatabase. If something else in the codebase still calls
-        // ResourceManager.Instance.getZSC(...) directly, let me know and I'll restore it
-        // as a standalone read accessor (it can still safely return e.g. zsc_body_male
-        // etc. for inspection) without reintroducing LoadPart's runtime-building logic.
+        private static readonly Dictionary<WeaponType, int> weaponAnimationColumn = new()
+{
+    { WeaponType.EMPTY, 1 },
+    { WeaponType.OHSWORD, 2 },
+    { WeaponType.THAXE, 3 },
+    { WeaponType.OHMACE, 4 },
+    { WeaponType.OHTOOL, 5 },
+    { WeaponType.THSWORD, 6 },
+    { WeaponType.THSPEAR, 7 },
+    { WeaponType.DSW, 8 },
+    { WeaponType.THBLUNT, 9 },
+    { WeaponType.CANNON, 10 },
+    { WeaponType.BOW, 11 },
+    { WeaponType.XBOX, 12 },
+    { WeaponType.GUN, 13 },
+    { WeaponType.STAFF, 14 },
+    { WeaponType.WAND, 15 },
+    { WeaponType.BOOK, 16 },
+    { WeaponType.KATAR, 17 },
+    { WeaponType.SHIELD, 18 }
+};
 
-        // NOTE: GenerateAnimationAsset(s)/LoadClips(...) were removed here too - that's
-        // Editor-only baking (AssetDatabase.CreateAsset, PrefabUtility) and belongs in
-        // ROSEEditorBaker, not in a class with no UnityEditor dependency. Let me know if
-        // you want them ported over there instead of left out.
+        /// <summary>
+        /// Loop through all weapon types for each gender and create an animation asset and all associated clips
+        /// The animations and clips are placed in GameData/Animation
+        /// </summary>      
+        public void GenerateAnimationAssets()
+        {
+            foreach (GenderType gender in Enum.GetValues(typeof(GenderType)))
+            {
+                if (gender == GenderType.NONE) continue;
+
+                foreach (WeaponType weapon in Enum.GetValues(typeof(WeaponType)))
+                {
+                    GenerateAnimationAsset(gender, weapon);
+                }
+            }
+        }
+
+        private string[] getBoneNames(Transform[] transforms)
+        {
+            List<string> names = new List<string>();
+            foreach (Transform transform in transforms)
+            {
+                names.Add(transform.name);
+            }
+
+            return names.ToArray();
+        }
+
+        public void GenerateAnimationAsset(GenderType gender, WeaponType weapon)
+        {
+            GameObject skeleton = new GameObject("skeleton");
+            bool male = (gender == GenderType.MALE);
+            ZMD zmd = new ZMD(male ? ROSEEditorBaker.DataPath + "/3DData/Avatar/MALE.ZMD" : ROSEEditorBaker.DataPath + "/3DData/Avatar/FEMALE.ZMD");
+            zmd.buildSkeleton(skeleton);
+
+            BindPoses poses = ScriptableObject.CreateInstance<BindPoses>();
+            poses.bindPoses = zmd.bindposes;
+            poses.boneNames = getBoneNames(zmd.boneTransforms);
+            poses.boneTransforms = zmd.boneTransforms;
+            LoadClips(skeleton, zmd, weapon, gender);
+
+            string path = "Assets/Resources/Animation/" + gender.ToString() + "/" + weapon.ToString() + "/skeleton.prefab";
+            Utils.EnsureFolder(path); // manquait - CreateAsset exige que le dossier existe déjà
+
+            AssetDatabase.CreateAsset(poses, path.Replace("skeleton.prefab", "bindPoses.asset"));
+            AssetDatabase.SaveAssets();
+            PrefabUtility.SaveAsPrefabAsset(skeleton, path);
+        }
+
+        public void GenerateAnimationAsset(GenderType gender, RigType rig, Dictionary<String, String> zmoPaths)
+        {
+            GameObject skeleton = new GameObject("skeleton");
+            bool male = (gender == GenderType.MALE);
+            ZMD zmd = new ZMD(male ? ROSEEditorBaker.DataPath + "/3DData/Avatar/MALE.ZMD" : ROSEEditorBaker.DataPath + "/3DData/Avatar/FEMALE.ZMD");
+            zmd.buildSkeleton(skeleton);
+
+            BindPoses poses = ScriptableObject.CreateInstance<BindPoses>();
+            poses.bindPoses = zmd.bindposes;
+            poses.boneNames = getBoneNames(zmd.boneTransforms);
+            poses.boneTransforms = zmd.boneTransforms;
+            LoadClips(skeleton, zmd, gender, rig, zmoPaths);
+            string path = "Assets/Resources/Animation/" + gender.ToString() + "/" + rig.ToString() + "/skeleton.prefab";
+            AssetDatabase.CreateAsset(poses, path.Replace("skeleton.prefab", "bindPoses.asset"));
+            AssetDatabase.SaveAssets();
+            PrefabUtility.SaveAsPrefabAsset(skeleton, path);
+        }
+
+        public void LoadClips(GameObject skeleton, ZMD zmd, WeaponType weapon, GenderType gender)
+        {
+            List<AnimationClip> clips = new List<AnimationClip>();
+
+            foreach (ActionType action in Enum.GetValues(typeof(ActionType)))
+            {
+                string zmoRelativePath = GetZMOPath(weapon, action, gender);
+
+                if (string.IsNullOrWhiteSpace(zmoRelativePath))
+                {
+                    Debug.LogWarning($"Skipping {gender}/{weapon}/{action}: no ZMO path found.");
+                    continue;
+                }
+
+                string zmoPath = ROSEEditorBaker.DataPath + "/" + Utils.FixPath(zmoRelativePath);
+
+                if (!File.Exists(zmoPath))
+                {
+                    Debug.LogWarning($"Skipping missing ZMO for {gender}/{weapon}/{action}: {zmoPath}");
+                    continue;
+                }
+
+                string unityPath = "Assets/Resources/Animation/" + gender.ToString() + "/" + weapon.ToString() + "/clips/" + action.ToString() + ".anim";
+                Utils.EnsureFolder(unityPath);
+
+                // NOTE: not using Utils.SaveReloadAsset here - it internally reroutes the path
+                // through r2uDir(), which expects a raw ROSE path and rewrites it into its own
+                // Unity path, silently ignoring the exact unityPath we just prepared with
+                // EnsureFolder above. That mismatch (create the folder at path A, then try to
+                // write to path B) made CreateAsset fail silently inside SaveReloadAsset (no
+                // try/catch, no log in there), so the clip vanished with nothing but the
+                // ActionType/GetZMOPath warnings visible - hence "thousands of warnings, no
+                // error, nothing saved". Writing directly here avoids that mismatch entirely.
+                var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);
+
+                AnimationClip clip;
+                if (existing == null)
+                {
+                    clip = new ZMO(zmoPath).buildAnimationClip(zmd);
+                    clip.name = action.ToString().ToLowerInvariant();
+                    clip.legacy = true;
+
+                    AssetDatabase.CreateAsset(clip, unityPath);
+                    AssetDatabase.SaveAssets();
+
+                    clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);
+                }
+                else
+                {
+                    clip = existing;
+                }
+
+                clips.Add(clip);
+            }
+
+            Animation animation = skeleton.AddComponent<Animation>();
+            AnimationUtility.SetAnimationClips(animation, clips.ToArray());
+        }
+
+        public void LoadClips(GameObject skeleton, ZMD zmd, GenderType gender, RigType rig, Dictionary<String, String> zmoPaths)
+        {
+            List<AnimationClip> clips = new List<AnimationClip>();
+
+            foreach (KeyValuePair<String, String> motion in zmoPaths)
+            {
+                if (string.IsNullOrWhiteSpace(motion.Value))
+                {
+                    Debug.LogWarning($"Skipping motion '{motion.Key}' ({gender}/{rig}): empty ZMO path.");
+                    continue;
+                }
+
+                string zmoPath = ROSEEditorBaker.DataPath + "/" + motion.Value;
+
+                if (!File.Exists(zmoPath))
+                {
+                    Debug.LogWarning($"Skipping missing ZMO for motion '{motion.Key}' ({gender}/{rig}): {zmoPath}");
+                    continue;
+                }
+
+                string unityPath = "Assets/Resources/Animation/" + gender.ToString() + "/" + rig.ToString() + "/clips/" + motion.Key + ".anim";
+                Utils.EnsureFolder(unityPath);
+
+                var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);
+
+                AnimationClip clip;
+                if (existing == null)
+                {
+                    clip = new ZMO(zmoPath).buildAnimationClip(zmd);
+                    clip.name = motion.Key;
+                    clip.legacy = true;
+
+                    AssetDatabase.CreateAsset(clip, unityPath);
+                    AssetDatabase.SaveAssets();
+
+                    clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);
+                }
+                else
+                {
+                    clip = existing;
+                }
+
+                clips.Add(clip);
+            }
+
+            Animation animation = skeleton.AddComponent<Animation>();
+            AnimationUtility.SetAnimationClips(animation, clips.ToArray());
+        }
+        public void LoadAnimations(GameObject player, ZMD skeleton, WeaponType weapon, GenderType gender)
+        {
+            List<AnimationClip> clips = new List<AnimationClip>();
+
+            foreach (ActionType action in Enum.GetValues(typeof(ActionType)))
+            {
+                string zmoPath = Utils.FixPath(ResourceManager.Instance.GetZMOPath(weapon, action, gender));
+                AnimationClip clip = R2U.GetClip(zmoPath, skeleton, action.ToString());
+                clip.legacy = true;
+                clips.Add(clip);
+            }
+
+            Animation animation = player.GetComponent<Animation>();
+            AnimationUtility.SetAnimationClips(animation, clips.ToArray());
+        }
     }
 }

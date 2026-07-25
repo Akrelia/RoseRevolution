@@ -1,8 +1,5 @@
 using RevolutionShared.Data;
 using RevolutionShared.Rose.Data;
-using System;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityRose;
 
@@ -19,6 +16,9 @@ public class WorldManager : MonoBehaviour
     [Header("Components")]
     public CameraController cameraController;
 
+    /// <summary>
+    /// Awake.
+    /// </summary>
     private void Awake()
     {
         Screen.SetResolution(1600, 800, FullScreenMode.Windowed);
