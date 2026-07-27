@@ -475,6 +475,7 @@ namespace UnityRose.ImportEditor
 
             finally
             {
+
             }
         }
 
@@ -698,9 +699,9 @@ namespace UnityRose.ImportEditor
             data.attackType = Utils.ParseInt(stb.Cells[npcIdx][16]) == 1 ? AttackType.Magic : AttackType.Normal;
             data.AI = Utils.ParseInt(stb.Cells[npcIdx][17]);
             data.experience = Utils.ParseInt(stb.Cells[npcIdx][18]);
-            data.drop = Utils.ParseInt(stb.Cells[npcIdx][19]);
+            data.dropTableID = Utils.ParseInt(stb.Cells[npcIdx][19]);
             data.moneyDrop = Utils.ParseInt(stb.Cells[npcIdx][20]);
-            data.dropTableID = Utils.ParseInt(stb.Cells[npcIdx][21]);
+            data.dropChance = Utils.ParseInt(stb.Cells[npcIdx][21]); // TODO : Make some smart read, like this field should always be between 1 and 100
             data.attackRange = Utils.ParseInt(stb.Cells[npcIdx][27]);
             data.characterType = Utils.ParseInt(stb.Cells[npcIdx][28]);
             data.faceIconID = Utils.ParseInt(stb.Cells[npcIdx][30]);

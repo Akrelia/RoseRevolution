@@ -34,7 +34,7 @@ public class DebugConsole : BaseWindow
     /// <summary>
     /// Awake.
     /// </summary>
-    public void Awake()
+    public void Start()
     {
         Application.logMessageReceived += HandleUnityLog;
 

@@ -44,8 +44,8 @@ public class WorldManager : MonoBehaviour
 
         rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = mainPlayer;
 
-        rosePlayer.Equip(BodyPartType.FACEITEM, appearence.Mask);
-        rosePlayer.Equip(BodyPartType.WEAPON, appearence.Weapon);
+     //   rosePlayer.Equip(BodyPartType.FACEITEM, appearence.Mask);
+        rosePlayer.Equip(BodyPartType.WEAPON, appearence.Weapon); // TODOD : This is redundant a bit with LoadObject, but this load the right stance etc ... so maybe remove LoadObject from this
         //rosePlayer.equip(BodyPartType.SUBWEAPON, subWeaponID);
 
         if (mainPlayer)

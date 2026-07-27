@@ -172,8 +172,6 @@ namespace UnityRose
 
         private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, RigType rig, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield, int faceitem)
         {
-            Debug.Log($"Skeleton weapon = {weapon} ({(int)weapon})");
-
             int childs = player.transform.childCount;
 
             for (int i = childs - 1; i > 0; i--)

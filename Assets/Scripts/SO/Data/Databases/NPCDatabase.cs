@@ -1,11 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "ROSE/NPC Database")]
 public class NPCDatabase : ScriptableObject
 {
-    public List<NPCDatabaseEntry> npcs = new();
+    public List<NPCDatabaseEntry> entries = new();
+
+    public NPCDatabaseEntry GetEntry(int id)
+    {
+        return entries.FirstOrDefault(x => x.id == id);
+    }
 }
 
 [Serializable]

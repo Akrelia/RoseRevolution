@@ -74,7 +74,6 @@ namespace UnityRose
 			rosePlayer.Equip(bodyPart, id);
 		}
 
-
 		// Update is called once per frame
 		void Update()
 		{

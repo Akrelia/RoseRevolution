@@ -16,6 +16,8 @@ using System.Linq;
 using static UnityRose.Formats.ZON;
 using RevolutionShared.Rose.Data;
 using RevolutionShared.Rose.Data.Equipment;
+using RevolutionShared.Rose.Data.NPC.Drops;
+using Unity.VisualScripting;
 
 namespace UnityRose.ImportEditor
 {
@@ -56,7 +58,7 @@ namespace UnityRose.ImportEditor
                 AssetDatabase.CreateFolder("Assets/Data", "Maps");
             }
 
-            string dbPath = $"{folder}/RoseMapDatabase.asset";
+            string dbPath = $"{folder}/MapDatabase.asset";
 
             var database = AssetDatabase.LoadAssetAtPath<MapDatabase>(dbPath);
 
@@ -187,6 +189,7 @@ namespace UnityRose.ImportEditor
             database.appearenceDatabase.faces.Clear();
             database.appearenceDatabase.hairs.Clear();
 
+
             var rm = ResourceManager.Instance;
             var baker = new RoseEquipmentBaker();
 
@@ -229,6 +232,15 @@ namespace UnityRose.ImportEditor
                 //       AssetDatabase.StopAssetEditing();
             }
 
+            EditorUtility.SetDirty(database.weaponDatabase);
+            EditorUtility.SetDirty(database.bodyDatabase);
+            EditorUtility.SetDirty(database.armDatabase);
+            EditorUtility.SetDirty(database.backDatabase);
+            EditorUtility.SetDirty(database.headgearDatabase);
+            EditorUtility.SetDirty(database.footwearDatabase);
+            EditorUtility.SetDirty(database.faceItemDatabase);
+            EditorUtility.SetDirty(database.appearenceDatabase);
+
             EditorUtility.SetDirty(database);
 
             AssetDatabase.SaveAssets();
@@ -239,6 +251,47 @@ namespace UnityRose.ImportEditor
             AssetDatabase.Refresh();
 
             Debug.Log($"Base equipment import done ({maxIdsPerSlot} ids/slot max");
+        }
+
+        public void ImportAllDropTables()
+        {
+            var roothPath = "Assets/GameData/Drops";
+
+            Utils.EnsureFolder($"{roothPath}/dummy.asset");
+
+            var stb = ResourceManager.Instance.stb_drops_list;
+
+            AssetDatabase.StartAssetEditing();
+
+            try
+            {
+                for (int i = 0; i < 50; i++)
+                {
+                    if (!string.IsNullOrEmpty(stb.Cells[i][1]))
+                    {
+                        var table = RoseExport.ExportDropTable(stb, i);
+
+                        var entry = ScriptableObject.CreateInstance<DropTableSO>();
+
+                        entry.id = i;
+                        entry.table = table;
+
+                        AssetDatabase.CreateAsset(entry, $"{roothPath}/{i}.asset");
+
+                        RegisterDropTableInInternalDB(entry);
+
+                        EditorUtility.SetDirty(entry);
+                    }
+                }
+            }
+
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
 
         private static bool IsInvalidSTBEntry(string name, BodyPartType bodyPart, int id)
@@ -287,6 +340,7 @@ namespace UnityRose.ImportEditor
                 {
                     prefab = baker.BakeEquipment($"{namePrefix}_{id}", bodyPart, zsc, zscPath, id);
                 }
+
                 catch (Exception ex)
                 {
                     Debug.LogWarning($"Failed baking {namePrefix}_{id}: {ex.Message}");
@@ -338,7 +392,7 @@ namespace UnityRose.ImportEditor
                 catch (Exception ex)
                 {
                     Debug.LogWarning($"Failed to bake {namePrefix}_{id}: {ex.Message}");
-                
+
                     continue;
                 }
 
@@ -369,7 +423,7 @@ namespace UnityRose.ImportEditor
                 AssetDatabase.CreateFolder(ImportPaths.Root, "Databases");
             }
 
-            string path = $"{folder}/RoseMapDatabase.asset";
+            string path = $"{folder}/MapDatabase.asset";
 
             var database = AssetDatabase.LoadAssetAtPath<MapDatabase>(path);
 
@@ -462,7 +516,7 @@ namespace UnityRose.ImportEditor
                 AssetDatabase.CreateFolder(ImportPaths.Root, "Databases");
             }
 
-            string path = $"{folder}/RoseNpcDatabase.asset";
+            string path = $"{folder}/NpcDatabase.asset";
 
             var database = AssetDatabase.LoadAssetAtPath<NPCDatabase>(path);
 
@@ -475,7 +529,7 @@ namespace UnityRose.ImportEditor
 
             AddressableUtils.EnsureAddressable(path, nameof(NPCDatabase));
 
-            var existing = database.npcs.Find(x => x.id == npc.monsterData.id);
+            var existing = database.entries.Find(x => x.id == npc.monsterData.id);
 
             if (existing != null)
             {
@@ -486,7 +540,7 @@ namespace UnityRose.ImportEditor
 
             else
             {
-                database.npcs.Add(new NPCDatabaseEntry
+                database.entries.Add(new NPCDatabaseEntry
                 {
                     id = npc.monsterData.id,
                     name = npc.monsterData.displayName,
@@ -495,6 +549,43 @@ namespace UnityRose.ImportEditor
                 });
             }
 
+            EditorUtility.SetDirty(database);
+            AssetDatabase.SaveAssets();
+        }
+
+        private void RegisterDropTableInInternalDB(DropTableSO entry)
+        {
+            string folder = ImportPaths.Database.Root;
+
+            if (!AssetDatabase.IsValidFolder(folder))
+            {
+                AssetDatabase.CreateFolder(ImportPaths.Root, "Databases");
+            }
+
+            string path = $"{folder}/DropTableDatabase.asset";
+
+            var database = AssetDatabase.LoadAssetAtPath<DropTableDatabase>(path);
+
+            if (database == null)
+            {
+                database = CreateInstance<DropTableDatabase>();
+
+                AssetDatabase.CreateAsset(database, path);
+            }
+
+            AddressableUtils.EnsureAddressable(path, nameof(DropTableDatabase));
+
+            var existing = database.entries.Find(x => x.id == entry.id);
+
+            if (existing != null)
+            {
+                existing = entry;
+            }
+
+            else
+            {
+                database.entries.Add(entry);
+            }
 
             EditorUtility.SetDirty(database);
             AssetDatabase.SaveAssets();
@@ -716,9 +807,6 @@ namespace UnityRose.ImportEditor
                 if (EditorUtility.DisplayDialog("Confirmation", "This will import every assets for Characters (animations, meshs)", "Yes", "No"))
                 {
                     ResourceManager.Instance.GenerateAnimationAssets();
-
-                    //         ROSEEditorBaker.CreatePlayerPrefabs();
-
                 }
             }
 
@@ -735,6 +823,14 @@ namespace UnityRose.ImportEditor
                 if (EditorUtility.DisplayDialog("Import ALL Maps", "This will import every ROSE map and rebuild the map database.", "Yes", "No"))
                 {
                     ImportAllMaps();
+                }
+            }
+
+            if (GUILayout.Button("Import Drop Tables"))
+            {
+                if (EditorUtility.DisplayDialog("Import Drop Tables", "This will import every drop tables.", "Yes", "No"))
+                {
+                    ImportAllDropTables();
                 }
             }
 

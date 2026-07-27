@@ -8,6 +8,12 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityRose;
 using RevolutionShared.Rose.Data;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEditor.SceneManagement;
+
+
+
 
 
 
@@ -93,6 +99,17 @@ public class Utils
                 weapon == WeaponType.XBOX ||
                 weapon == WeaponType.EMPTY;
 
+    }
+
+    /// <summary>
+    /// Safe mod.
+    /// </summary>
+    /// <param name="value">Value.</param>
+    /// <param name="modulo">Modulo.</param>
+    /// <returns>Int.</returns>
+    public static int Mod(int value, int modulo)
+    {
+        return ((value % modulo) + modulo) % modulo;
     }
 
     public static void calculateMeshTangents(Mesh mesh, bool uv2 = false)
@@ -195,6 +212,28 @@ public class Utils
         return b;
     }
 
+    public static AsyncOperationHandle<T> LoadAddressableAsync<T>(string address, Action<T> onLoaded, Action onFailed = null) where T : ScriptableObject // ScriptableObject because we should load SO as addresasbles because its very fast and its used mostly in startup, prefabs are always instancied afterward
+    {
+        var handle = Addressables.LoadAssetAsync<T>(address);
+
+        handle.Completed += op =>
+        {
+            if (op.Status == AsyncOperationStatus.Succeeded && op.Result != null)
+            {
+                onLoaded?.Invoke(op.Result);
+            }
+
+            else
+            {
+                Debug.LogError($"Failed to load '{address}' as {typeof(T).Name} (status: {op.Status}).");
+
+                onFailed?.Invoke();
+            }
+        };
+
+        return handle;
+    }
+
     // Returns true if platform is mac
     public static bool IsMac()
     {
@@ -287,6 +326,31 @@ public class Utils
 		return Resources.Load<Texture2D>(pngPath);
 	}
 #endif
+
+    public static string Colorize(string text, Color color)
+    {
+        return $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{text}</color>";
+    }
+
+    public static string Colorize(int value, Color color)
+    {
+        return Colorize(value.ToString(), color);
+    }
+
+    public static string Colorize(float value, Color color)
+    {
+        return Colorize(value.ToString(), color);
+    }
+
+    public static string Colorize(byte value, Color color)
+    {
+        return Colorize(value.ToString(), color);
+    }
+
+    public static string Colorize<T>(T value, Color color) where T : Enum
+    {
+        return Colorize(value.ToString(), color);
+    }
 
     public static int ParseRgbColor(string value)
     {
@@ -663,7 +727,6 @@ public class Utils
             }
             return new BoundingSphere(center, radius);
         }
-
     }
 
     /// Destroy every children of a game object.
@@ -676,7 +739,6 @@ public class Utils
             GameObject.Destroy(child.gameObject);
         }
     }
-
 
     //****************************************************************************************************
     //  static function DrawLine(rect : Rect) : void

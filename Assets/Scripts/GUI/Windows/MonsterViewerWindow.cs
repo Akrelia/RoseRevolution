@@ -3,19 +3,16 @@ using System.Linq;
 using UnityEngine;
 using TMPro;
 using Unity.VisualScripting;
-using RevolutionShared.Rose.Data.NPC;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 /// <summary>
 /// Monster viewer window.
 /// </summary>
-public class MonsterViewerWindow : MonoBehaviour
+public class MonsterViewerWindow : BaseWindow
 {
     [Header("Values")]
     public float rotationSpeed = 100f;
-    [Header("Data")]
-    public NPCDatabase npcDatabase;
     [Header("Prefabs")]
     public GameObject modelPreviewPrefab;
     [Header("References")]
@@ -25,6 +22,7 @@ public class MonsterViewerWindow : MonoBehaviour
     private int index;
     private int animationIndex;
     private ModelPreview modelPreview;
+    private NPCDatabase npcDatabase;
 
     /// <summary>
     /// Start.
@@ -40,7 +38,9 @@ public class MonsterViewerWindow : MonoBehaviour
         {
             npcDatabase = handle.Result;
 
-            Debug.Log($"Loaded {npcDatabase.npcs.Count} NPCs");
+            DisplayModel(npcDatabase.entries.FirstOrDefault());
+
+            Debug.Log($"Loaded {npcDatabase.entries.Count} NPCs");
         }
     }
 
@@ -52,7 +52,7 @@ public class MonsterViewerWindow : MonoBehaviour
     {
         if (npcDatabase != null)
         {
-            var npcData = npcDatabase.npcs[index];
+            var npcData = npcDatabase.entries[index];
 
             DisplayModel(npcData);
         }
@@ -111,7 +111,7 @@ public class MonsterViewerWindow : MonoBehaviour
     {
         index += direction;
 
-        index = Mod(index, npcDatabase.npcs.Count);
+        index = Mod(index, npcDatabase.entries.Count);
 
         ChangeModel(index);
     }
@@ -122,7 +122,7 @@ public class MonsterViewerWindow : MonoBehaviour
     /// <param name="direction">Direction.</param>
     public void SkipAnimation(int direction)
     {
-        var animations = npcDatabase.npcs[index].data.animations;
+        var animations = npcDatabase.entries[index].data.animations;
 
         if (animations == null || animations.Count == 0)
             return;

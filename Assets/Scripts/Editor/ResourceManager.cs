@@ -57,14 +57,15 @@ namespace UnityRose
         public ZMD zmd_female;
 
         // STB's
-        public STB stb_animation_list;
+        public STB stb_animation_list; // TODO : Clean this legacy stuff 
         public STB stb_animation_type;
         public STB stb_weapon_list;
         public STB stb_cap_list;
         public STB stb_arms_list;
         public STB stb_armor_list;
         public STB stb_foot_list;
-        public STB stb_back_list; // Turn into Dictio
+        public STB stb_back_list;
+        public STB stb_drops_list;
         public STB stb_faceitem_list;
         public STB stb_hair_list;
         public STB stb_npc_list;
@@ -118,6 +119,7 @@ namespace UnityRose
             stb_faceitem_list = (STB)loadResource("3DDATA/STB/LIST_FACEITEM.STB");
             stb_hair_list = (STB)loadResource("3DDATA/STB/LIST_HAIR.STB");
             stb_npc_list = (STB)loadResource("3DDATA/STB/LIST_NPC.STB");
+            stb_drops_list = (STB)loadResource("3DDATA/STB/ITEM_DROP.STB");
             stb_zone = (STB)loadResource("3DDATA/STB/LIST_ZONE.STB");
 
             stl_zone_list = (STL)loadResource("3DDATA/STB/LIST_ZONE_S.STL");

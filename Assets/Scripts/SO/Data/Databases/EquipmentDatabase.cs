@@ -87,11 +87,9 @@ public abstract class ItemDatabaseEntryBase
 /// <summary>
 /// Typed item database.
 /// </summary>
-public abstract class ItemDatabase<T> : ScriptableObject, IItemDatabase
-    where T : EquipmentData
+public abstract class ItemDatabase<T> : ScriptableObject, IItemDatabase where T : EquipmentData
 {
     public List<ItemDatabaseEntry<T>> entries = new();
-
 
     public ItemDatabaseEntry<T> Get(int id, GenderType gender)
     {
@@ -121,8 +119,7 @@ public abstract class ItemDatabase<T> : ScriptableObject, IItemDatabase
 /// Typed item database entry.
 /// </summary>
 [Serializable]
-public class ItemDatabaseEntry<T> : ItemDatabaseEntryBase
-    where T : EquipmentData
+public class ItemDatabaseEntry<T> : ItemDatabaseEntryBase where T : EquipmentData
 {
     public T item;
 }

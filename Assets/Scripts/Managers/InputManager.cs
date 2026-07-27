@@ -18,12 +18,12 @@ public class InputManager : MonoBehaviour
     {
         if (Input.GetKeyDown(toggleConsoleKey))
         {
-            guiController.debugConsole.ToggleDisplay(); // Put this in inspector
+       //     guiController.CreateWindow<DebugConsole>();
         }
 
         if (Input.GetKeyDown(toggleDebug))
         {
-            guiController.monsterViewerWindow.gameObject.SetActive(!guiController.monsterViewerWindow.gameObject.activeSelf);
+       //     guiController.CreateWindow<GMPanel>();
         }
     }
 }

@@ -8,4 +8,9 @@ public class BaseWindow : MonoBehaviour
 {
     [HideInInspector]
     public WindowController window;
+
+    public void Awake()
+    {
+        window = GetComponent<WindowController>();
+    }
 }

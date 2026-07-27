@@ -16,7 +16,8 @@ using UnityRose;
 /// </summary>
 public class SandboxManager : MonoBehaviour
 {
-    [Header("Data")]
+    [Tooltip("Use this only if you want to use something else that the Generated Databases")]
+    [Header("Data Override")]
     public MapDatabase mapDatabase;
     public EquipmentDatabase equipmentDatabase;
     [Header("Server")]
@@ -138,7 +139,7 @@ public class SandboxManager : MonoBehaviour
 
             var mainPlayer = worldManager.SpawnPlayer(true, playerName, appearance, WorldManager.RoseToUnity(mapSpawn));
 
-            guiController.characterPreview.SetCharacterInformations(playerName, 1200, 1200, 960, 960, 1, "Visitor");
+            guiController.characterPreview.SetCharacterInformations(playerName, 856, 950, 350, 350, 15, "Visitor");
 
             mainPlayer.charModel.name = name;
 

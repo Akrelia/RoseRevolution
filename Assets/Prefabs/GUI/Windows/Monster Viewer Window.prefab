@@ -573,6 +573,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hideOnStartup: 0
+  isUnique: 1
   action: 2
   titleLabel: {fileID: 8466603602310291473}
   showEvent:
@@ -596,8 +597,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ed56cbc8f0a0f24a87c69666e011c4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  window: {fileID: 0}
   rotationSpeed: 100
-  npcDatabase: {fileID: 11400000, guid: 1f246183fb58a2648b71e0d25861720a, type: 2}
   modelPreviewPrefab: {fileID: 4548163211857282054, guid: aca60c1edb71171488558c5267739d80,
     type: 3}
   monsterNameLabel: {fileID: 6672207550324501728}

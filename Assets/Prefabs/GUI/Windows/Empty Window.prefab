@@ -237,7 +237,6 @@ GameObject:
   - component: {fileID: 4316920534030093593}
   - component: {fileID: 2455721111137774452}
   - component: {fileID: 980877824202776384}
-  - component: {fileID: 2771134522615288667}
   m_Layer: 5
   m_Name: Empty Window
   m_TagString: Untagged
@@ -300,44 +299,6 @@ MonoBehaviour:
   closeEvent:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &2771134522615288667
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2459331726184469483}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: adcd243539b2fe349b010f89c081449d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  window: {fileID: 0}
-  timeStampColor: {r: 0.6415094, g: 0.6415094, b: 0.6415094, a: 1}
-  errorColor: {r: 0.7735849, g: 0.20069422, b: 0.20069422, a: 1}
-  warningColor: {r: 0.9245283, g: 0.76857644, b: 0.2921858, a: 1}
-  packetColor: {r: 0.34607512, g: 0.5805854, b: 0.7264151, a: 1}
-  generalColor: {r: 0.8584906, g: 0.8584906, b: 0.8584906, a: 1}
-  unityColor: {r: 0.88492286, g: 0.50614095, b: 0.8867924, a: 1}
-  errorText: {fileID: 0}
-  warningText: {fileID: 0}
-  packetText: {fileID: 0}
-  generalText: {fileID: 0}
-  unityText: {fileID: 0}
-  defaultButton: {fileID: 0}
-  defaultPanel: {fileID: 0}
-  buttons:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  panels:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
 --- !u!1 &7349971770086464509
 GameObject:
   m_ObjectHideFlags: 0

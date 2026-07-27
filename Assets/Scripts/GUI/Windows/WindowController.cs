@@ -9,6 +9,7 @@ public class WindowController : MonoBehaviour
 {
     [Header("Windows Settings")]
     public bool hideOnStartup;
+    public bool isUnique;
     public CloseButtonAction action;
     [Header("Windows Components")]
     public TextMeshProUGUI titleLabel;
