@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// NPC Behavior.
+/// Entity Model Behavior.
 /// </summary>
-public class NPCEntityBehavior : MonoBehaviour
+public class EntityModelBehavior : MonoBehaviour
 {
-    public NPCEntitySO data;
+    public EntitySO data;
 
     /// <summary>
     /// Start.

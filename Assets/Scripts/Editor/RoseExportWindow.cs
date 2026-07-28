@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using RevolutionShared.Rose.Data.NPC;
 using RevolutionShared.Rose.Data.NPC.Drops;
 using System.IO;
 using System.Linq;
@@ -61,6 +62,30 @@ public class RoseExportWindow : EditorWindow
         }
 
         return JsonConvert.SerializeObject(export, Formatting.Indented);
+    }
+
+    public static string ExportJson(EnemyData enemy)
+    {
+        var export = enemy;
+
+        string json = JsonConvert.SerializeObject(export, Formatting.Indented);
+
+        string fileName = $"[{enemy.ID}]{enemy.displayName}.json";
+
+        string path = EditorUtility.SaveFilePanel(
+            "Export Enemy",
+            "",
+            fileName,
+            "json");
+
+        if (!string.IsNullOrEmpty(path))
+        {
+            File.WriteAllText(path, json);
+
+            Debug.Log($"Enemy exported: {path}");
+        }
+
+        return json;
     }
 }
 

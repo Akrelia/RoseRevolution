@@ -7,6 +7,7 @@ using RevolutionShared.Rose.Data;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityRose;
+using System;
 
 /// <summary>
 /// Packets for Packet Handler.
@@ -152,9 +153,25 @@ public static class Packets
     {
         PacketOut packet = new PacketOut(ClientCommands.Move);
 
-        packet.Add(position.x);
-        packet.Add(position.y);
-        packet.Add(position.z);
+        WorldPosition worldposition = position.ToWorldPosition();
+
+        packet.Add(worldposition);
+
+        return packet;
+    }
+
+    /// <summary>
+    /// Packet - GM Command Spawn
+    /// </summary>
+    /// <param name="enemyID">Enemy ID.</param>
+    /// <param name="amount">Amount.</param>
+    /// <returns>Packet.</returns>
+    public static PacketOut GMCommandSpawn(int enemyID, int amount)
+    {
+        PacketOut packet = new PacketOut(ClientCommands.GMCommandSpawnMonster);
+
+        packet.Add(enemyID);
+        packet.Add(amount);
 
         return packet;
     }

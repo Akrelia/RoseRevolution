@@ -11,11 +11,6 @@ namespace UnityRose.Formats
     /// <summary>
     /// ZON class.
     /// </summary>
-    // NOTE: this used to be wrapped in #if UNITY_EDITOR for no real reason - it's a binary
-    // format parser, same as ZMS/ZMD/ZMO/CHR which were never gated. That gate is exactly
-    // why RosePatch.Load()/UpdateAtlas(), which use ZON.Textures[...].Tex, could only ever
-    // run in the Editor, and why they were pulling texture paths through the old
-    // ROSEImport.ImportTexture (with its own un-synced dataPath) instead of RoseDataSource.
     public class ZON
     {
         /// <summary>

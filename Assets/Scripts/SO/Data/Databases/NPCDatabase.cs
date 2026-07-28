@@ -19,6 +19,6 @@ public class NPCDatabaseEntry
 {
     public int id;
     public string name; // Just in case to retrieve what was the NPC 
-    public NPCEntitySO data; 
+    public EntitySO data; 
     public GameObject prefab;
 }

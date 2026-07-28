@@ -99,18 +99,14 @@ namespace UnityRose.Import
 
             BlendSeamNormals(patches);
 
+            terrainObjects.transform.SetParent(map.transform);
+
             terrainObjects.transform.localScale = new Vector3(1, 1, -1);
             terrainObjects.transform.Rotate(0, -90, 0);
             terrainObjects.transform.position = new Vector3(5200, 0, 5200);
 
             SpawnSpawnPoints(map, patches);
-            SpawnNpcs(map, patches); // TODO : remove later
-
-            var monsters = new GameObject("Monsters");
-            monsters.transform.SetParent(map.transform);
-            monsters.transform.localScale = new Vector3(1, 1, -1);
-            monsters.transform.Rotate(0, -90, 0);
-            monsters.transform.position = new Vector3(5200, 0, 5200);
+            // SpawnNpcs(map, patches); // TODO : remove later
 
             roseMap.mapID = mapID;
             roseMap.mapName = mapName;
@@ -211,7 +207,7 @@ namespace UnityRose.Import
                 {
                     avg += patches[entry.patchID].m_mesh.normals[entry.normalID];
                 }
-             
+
                 avg.Normalize();
 
                 foreach (var entry in patchNormalLookup[vertex])
@@ -234,7 +230,9 @@ namespace UnityRose.Import
                 var spawn = new GameObject(spawnPoint.Name);
 
                 spawn.transform.parent = spawns.transform;
-                spawn.transform.localPosition = Utils.r2uScale(spawnPoint.Position);
+                //   spawn.transform.localPosition = Utils.r2uScale(spawnPoint.Position);
+
+                spawn.transform.localPosition = spawnPoint.Position / 100f;
                 spawn.transform.rotation = Quaternion.identity;
             }
         }
@@ -248,7 +246,8 @@ namespace UnityRose.Import
                 result.Add(new SpawnData
                 {
                     name = spawnPoint.Name,
-                    position = Utils.r2uScale(spawnPoint.Position)
+                    position = spawnPoint.Position / 100f
+
                 });
             }
 
@@ -277,7 +276,7 @@ namespace UnityRose.Import
                     npc.transform.localPosition = ifoNpc.Position / 100F;
                     npc.transform.rotation = Quaternion.identity;
 
-                    var roseNpc = npc.AddComponent<NPCEntityBehavior>();
+                    var roseNpc = npc.AddComponent<EntityModelBehavior>();
                     roseNpc.data = npcData;
                 }
             }

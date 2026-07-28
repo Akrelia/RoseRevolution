@@ -425,7 +425,7 @@ namespace UnityRose.ImportEditor
             return bones;
         }
 
-        private static AnimatorController BakeAnimatorController(NPCEntitySO npc, string path)
+        private static AnimatorController BakeAnimatorController(EntitySO npc, string path)
         {
             if (AssetDatabase.LoadAssetAtPath<AnimatorController>(path) != null)
                 AssetDatabase.DeleteAsset(path);
@@ -464,21 +464,31 @@ namespace UnityRose.ImportEditor
             return AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
         }
 
+        /// <summary>
+        /// Import NPC.
+        /// </summary>
+        /// <param name="id">ID.</param>
+        /// <returns>Imported NPC.</returns>
         public static GameObject ImportNPC(int id)
         {
             try
             {
-                var npc = BakeNpc(id);
+                var npc = BakeEntity(id);
 
                 return npc;
             }
 
-            finally
+            catch (Exception ex)
             {
+                Debug.LogException(ex);
 
+                return null;
             }
         }
 
+        /// <summary>
+        /// Import all the NPC.
+        /// </summary>
         public static void ImportAllNPC()
         {
             AssetHelper.StartAssetEditing();
@@ -489,7 +499,7 @@ namespace UnityRose.ImportEditor
 
                 foreach (var i in Enumerable.Range(0, chr.Characters.Count))
                 {
-                    var npc = BakeNpc(i);
+                    var npc = BakeEntity(i);
 
                     if (npc != null)
                     {
@@ -501,17 +511,25 @@ namespace UnityRose.ImportEditor
             {
                 Debug.LogError("Something went wrong while importing ALL NPC: " + ex.Message + "\n" + ex.StackTrace);
             }
+
             finally
             {
                 AssetHelper.StopAssetEditing();
             }
         }
 
-        private static GameObject BuildNpcPrefab(NPCEntitySO npc, NPCImportContext context)
+        /// <summary>
+        /// Build the NPC Prefab.
+        /// </summary>
+        /// <param name="npc">NPC.</param>
+        /// <param name="context">Context.</param>
+        /// <returns>Game object.</returns>
+        private static GameObject BuildEntityModelPrefab(EntitySO npc, NPCImportContext context)
         {
             if (npc == null)
             {
                 Debug.LogError("Cannot build NPC prefab: npc is null");
+
                 return null;
             }
 
@@ -541,6 +559,7 @@ namespace UnityRose.ImportEditor
                     {
                         bones[i].SetParent(bones[parent], false);
                     }
+
                     else
                     {
                         bones[i].SetParent(root.transform, false);
@@ -563,13 +582,16 @@ namespace UnityRose.ImportEditor
             foreach (var part in npc.parts)
             {
                 if (part == null)
+                {
                     continue;
+                }
 
                 foreach (var model in part.models)
                 {
                     if (model.mesh == null) continue;
 
                     var obj = new GameObject("Model");
+
                     obj.transform.SetParent(root.transform, false);
 
                     if (npc.skeleton != null && model.boneIndex == -1) // skinned
@@ -614,6 +636,7 @@ namespace UnityRose.ImportEditor
                 {
                     Debug.LogError($"Failed to build a valid avatar for NPC {npc.monsterData.displayName} " + "(check that 'b1_pelvis' exists as a child Transform under root).");
                 }
+
                 else
                 {
                     var avatarPath = $"{context.Avatars}/{npc.monsterData.displayName}_Avatar.asset";
@@ -634,6 +657,7 @@ namespace UnityRose.ImportEditor
 
                 var controller = BakeAnimatorController(npc, controllerPath);
                 var layers = controller.layers; layers[0].defaultWeight = 1f;
+
                 animator.runtimeAnimatorController = controller;
             }
 
@@ -641,13 +665,19 @@ namespace UnityRose.ImportEditor
 
             root.transform.localScale = new Vector3(scale, scale, scale);
 
-            var npcComponent = root.AddComponent<NPCEntityBehavior>();
-            npcComponent.data = npc;
+            var entityComponent = root.AddComponent<EntityModelBehavior>();
+
+            entityComponent.data = npc;
 
             return root;
         }
 
-        private static GameObject BakeNpc(int npcIdx)
+        /// <summary>
+        /// Bake the NPC.
+        /// </summary>
+        /// <param name="npcIdx">NPC Index.</param>
+        /// <returns>Baked NPC.</returns>
+        private static GameObject BakeEntity(int npcIdx)
         {
             var chr = new CHR(Utils.CombinePath(DataPath, "3DDATA/NPC/LIST_NPC.CHR"));
 
@@ -675,9 +705,9 @@ namespace UnityRose.ImportEditor
 
             var chrObj = chr.Characters[npcIdx];
 
-            var npc = ScriptableObject.CreateInstance<NPCEntitySO>();
+            var npc = ScriptableObject.CreateInstance<EntitySO>();
 
-            MonsterData data = new MonsterData();
+            EnemyData data = new EnemyData();
 
             var stb = ResourceManager.Instance.stb_npc_list;
 
@@ -756,9 +786,9 @@ namespace UnityRose.ImportEditor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            var npcAsset = AssetDatabase.LoadAssetAtPath<NPCEntitySO>(npcPath);
+            var npcAsset = AssetDatabase.LoadAssetAtPath<EntitySO>(npcPath);
 
-            var test = BuildNpcPrefab(npcAsset, context);
+            var test = BuildEntityModelPrefab(npcAsset, context);
 
             if (test == null)
             {

@@ -1,5 +1,7 @@
 using RevolutionShared.Data;
 using RevolutionShared.Rose.Data;
+using RevolutionShared.Rose.Data.NPC;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityRose;
 
@@ -11,8 +13,9 @@ public class WorldManager : MonoBehaviour
     public SandboxManager sandboxManager;
     [Header("Prefabs")]
     public GameObject mainPlayer;
-    public GameObject mobSpawner;
+    public GameObject monstersParent;
     public GameObject entityGUI;
+    public FakeDictionary<EntityType, GameObject> entityPrefabs;
     [Header("Components")]
     public CameraController cameraController;
 
@@ -44,7 +47,7 @@ public class WorldManager : MonoBehaviour
 
         rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = mainPlayer;
 
-     //   rosePlayer.Equip(BodyPartType.FACEITEM, appearence.Mask);
+        rosePlayer.Equip(BodyPartType.FACEITEM, appearence.Mask); // Hair adjustment ?
         rosePlayer.Equip(BodyPartType.WEAPON, appearence.Weapon); // TODOD : This is redundant a bit with LoadObject, but this load the right stance etc ... so maybe remove LoadObject from this
         //rosePlayer.equip(BodyPartType.SUBWEAPON, subWeaponID);
 
@@ -57,7 +60,7 @@ public class WorldManager : MonoBehaviour
 
         var bubble = gui.gameObject.GetComponentInChildren<SpeechBubble>(true);
 
-        bubble.gameObject.transform.localScale = new Vector3(bubble.transform.localScale.x, bubble.transform.localScale.y, 0.1F); // WTF I NEED THAT ?
+        bubble.gameObject.transform.localScale = new Vector3(bubble.transform.localScale.x, bubble.transform.localScale.y, 0.1F); // Hackish trick (still needed ?)
 
         rosePlayer.changeName(playerName);
 
@@ -73,32 +76,39 @@ public class WorldManager : MonoBehaviour
     /// <param name="dataId">Data id.</param>
     /// <param name="position">Position.</param>
     /// <returns>Entity spawned.</returns>
-    public NPCEntityBehavior SpawnEntity(int id, int dataId, Vector3 position)
+    public EntityModelBehavior SpawnEntity(EntityInfos infos, EntitySubInfos subInfos, NPCDatabaseEntry entityData)
     {
-        /* RoseImport.ImportNPC(dataId);
+        var prefab = entityPrefabs[infos.type];
+        var data = entityData.data.monsterData;
 
-        GameObject entity = new GameObject();
+        var entity = Instantiate(prefab, monstersParent.transform);
 
-        entity.name = "Entity_" + dataId;
+        var entityModel = Instantiate(entityData.prefab);
+        entityModel.transform.SetParent(entity.transform, false);
 
-        entity.transform.parent = mobSpawner.transform;
+        entity.transform.SetPositionAndRotation(infos.position.ToVector3(),Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
 
-        entity.transform.position = RoseToUnity(position);
-        entity.transform.rotation = Quaternion.identity; ;
+        var mod = entity.GetComponent<IEntityMod>();
 
-        var roseNpc = entity.AddComponent<RoseNpc>();
+        mod?.LoadMod(subInfos);
 
-        roseNpc.data = LoadNPCAssetStartingWith<RoseNPCInfos>($"[{dataId}]");
+        entity.name = $"{data.ID}{data.displayName}";
 
-        return roseNpc;
-        */
-
-        return null;
+        return entity.GetComponent<EntityModelBehavior>();
     }
 
-
+    /// <summary>
+    /// Rose to Unity position.
+    /// </summary>
+    /// <param name="rose"></param>
+    /// <returns></returns>
     public static Vector3 RoseToUnity(Vector3 rose)
     {
         return new Vector3(10400 - rose.z, rose.y, rose.x);
+    }
+
+    public static Vector3 UnityToRose(Vector3 unity)
+    {
+        return new Vector3(unity.z, unity.y, 10400 - unity.x);
     }
 }

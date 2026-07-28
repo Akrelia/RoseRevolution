@@ -6,6 +6,9 @@ using UnityEngine.AddressableAssets;
 /// </summary>
 public class BootstrapManager : MonoBehaviour
 {
+    [Header("Shortcuts")]
+    public KeyCode toggleConsoleKey = KeyCode.F1;
+
     /// <summary>
     /// Singleton.
     /// </summary>
@@ -41,6 +44,13 @@ public class BootstrapManager : MonoBehaviour
         else
         {
             Debug.LogError($"Bootstrap configuration file : '{ConfigurationName}' not found ! This shouldn't happen, but if it does, go to the tools and generate one");
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(toggleConsoleKey))
+        {
         }
     }
 

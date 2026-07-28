@@ -423,8 +423,12 @@ namespace UnityRose.Game
                 GameObject terrainObject = new GameObject();
                 terrainObject.layer = LayerMask.NameToLayer("MapObjects");
                 terrainObject.name = $"{groupName}_{ifo.MapPosition.x}_{ifo.MapPosition.y}";
-                terrainObject.transform.parent = parent;
+
+
+                terrainObject.transform.SetParent(parent, false);
                 terrainObject.transform.localPosition = (ifo.Position / 100.0f);
+
+                Debug.Log($"IFO local={terrainObject.transform.localPosition} world={terrainObject.transform.position}");
                 bool isAnimated = false;
                 AnimationClip clip = new AnimationClip();
                 clip.legacy = true;

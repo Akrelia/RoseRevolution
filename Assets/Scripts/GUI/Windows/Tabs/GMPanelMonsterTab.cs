@@ -183,8 +183,6 @@ public class GMPanelMonsterTab : MonoBehaviour
     {
         if (search.Length > 3)
         {
-            Debug.Log(search);
-
             Utils.DestroyChildren(resultsParent.gameObject);
 
             monsterSearchZone.SetActive(true);
@@ -210,6 +208,6 @@ public class GMPanelMonsterTab : MonoBehaviour
     /// </summary>
     public void SpawnMonsterClick()
     {
-
+        Client.Instance.SendPacket(Packets.GMCommandSpawn(Convert.ToInt32(monsterIDInput.text), Convert.ToInt32(monsterAmountInput.text)));
     }
 }

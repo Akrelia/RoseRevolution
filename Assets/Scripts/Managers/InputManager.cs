@@ -16,14 +16,9 @@ public class InputManager : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        if (Input.GetKeyDown(toggleConsoleKey))
-        {
-       //     guiController.CreateWindow<DebugConsole>();
-        }
-
         if (Input.GetKeyDown(toggleDebug))
         {
-       //     guiController.CreateWindow<GMPanel>();
+            guiController.CreateWindow<GMPanel>();
         }
     }
 }

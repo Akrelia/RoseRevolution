@@ -17,7 +17,7 @@ public class GUIBootstrap : MonoBehaviour
     {
         if (Input.GetKeyDown(toggleConsoleKey))
         {
-
+            debugConsole.ToggleDisplay();
         }
     }
 }

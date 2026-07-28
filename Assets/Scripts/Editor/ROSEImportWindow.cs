@@ -507,7 +507,7 @@ namespace UnityRose.ImportEditor
             AssetDatabase.SaveAssets();
         }
 
-        private void RegisterNpcInInternalDB(GameObject prefab, NPCEntitySO npc)
+        private void RegisterNpcInInternalDB(GameObject prefab, EntitySO npc)
         {
             string folder = ImportPaths.Database.Root;
 
@@ -844,7 +844,7 @@ namespace UnityRose.ImportEditor
 
                 if (npc)
                 {
-                    RegisterNpcInInternalDB(npc, npc.GetComponent<NPCEntityBehavior>().data);
+                    RegisterNpcInInternalDB(npc, npc.GetComponent<EntityModelBehavior>().data);
                 }
 
                 else

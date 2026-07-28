@@ -5,10 +5,13 @@ using RevolutionShared.Packets;
 using RevolutionShared.Rose.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.UIElements;
 using UnityRose;
 
 /// <summary>
@@ -20,6 +23,7 @@ public class SandboxManager : MonoBehaviour
     [Header("Data Override")]
     public MapDatabase mapDatabase;
     public EquipmentDatabase equipmentDatabase;
+    public NPCDatabase npcDatabase;
     [Header("Server")]
     public string address;
     public short port;
@@ -44,7 +48,7 @@ public class SandboxManager : MonoBehaviour
 
     CharacterAppearance appearance;
     Dictionary<long, RosePlayer> players;
-    Dictionary<int, NPCEntityBehavior> entities;
+    Dictionary<int, EntityModelBehavior> entities;
 
     /// <summary>
     /// Awake.
@@ -52,10 +56,10 @@ public class SandboxManager : MonoBehaviour
     private void Awake()
     {
         players = new Dictionary<long, RosePlayer>();
-        entities = new Dictionary<int, NPCEntityBehavior>();
+        entities = new Dictionary<int, EntityModelBehavior>();
 
 #if UNITY_EDITOR
-        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged; // This is just for sending a proper packet like we will do in the standalone client, but for the Editor special case
 #endif
         try
         {
@@ -64,6 +68,9 @@ public class SandboxManager : MonoBehaviour
 
             if (equipmentDatabase == null)
                 Addressables.LoadAssetAsync<EquipmentDatabase>(nameof(EquipmentDatabase)).Completed += OnDatabaseLoaded;
+
+            if (equipmentDatabase == null)
+                Addressables.LoadAssetAsync<NPCDatabase>(nameof(NPCDatabase)).Completed += OnDatabaseLoaded;
         }
 
         catch (Exception ex)
@@ -86,6 +93,10 @@ public class SandboxManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// When the equipment database is loaded.
+    /// </summary>
+    /// <param name="handle">Handle.</param>
     private void OnDatabaseLoaded(AsyncOperationHandle<EquipmentDatabase> handle)
     {
         if (handle.Status == AsyncOperationStatus.Succeeded)
@@ -93,6 +104,20 @@ public class SandboxManager : MonoBehaviour
             equipmentDatabase = handle.Result;
 
             Debug.Log($"Loaded Equipment Databases");
+        }
+    }
+
+    /// <summary>
+    /// When the NPC database is loaded.
+    /// </summary>
+    /// <param name="handle">Handle.</param>
+    private void OnDatabaseLoaded(AsyncOperationHandle<NPCDatabase> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            npcDatabase = handle.Result;
+
+            Debug.Log($"Loaded NPC Database");
         }
     }
 
@@ -144,6 +169,8 @@ public class SandboxManager : MonoBehaviour
             mainPlayer.charModel.name = name;
 
             players.Add(id, mainPlayer);
+
+            // EntitiesReceived(client, packet);
 
             RoseDebug.Log("Character for the player has been added");
         }
@@ -290,24 +317,36 @@ public class SandboxManager : MonoBehaviour
     /// <param name="client">Client.</param>
     /// <param name="packet">Packet.</param>
     [PacketEvent(ServerCommands.AddEntities)]
-    public void SurroundingsReceived(Client client, PacketIn packet)
+    public void EntitiesReceived(Client client, PacketIn packet)
     {
         var count = packet.GetInt();
 
         for (int i = 0; i < count; i++)
         {
-            var id = packet.GetInt();
-            var dataId = packet.GetInt();
-            var x = packet.GetFloat();
-            var y = packet.GetFloat();
-            var z = packet.GetFloat();
+            var entityInfos = packet.GetNew<EntityInfos>();
+            var subInfos = packet.GetNew<EntitySubInfos>();
 
-            var position = new Vector3(x, y, z);
+            var entry = npcDatabase.GetEntry(entityInfos.dataID);
+            var position = entityInfos.position.ToVector3();
 
-            var entity = worldManager.SpawnEntity(id, dataId, position);
+            var entity = worldManager.SpawnEntity(entityInfos, subInfos, entry);
 
-            entities.Add(id, entity);
+            entities.Add(entityInfos.id, entity);
         }
+    }
+
+    /// <summary>
+    /// When a GM executed a command..
+    /// </summary>
+    /// <param name="client">Client.</param>
+    /// <param name="packet">Packet.</param>
+    [PacketEvent(ServerCommands.GMCommandExecuted)]
+    public void GMCommandExecuted(Client client, PacketIn packet)
+    {
+        var username = packet.GetString();
+        var message = packet.GetString();
+
+        guiController.chatController.AddSystemMessage($"{username} issued the command {message}");
     }
 
     /// <summary>

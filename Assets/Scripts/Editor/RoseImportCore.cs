@@ -240,7 +240,7 @@ namespace UnityRose.Import
     {
         public readonly CHR chr;
         private readonly RoseZscImporter zsc;
-        private readonly Dictionary<int, NPCEntitySO> _cache = new();
+        private readonly Dictionary<int, EntitySO> _cache = new();
 
         public RoseNpcImporter()
         {
@@ -248,7 +248,7 @@ namespace UnityRose.Import
             zsc = new RoseZscImporter("3DDATA/NPC/PART_NPC.ZSC");
         }
 
-        public NPCEntitySO ImportNpc(int npcIdx, string displayName = null)
+        public EntitySO ImportNpc(int npcIdx, string displayName = null)
         {
             if (!chr.Characters[npcIdx].IsEnabled)
                 return null;
@@ -257,7 +257,7 @@ namespace UnityRose.Import
                 return cached;
 
             var chrObj = chr.Characters[npcIdx];
-            var npc = ScriptableObject.CreateInstance<NPCEntitySO>();
+            var npc = ScriptableObject.CreateInstance<EntitySO>();
             npc.monsterData.id = npcIdx;
             npc.monsterData.displayName = displayName ?? npcIdx.ToString();
             npc.skeleton = RoseSkeletonImporter.Import(chr.SkeletonFiles[chrObj.ID]);
@@ -280,7 +280,7 @@ namespace UnityRose.Import
             return npc;
         }
 
-        public IEnumerable<NPCEntitySO> ImportAll()
+        public IEnumerable<EntitySO> ImportAll()
         {
             for (var i = 0; i < chr.Characters.Count; ++i)
             {

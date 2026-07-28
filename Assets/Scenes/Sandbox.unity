@@ -1480,6 +1480,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 776772455}
   m_CullTransparentMesh: 1
+--- !u!1 &782125186
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 782125187}
+  m_Layer: 0
+  m_Name: Entities
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &782125187
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 782125186}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1866922961}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &799973363
 GameObject:
   m_ObjectHideFlags: 0
@@ -1526,6 +1557,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapDatabase: {fileID: 0}
   equipmentDatabase: {fileID: 0}
+  npcDatabase: {fileID: 0}
   address: 192.168.1.198
   port: 27350
   playerName: '[DEV]Akima'
@@ -2748,8 +2780,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16
-  m_fontSizeBase: 16
+  m_fontSize: 12
+  m_fontSizeBase: 12
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -3209,7 +3241,7 @@ GameObject:
   - component: {fileID: 1866922961}
   - component: {fileID: 1866922962}
   m_Layer: 0
-  m_Name: World
+  m_Name: World Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3224,10 +3256,11 @@ Transform:
   m_GameObject: {fileID: 1866922960}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6529, y: 4, z: 5213}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 782125187}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1866922962
@@ -3244,9 +3277,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sandboxManager: {fileID: 799973365}
   mainPlayer: {fileID: 0}
-  mobSpawner: {fileID: 0}
+  monstersParent: {fileID: 782125186}
   entityGUI: {fileID: 7001571908354939121, guid: 967bf227d37a71b4183b90772ce44dba,
     type: 3}
+  entityPrefabs:
+    entries:
+    - key: 2
+      value: {fileID: 6689016579524132431, guid: 91af7f9fe25b6244493aaac1837e8b6e,
+        type: 3}
   cameraController: {fileID: 330585548}
 --- !u!1 &1907922084
 GameObject:

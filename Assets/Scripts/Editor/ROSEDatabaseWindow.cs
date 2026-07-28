@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.IO;
+using RevolutionShared.Rose.Data.NPC;
 
 namespace UnityRose.ImportEditor
 {
@@ -14,10 +15,12 @@ namespace UnityRose.ImportEditor
     {
         private MapDatabase mapDatabase;
         private MonsterSpawnDatabase spawnDatabase;
+        private NPCDatabase npcDatabase;
         private Vector2 scroll;
 
         public const string MapDatabasePath = ImportPaths.Database.Root + "/MapDatabase.asset";
         public const string MonsterSpawnDatabasePath = ImportPaths.Database.Root + "/MonsterSpawnDatabase.asset";
+        public const string NPCDatabasePath = ImportPaths.Database.Root + "/NpcDatabase.asset";
 
         [MenuItem("ROSE Online/Database Viewer")]
         static void Open()
@@ -34,6 +37,7 @@ namespace UnityRose.ImportEditor
         {
             mapDatabase = AssetDatabase.LoadAssetAtPath<MapDatabase>(MapDatabasePath);
             spawnDatabase = AssetDatabase.LoadAssetAtPath<MonsterSpawnDatabase>(MonsterSpawnDatabasePath);
+            npcDatabase = AssetDatabase.LoadAssetAtPath<NPCDatabase>(NPCDatabasePath);
         }
 
         private void OnGUI()
@@ -74,6 +78,12 @@ namespace UnityRose.ImportEditor
             if (GUILayout.Button("Export All"))
             {
                 ExportAll();
+            }
+
+
+            if (GUILayout.Button("Export Enemies"))
+            {
+                ExportEnemies();
             }
         }
 
@@ -253,6 +263,36 @@ namespace UnityRose.ImportEditor
             {
                 ExportMap(map.id);
             }
+        }
+
+        public void ExportEnemies()
+        {
+            var folder = EditorUtility.OpenFolderPanel("Export Enemies", "", "");
+
+            if (string.IsNullOrEmpty(folder))
+                return;
+
+            var npcs = npcDatabase.entries;
+
+            for (int i = 0; i < npcs.Count; i++)
+            {
+                var enemy = npcs[i].data.monsterData;
+
+                var settings = new JsonSerializerSettings
+                {
+                    Formatting = Formatting.Indented,
+                    Converters = { new Newtonsoft.Json.Converters.StringEnumConverter() }
+                };
+
+                string json = JsonConvert.SerializeObject(enemy, settings);
+
+                string fileName = $"[{enemy.ID}]{enemy.displayName}.json";
+                string path = Path.Combine(folder, fileName);
+
+                File.WriteAllText(path, json);
+            }
+
+            Debug.Log($"Exported {npcs.Count} enemies to {folder}");
         }
     }
 }

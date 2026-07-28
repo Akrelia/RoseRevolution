@@ -114,3 +114,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6ec4a13c03e9aa47b0a240a71355e87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  debugConsole: {fileID: 0}
+  toggleConsoleKey: 282
