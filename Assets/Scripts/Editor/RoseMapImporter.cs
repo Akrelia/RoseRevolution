@@ -230,9 +230,8 @@ namespace UnityRose.Import
                 var spawn = new GameObject(spawnPoint.Name);
 
                 spawn.transform.parent = spawns.transform;
-                //   spawn.transform.localPosition = Utils.r2uScale(spawnPoint.Position);
+                spawn.transform.localPosition = Utils.r2uScale(spawnPoint.Position);
 
-                spawn.transform.localPosition = spawnPoint.Position / 100f;
                 spawn.transform.rotation = Quaternion.identity;
             }
         }
@@ -246,7 +245,7 @@ namespace UnityRose.Import
                 result.Add(new SpawnData
                 {
                     name = spawnPoint.Name,
-                    position = spawnPoint.Position / 100f
+                    position = Utils.r2uScale(spawnPoint.Position)
 
                 });
             }
