@@ -1,46 +1,133 @@
-# Introduction
+# Welcome to ROSE Revolution
 
 <p align="center">
-  <img src="https://i.imgur.com/QorK0mp.png" alt="Image" width="300" />
+  <img src="https://i.imgur.com/QorK0mp.png" alt="ROSE Revolution Logo" width="200" />
 </p>
 
-Welcome to the Rose Revolution client repository!
+<p align="center">
+  A modern reimplementation of <b>ROSE Online</b> built with Unity and modern C#.
+</p>
 
-This project aims to completely recreate ROSE Online (Rush On Seven Episodes Online) using Unity, along with a brand-new server fully rewritten in modern C#.
+<p align="center">
+  <img src="https://i.imgur.com/7zmTjLY.png" alt="ROSE Revolution Preview" width="1000" />
+</p>
 
-![Image](https://i.imgur.com/7zmTjLY.png)
+- [Discord Server](https://discord.gg/2SxQWtMC3X)
+- [Website](https://baptistefran.github.io/rose-revolution/)
+- [Server Repository](https://github.com/Akrelia/Rose-Revolution-Server/tree/master)
+
+---
+
+# About the Project
+
+**ROSE Revolution** is an open-source project aiming to recreate the MMORPG **ROSE Online** (*Rush On Seven Episodes Online*) from scratch.
+
+The project features:
+
+- A completely rebuilt Unity client.
+- A brand-new server architecture written in modern C#.
+- A complete asset conversion pipeline replacing the original legacy formats.
+- A modular and data-driven design.
+
+The goal is not simply to make the game run again, but to build a clean and modern foundation for the future of ROSE Online. Also we hope that it will help people to make their own vision of ROSE Online.
+
+---
 
 # Who We Are
 
-We are simply former players, deeply passionate about the game, and we want to give it a fresh start.
-Some of us were also part of the very rich ROSE private server scene in the past.
+We are former ROSE Online players who have always been passionate about the game and its community.
 
-# Project Goal
+Some of us were also involved in the ROSE private server scene over the years, giving us a unique perspective on both the game itself and the technical challenges behind it.
 
-Our goal is to provide players with a brand-new client and a modern server.
-ROSE Online is no longer a young game, and both the client and server were originally written in rather outdated C++. Additionally, the official source code is not legally accessible.
+Today, we want to give ROSE Online a fresh start with modern tools while preserving what made the game special.
 
-![stb2](https://github.com/user-attachments/assets/07cd3391-2041-4e20-848c-dee94027550c)
+<p align="center">
+  <img width="400" height="298" alt="Image" src="https://github.com/user-attachments/assets/f3361465-00f5-4658-a8ff-c21be1b8508c" />
+</p>
+
+---
+
+# Project Vision
+
+ROSE Online was originally developed more than 20 years ago using technologies that are now outdated. The original client and server were written in C++ and relied on many custom formats and tools.
+
+ROSE Revolution takes a different approach:
+
+- Legacy client formats are only used during import.
+- All game content is converted into native Unity assets.
+- Data is stored in clean and reusable databases.
+- The client uses Unity Addressables for efficient loading and memory management.
+- The server uses a modern C# architecture designed for scalability.
+- Every important data can be exported as plain JSON.
+
+The result is a cleaner, easier-to-maintain, and more accessible project.
+
+---
 
 # Which Version of ROSE Online?
 
-We are currently targeting a mostly vanilla iROSE (International ROSE) version.
-However, even though this is the base version, Rose Revolution can easily be adapted to any ROSE version thanks to Unity and the modular design of the server.
+The project currently targets a mostly vanilla **iROSE (International ROSE)** experience.
+
+However, thanks to the modular architecture of both the client and server, adapting the project to other ROSE versions is possible, but we won't provide any help.
+
+![Image](https://i.imgur.com/QmtNKjQ.png)
+
+---
+
+# Modern Development Workflow
+
+One of the biggest changes compared to the original game is the complete replacement of the old asset workflow.
+
+Instead of working directly with legacy files at runtime:
+
+Everything is imported into Unity:
+
+- Maps
+- Monsters
+- Items
+- Skills
+- Animations
+- Textures
+- Effects
+
+And so on.
+
+Developers can then work with standard Unity tools instead of relying on outdated external utilities.
+
+---
 
 # Setup
 
-We aim to keep the project as simple and portable as possible (aside from the database).
+We aim to keep the project as simple and portable as possible.
 
-All you need to do is download the client and server, then set up a PostgreSQL database.
-Guides are available on our Discord server if needed.
+To run the project, you will need:
 
-Please note that we do not provide the game assets directly here (the 3DData, for those familiar with ROSE).
-However, a link to obtain them is available on our Discord, with some textures fixes.
+- The client repository.
+- The server repository.
+- Extracted ROSE client data (`3DDATA` and related files) to import everything.
+- An optionnal running PostgreSQL installation.
 
-A wide range of development tools is already available to help you work efficiently with Rose Revolution. Also please not that the Game Assets are only needed if you start the project from scratch and are only needed one.
-Unity will import everything as Unit assets and so you can work with proper formats.
+The original game assets are not included in this repository.
 
-# Help
+If you want to, we provide a very light 3DDATA folder on our Discord, including some fixes for known issues with the original assets.
 
-Want to lend a hand and contribute?
-Join us on our [Discord Server](https://discord.gg/2SxQWtMC3X)
+Once imported, the assets are converted into proper Unity resources. The original files are only required once during the import process. Once the import done, you won't need to do it again.
+
+---
+
+# Contributing
+
+Want to help ? Please join us and share ideas, improve the code, or simply join the discussion. 
+
+Whether you are interested in:
+
+- Unity development
+- C# server development
+- Reverse engineering
+- Tools
+- Documentation
+- Game design
+
+Everyone is welcome, whatever you are a skilled programmer or just a ROSE fan.
+
+Join our [Discord Server](https://discord.gg/2SxQWtMC3X) to get started and find guides, discussions, and development updates.
