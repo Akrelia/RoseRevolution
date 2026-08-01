@@ -352,7 +352,7 @@ public class Utils
         return Colorize(value.ToString(), color);
     }
 
-    public static int ParseRgbColor(string value)
+    public static int ParseRoseColorInt(string value)
     {
         if (string.IsNullOrEmpty(value) || value.Length != 9)
             return 0xFFFFFF;
@@ -369,7 +369,24 @@ public class Utils
         return (r << 16) | (g << 8) | b;
     }
 
-    public static int ParseInt(object value, int defaultValue = 0)
+    public static Color ParseColor(string value)
+    {
+        if (string.IsNullOrEmpty(value) || value.Length != 9)
+            return Color.white;
+
+        if (!byte.TryParse(value.Substring(0, 3), out var r))
+            return Color.white;
+
+        if (!byte.TryParse(value.Substring(3, 3), out var g))
+            return Color.white;
+
+        if (!byte.TryParse(value.Substring(6, 3), out var b))
+            return Color.white;
+
+        return new Color(r / 255f, g / 255f, b / 255f);
+    }
+
+    public static int ParseSTBInt(object value, int defaultValue = 0)
     {
         if (value == null)
             return defaultValue;
@@ -382,7 +399,7 @@ public class Utils
         return int.TryParse(str, out var result) ? result : defaultValue;
     }
 
-    public static bool ParseBool(object value)
+    public static bool ParseSTBBool(object value)
     {
         if (value == null)
             return false;

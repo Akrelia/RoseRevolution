@@ -222,7 +222,7 @@ public partial class PacketHandler
 
         else
         {
-            RoseDebug.LogWarning($"There is no packet action for the following command : {((ServerCommands)packet.Command).GetName()}");
+          //  RoseDebug.LogWarning($"There is no packet action for the following command : {((ServerCommands)packet.Command).GetName()}"); // Not every packet got action, so just don't log that
         }
 
         if (NetworkEvents.events.ContainsKey((ServerCommands)packet.Command))

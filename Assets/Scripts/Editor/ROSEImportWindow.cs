@@ -18,6 +18,7 @@ using RevolutionShared.Rose.Data;
 using RevolutionShared.Rose.Data.Equipment;
 using RevolutionShared.Rose.Data.NPC.Drops;
 using Unity.VisualScripting;
+using static UnityRose.ImportEditor.ImportPaths;
 
 namespace UnityRose.ImportEditor
 {
@@ -102,7 +103,6 @@ namespace UnityRose.ImportEditor
                     database.maps.Add(new RoseMapEntry
                     {
                         id = i,
-                        name = name,
                         prefab = prefab
                     });
                 }
@@ -133,9 +133,71 @@ namespace UnityRose.ImportEditor
             return database;
         }
 
+        public void ImportSkyboxes()
+        {
+            var stb = ResourceManager.Instance.stb_sky_list;
+
+            var database = CreateInstance<SkyboxDatabase>();
+            database.entries = new List<SkyboxData>();
+
+            var context = new SkyboxImportContext();
+
+            for (int i = 0; i < stb.Cells.Count; i++)
+            {
+                var skybox = CreateInstance<SkyboxData>();
+
+                skybox.Id = i;
+
+                var zmsPath = stb.Cells[i][1];
+                var textureDayPath = stb.Cells[i][2];
+                var textureNightPath = stb.Cells[i][3];
+
+                skybox.BackgroundColor1 = Utils.ParseColor(stb.Cells[i][7]);
+                skybox.BackgroundColor2 = Utils.ParseColor(stb.Cells[i][8]);
+                skybox.BackgroundColor3 = Utils.ParseColor(stb.Cells[i][9]);
+                skybox.BackgroundColor4 = Utils.ParseColor(stb.Cells[i][10]);
+
+                skybox.AmbientCharacter1 = Utils.ParseColor(stb.Cells[i][11]);
+                skybox.DiffuseCharacter1 = Utils.ParseColor(stb.Cells[i][12]);
+
+                skybox.AmbientCharacter2 = Utils.ParseColor(stb.Cells[i][13]);
+                skybox.DiffuseCharacter2 = Utils.ParseColor(stb.Cells[i][14]);
+
+                skybox.AmbientCharacter3 = Utils.ParseColor(stb.Cells[i][15]);
+                skybox.DiffuseCharacter3 = Utils.ParseColor(stb.Cells[i][16]);
+
+                skybox.AmbientCharacter4 = Utils.ParseColor(stb.Cells[i][17]);
+                skybox.DiffuseCharacter4 = Utils.ParseColor(stb.Cells[i][18]);
+
+                skybox.Mesh = ROSEEditorBaker.BakeMesh(zmsPath, context);
+                skybox.Material = ROSEEditorBaker.BakeMaterial(textureDayPath, textureNightPath, $"Skybox_{i}.mat", context);
+
+                var assetPath = $"{context.Root}/Skybox_{i}.asset";
+
+                Directory.CreateDirectory(context.Root);
+
+                AssetDatabase.CreateAsset(skybox, assetPath);
+
+                database.entries.Add(skybox);
+            }
+
+            var databasePath = $"{ImportPaths.Database.Root}/SkyboxDatabase.asset";
+
+            Utils.EnsureFolder(databasePath);
+
+            AssetDatabase.CreateAsset(database, databasePath);
+
+            EditorUtility.SetDirty(database);
+
+            AddressableUtils.EnsureAddressable(databasePath, nameof(SkyboxDatabase));
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
         public void ImportAllEquipment()
         {
-            const int maxIdsPerSlot = 15;
+            const int maxIdsPerSlot = 50;
 
             string dbFolder = "Assets/GameData/Databases";
 
@@ -265,7 +327,7 @@ namespace UnityRose.ImportEditor
 
             try
             {
-                for (int i = 0; i < 50; i++)
+                for (int i = 0; i < 200; i++)
                 {
                     if (!string.IsNullOrEmpty(stb.Cells[i][1]))
                     {
@@ -462,9 +524,8 @@ namespace UnityRose.ImportEditor
 
             if (existing != null)
             {
-                existing.name = displayName;
                 existing.prefab = prefab;
-                existing.spawnPoints = roseMap != null ? roseMap.spawns : new List<SpawnData>();
+                existing.data = roseMap.data;
             }
 
             else
@@ -472,9 +533,8 @@ namespace UnityRose.ImportEditor
                 database.maps.Add(new RoseMapEntry
                 {
                     id = id,
-                    name = displayName,
                     prefab = prefab,
-                    spawnPoints = roseMap != null ? roseMap.spawns : new List<SpawnData>()
+                    data = roseMap.data
                 });
             }
 
@@ -497,9 +557,7 @@ namespace UnityRose.ImportEditor
 
             AddressableUtils.EnsureAddressable(ROSEDatabaseWindow.MonsterSpawnDatabasePath, nameof(MonsterSpawnDatabase)); // Shouldn't be useful but just in case
 
-            database.maps.RemoveAll(x => x.MapID == mapID);
-
-            MapSpawnData spawnData = new MapSpawnData();
+            database.maps.RemoveAll(m => m != null && m.spawnData != null && m.spawnData.ID == mapID);
 
             database.maps.Add(BuildSpawnData(mapID));
 
@@ -591,7 +649,7 @@ namespace UnityRose.ImportEditor
             AssetDatabase.SaveAssets();
         }
 
-        public static MapSpawnData BuildSpawnData(int mapID)
+        public static EnemySpawnSO BuildSpawnData(int mapID)
         {
             var stb = ResourceManager.Instance.stb_zone;
             var stbNPC = ResourceManager.Instance.stb_npc_list;
@@ -612,38 +670,40 @@ namespace UnityRose.ImportEditor
                     patches.Add(patch);
             }
 
-
-            var data = new MapSpawnData
+            var data = new SpawnData
             {
-                MapID = mapID,
+                ID = mapID,
                 MapName = stb.Cells[mapID][1].ToString(),
-                Spawns = new List<MonsterSpawnData>()
+                Spawners = new List<EnemySpawner>()
             };
 
             foreach (var patch in patches)
             {
                 foreach (var monster in patch.m_IFO.Monsters)
                 {
-                    var spawn = new MonsterSpawnData
+                    var spawner = new EnemySpawner
                     {
-                        Name = monster.Name,
-                        MapX = monster.MapPosition.x,
-                        MapY = monster.MapPosition.y,
-                        ID = monster.ObjectID,
-                        WorldX = (monster.Position.x + 520000.0f) / 100F,
-                        WorldY = (monster.Position.y + 520000.0f) / 100F,
-                        WorldZ = monster.Position.z / -10000F,
-                        Interval = monster.Interval,
-                        LimitCount = monster.Limit,
-                        Range = monster.Range,
-                        TacticPoints = monster.TacticPoints,
-                        Basic = new List<MonsterEntryData>(),
-                        Tactic = new List<MonsterEntryData>()
+                        Settings = new SpawnSettings
+                        {
+                            Name = monster.Name,
+                            MapX = monster.MapPosition.x,
+                            MapY = monster.MapPosition.y,
+                            ID = monster.ObjectID,
+                            WorldX = monster.Position.x,
+                            WorldY = monster.Position.z,
+                            WorldZ = monster.Position.y,
+                            Interval = monster.Interval,
+                            LimitCount = monster.Limit,
+                            Range = monster.Range,
+                            TacticPoints = monster.TacticPoints
+                        },
+                        Basic = new List<EnemySpawn>(),
+                        Tactic = new List<EnemySpawn>()
                     };
 
                     foreach (var b in monster.Basic)
                     {
-                        spawn.Basic.Add(new MonsterEntryData
+                        spawner.Basic.Add(new EnemySpawn
                         {
                             ID = b.ID,
                             Count = b.Count,
@@ -653,7 +713,7 @@ namespace UnityRose.ImportEditor
 
                     foreach (var t in monster.Tactic)
                     {
-                        spawn.Tactic.Add(new MonsterEntryData
+                        spawner.Tactic.Add(new EnemySpawn
                         {
                             ID = t.ID,
                             Count = t.Count,
@@ -661,33 +721,28 @@ namespace UnityRose.ImportEditor
                         });
                     }
 
-                    data.Spawns.Add(spawn);
+                    data.Spawners.Add(spawner);
                 }
             }
 
-            return data;
-        }
+            string path = $"{ImportPaths.Root}/Spawns/{mapID}.asset";
 
-        /// <summary>
-        /// Exports the spawns for the specified map ID to a JSON file.
-        /// </summary>
-        /// <param name="mapID">Map ID.</param>
-        public static void ExportSpawns(int mapID)
-        {
-            var stb = ResourceManager.Instance.stb_zone;
+            Utils.EnsureFolder(path);
 
-            var path = EditorUtility.SaveFilePanel("Export Spawns", Application.dataPath, stb.Cells[mapID][1].ToString(), "json");
+            var entry = AssetDatabase.LoadAssetAtPath<EnemySpawnSO>(path);
 
-            if (!string.IsNullOrEmpty(path))
+            if (entry == null)
             {
-                Debug.Log("Exporting spawns for map ID " + mapID + "...");
-
-                var json = RoseMapImporter.BuildSpawnExportJson(mapID);
-
-                System.IO.File.WriteAllText(path, json, Encoding.Unicode);
-
-                Debug.Log("Export spawns for map ID " + mapID + " done!");
+                entry = ScriptableObject.CreateInstance<EnemySpawnSO>();
+                AssetDatabase.CreateAsset(entry, path);
             }
+
+            entry.spawnData = data;
+
+            EditorUtility.SetDirty(entry);
+            AssetDatabase.SaveAssets();
+
+            return entry;
         }
 
         /// <summary>
@@ -834,6 +889,16 @@ namespace UnityRose.ImportEditor
                 }
             }
 
+            if (GUILayout.Button("Import ALL Skyboxes"))
+            {
+                ImportSkyboxes();
+            }
+
+            if (GUILayout.Button("Import ALL Icons"))
+            {
+                ImportIcons();
+            }
+
             GUILayout.BeginHorizontal();
 
             indexNPC = EditorGUILayout.IntField("NPC ID", indexNPC);
@@ -888,7 +953,7 @@ namespace UnityRose.ImportEditor
                         continue;
 
                     bool mapDataExist = mapDatabase != null && mapDatabase.maps.Any(x => x.id == i);
-                    bool spawnsExist = spawnDatabase != null && spawnDatabase.maps.Any(x => x.MapID == i);
+                    bool spawnsExist = spawnDatabase != null && spawnDatabase.maps.Any(x => x != null && x.spawnData != null && x.spawnData.ID == i);
 
                     GUILayout.BeginHorizontal();
 
@@ -927,6 +992,50 @@ namespace UnityRose.ImportEditor
 
                 ROSEMapListCache.MaybeUpdate();
             }
+        }
+
+        public void ImportIcons()
+        {
+            var database = CreateInstance<IconDatabase>();
+            database.entries = new List<IconAtlasData>();
+
+            var context = new IconImportContext();
+
+            int index = 1;
+
+            while (index < 150) // Fake limit to avoid any infinite loop
+            {
+                var fileName = $"icon{index:00}.dds";
+                var rosePath = $"3DDATA/CONTROL/RES/{fileName}";
+
+                var texture = ROSEEditorBaker.BakeTextureHome(rosePath, context);
+
+                if (texture == null)
+                {
+                    break;
+                }
+
+                database.entries.Add(new IconAtlasData
+                {
+                    name = fileName,
+                    texture = texture
+                });
+
+                index++;
+            }
+
+            var databasePath = $"{ImportPaths.Database.Root}/IconDatabase.asset";
+
+            Utils.EnsureFolder(databasePath);
+
+            AssetDatabase.CreateAsset(database, databasePath);
+
+            EditorUtility.SetDirty(database);
+
+            AddressableUtils.EnsureAddressable(databasePath, nameof(IconDatabase));
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
 
         private void OnEnable()
@@ -1003,9 +1112,9 @@ namespace UnityRose.ImportEditor
         protected virtual void ReadBaseFields(T data, STB stb, int id)
         {
             data.id = id;
-
             data.name = stb.Cells[id][1];
-            data.price = Utils.ParseInt(stb.Cells[id][6]);
+            data.price = Utils.ParseSTBInt(stb.Cells[id][6]);
+            data.iconID = (short)Utils.ParseSTBInt(stb.Cells[id][10]);
         }
 
         protected abstract void ReadFields(T data, STB stb, int id);
@@ -1038,7 +1147,7 @@ namespace UnityRose.ImportEditor
 
         protected override void ReadFields(WeaponData data, STB stb, int id)
         {
-            data.weaponType = (WeaponType)Utils.ParseInt(stb.Cells[id][5]);
+            data.weaponType = (WeaponType)Utils.ParseSTBInt(stb.Cells[id][5]);
         }
     }
 
@@ -1050,7 +1159,7 @@ namespace UnityRose.ImportEditor
         {
             ArmorDataImporter.ReadArmorFields(data, stb, id);
 
-            data.hair = (byte)Utils.ParseInt(stb.Cells[id][34]);
+            data.hair = (byte)Utils.ParseSTBInt(stb.Cells[id][34]);
         }
     }
 }

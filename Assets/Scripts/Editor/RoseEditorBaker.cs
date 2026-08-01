@@ -71,7 +71,11 @@ namespace UnityRose.ImportEditor
         public static class Icons
         {
             public const string Root = ImportPaths.Root + "/Icons";
-            public const string Data = Icons.Root + "/Data";
+        }
+
+        public static class Skyboxes
+        {
+            public const string Root = ImportPaths.Root + "/Skyboxes";
         }
 
         /// <summary>
@@ -140,6 +144,26 @@ namespace UnityRose.ImportEditor
                 Textures = ImportPaths.Player.Textures;
             }
         }
+
+        public class SkyboxImportContext : ImportContext
+        {
+            public SkyboxImportContext()
+            {
+                Root = ImportPaths.Skyboxes.Root;
+                Meshes = Root;
+                Materials = Root;
+                Textures= Root;
+            }
+        }
+
+        public class IconImportContext : ImportContext
+        {
+            public IconImportContext()
+            {
+                Root = ImportPaths.Icons.Root;
+                Textures = Root;
+            }
+        }
     }
 
     public static class ROSEEditorBaker
@@ -183,6 +207,7 @@ namespace UnityRose.ImportEditor
         private static string GenerateMeshPath(string rosePath, ImportContext context)
         {
             var name = Path.GetFileNameWithoutExtension(rosePath);
+
             return $"{context.Meshes}/{name}.mesh.asset";
         }
 
@@ -227,8 +252,6 @@ namespace UnityRose.ImportEditor
             }
 
             AssetDatabase.CreateAsset(mesh, assetPath);
-
-
 
             return mesh;
         }
@@ -300,6 +323,47 @@ namespace UnityRose.ImportEditor
 
                 texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
             }
+
+            return texture;
+        }
+
+        public static Texture2D BakeTextureHome(string rosePath, ImportContext context)
+        {
+            var fullPath = Utils.ResolvePathWithCorrectCase(DataPath, rosePath);
+
+            if (!File.Exists(fullPath))
+            {
+             //   Debug.LogWarning("Missing texture " + fullPath);
+
+                return null;
+            }
+
+            var fileName = Path.GetFileNameWithoutExtension(rosePath) + ".asset";
+            var assetPath = $"{context.Textures}/{fileName}".Replace("\\", "/");
+
+            var existing = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            Directory.CreateDirectory(context.Textures);
+
+            var texture = RoseDdsLoader.LoadFromFile(fullPath);
+
+            if (texture == null)
+            {
+                Debug.LogWarning($"Failed loading DDS texture: {fullPath}");
+                return null;
+            }
+
+            texture.name = Path.GetFileNameWithoutExtension(rosePath);
+
+            AssetDatabase.CreateAsset(texture, assetPath);
+
+            EditorUtility.SetDirty(texture);
+            AssetDatabase.SaveAssets();
 
             return texture;
         }
@@ -396,6 +460,63 @@ namespace UnityRose.ImportEditor
             AssetDatabase.SaveAssets();
 
             return mat;
+        }
+
+        public static Material BakeMaterial(string textureDayPath, string textureNightPath, string name, SkyboxImportContext context)
+        {
+            var savePath = context.Materials + "/" + name;
+
+            var existing = AssetDatabase.LoadAssetAtPath<Material>(savePath);
+
+            if (existing != null)
+            {
+                var existingDayTexture = existing.GetTexture("_DayTex");
+                var existingNightTexture = existing.GetTexture("_NightTex");
+
+                if (existingDayTexture != null && existingNightTexture != null)
+                {
+                    return existing;
+                }
+
+                AssetDatabase.DeleteAsset(savePath);
+            }
+
+            var folder = Path.GetDirectoryName(savePath);
+
+            if (!string.IsNullOrEmpty(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            var shader = Shader.Find("Rose Revolution/Skybox");
+
+            if (shader == null)
+            {
+                Debug.LogError("Rose Revolution/Skybox shader not found");
+                return null;
+            }
+
+            var dayTexture = BakeTexture(textureDayPath, context);
+            var nightTexture = BakeTexture(textureNightPath, context);
+
+            if (dayTexture == null || nightTexture == null)
+            {
+                Debug.LogWarning($"Missing skybox texture for material: {savePath}");
+                return null;
+            }
+
+            var material = new Material(shader);
+            material.name = Path.GetFileNameWithoutExtension(savePath);
+
+            material.SetTexture("_DayTex", dayTexture);
+            material.SetTexture("_NightTex", nightTexture);
+
+            AssetDatabase.CreateAsset(material, savePath);
+
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssets();
+
+            return material;
         }
 
         public static List<Transform> BuildSkeleton(GameObject root, RoseSkeletonData skeleton)
@@ -713,35 +834,35 @@ namespace UnityRose.ImportEditor
 
             data.id = npcIdx;
             data.displayName = stb.Cells[npcIdx][1];
-            data.moveSpeed = Utils.ParseInt(stb.Cells[npcIdx][3]);
-            data.runSpeed = Utils.ParseInt(stb.Cells[npcIdx][4]);
-            data.size = Utils.ParseInt(stb.Cells[npcIdx][5]);
-            data.rightWeaponID = Utils.ParseInt(stb.Cells[npcIdx][6]);
-            data.leftWeaponID = Utils.ParseInt(stb.Cells[npcIdx][7]);
-            data.level = Utils.ParseInt(stb.Cells[npcIdx][8]);
-            data.healthPoints = Utils.ParseInt(stb.Cells[npcIdx][9]);
-            data.attack = Utils.ParseInt(stb.Cells[npcIdx][10]);
-            data.accuracy = Utils.ParseInt(stb.Cells[npcIdx][11]);
-            data.defense = Utils.ParseInt(stb.Cells[npcIdx][12]);
-            data.magicDefense = Utils.ParseInt(stb.Cells[npcIdx][13]);
-            data.flee = Utils.ParseInt(stb.Cells[npcIdx][14]);
-            data.attackSpeed = Utils.ParseInt(stb.Cells[npcIdx][15]);
-            data.attackType = Utils.ParseInt(stb.Cells[npcIdx][16]) == 1 ? AttackType.Magic : AttackType.Normal;
-            data.AI = Utils.ParseInt(stb.Cells[npcIdx][17]);
-            data.experience = Utils.ParseInt(stb.Cells[npcIdx][18]);
-            data.dropTableID = Utils.ParseInt(stb.Cells[npcIdx][19]);
-            data.moneyDrop = Utils.ParseInt(stb.Cells[npcIdx][20]);
-            data.dropChance = Utils.ParseInt(stb.Cells[npcIdx][21]); // TODO : Make some smart read, like this field should always be between 1 and 100
-            data.attackRange = Utils.ParseInt(stb.Cells[npcIdx][27]);
-            data.characterType = Utils.ParseInt(stb.Cells[npcIdx][28]);
-            data.faceIconID = Utils.ParseInt(stb.Cells[npcIdx][30]);
-            data.generalSoundEffectID = Utils.ParseInt(stb.Cells[npcIdx][31]);
-            data.attackedSoundEffectID = Utils.ParseInt(stb.Cells[npcIdx][33]);
-            data.attackEffectID = Utils.ParseInt(stb.Cells[npcIdx][34]);
-            data.dyingSoundID = Utils.ParseInt(stb.Cells[npcIdx][36]);
-            data.isPartyQuestMonster = Utils.ParseBool(stb.Cells[npcIdx][39]);
-            data.glowColor = Utils.ParseRgbColor(stb.Cells[npcIdx][40]);
-            data.localizationID = Utils.ParseInt(stb.Cells[npcIdx][41]);
+            data.moveSpeed = Utils.ParseSTBInt(stb.Cells[npcIdx][3]);
+            data.runSpeed = Utils.ParseSTBInt(stb.Cells[npcIdx][4]);
+            data.size = Utils.ParseSTBInt(stb.Cells[npcIdx][5]);
+            data.rightWeaponID = Utils.ParseSTBInt(stb.Cells[npcIdx][6]);
+            data.leftWeaponID = Utils.ParseSTBInt(stb.Cells[npcIdx][7]);
+            data.level = Utils.ParseSTBInt(stb.Cells[npcIdx][8]);
+            data.healthPoints = Utils.ParseSTBInt(stb.Cells[npcIdx][9]);
+            data.attack = Utils.ParseSTBInt(stb.Cells[npcIdx][10]);
+            data.accuracy = Utils.ParseSTBInt(stb.Cells[npcIdx][11]);
+            data.defense = Utils.ParseSTBInt(stb.Cells[npcIdx][12]);
+            data.magicDefense = Utils.ParseSTBInt(stb.Cells[npcIdx][13]);
+            data.flee = Utils.ParseSTBInt(stb.Cells[npcIdx][14]);
+            data.attackSpeed = Utils.ParseSTBInt(stb.Cells[npcIdx][15]);
+            data.attackType = Utils.ParseSTBInt(stb.Cells[npcIdx][16]) == 1 ? AttackType.Magic : AttackType.Normal;
+            data.AI = Utils.ParseSTBInt(stb.Cells[npcIdx][17]);
+            data.experience = Utils.ParseSTBInt(stb.Cells[npcIdx][18]);
+            data.dropTableID = Utils.ParseSTBInt(stb.Cells[npcIdx][19]);
+            data.moneyDrop = Utils.ParseSTBInt(stb.Cells[npcIdx][20]);
+            data.dropChance = Utils.ParseSTBInt(stb.Cells[npcIdx][21]); // TODO : Make some smart read, like this field should always be between 1 and 100
+            data.attackRange = Utils.ParseSTBInt(stb.Cells[npcIdx][27]);
+            data.characterType = Utils.ParseSTBInt(stb.Cells[npcIdx][28]);
+            data.faceIconID = Utils.ParseSTBInt(stb.Cells[npcIdx][30]);
+            data.generalSoundEffectID = Utils.ParseSTBInt(stb.Cells[npcIdx][31]);
+            data.attackedSoundEffectID = Utils.ParseSTBInt(stb.Cells[npcIdx][33]);
+            data.attackEffectID = Utils.ParseSTBInt(stb.Cells[npcIdx][34]);
+            data.dyingSoundID = Utils.ParseSTBInt(stb.Cells[npcIdx][36]);
+            data.isPartyQuestMonster = Utils.ParseSTBBool(stb.Cells[npcIdx][39]);
+            data.glowColor = Utils.ParseRoseColorInt(stb.Cells[npcIdx][40]);
+            data.localizationID = Utils.ParseSTBInt(stb.Cells[npcIdx][41]);
             data.eventTriggerDeath = stb.Cells[npcIdx][42];
 
             npc.monsterData = data;
@@ -877,7 +998,7 @@ namespace UnityRose.ImportEditor
                 if (!fileName.StartsWith("ICON") || Path.GetExtension(file).ToLower() != ".dds") continue;
 
                 var destPath = Path.Combine(destFolder, fileName).Replace("\\", "/");
-                System.IO.File.Copy(file, destPath, true);
+                File.Copy(file, destPath, true);
                 AssetDatabase.ImportAsset(destPath, ImportAssetOptions.ForceUpdate);
 
                 var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(destPath);

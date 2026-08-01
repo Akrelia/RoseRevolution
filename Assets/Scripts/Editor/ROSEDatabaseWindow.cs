@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.IO;
 using RevolutionShared.Rose.Data.NPC;
+using RevolutionShared.Rose.Data;
 
 namespace UnityRose.ImportEditor
 {
@@ -107,21 +108,21 @@ namespace UnityRose.ImportEditor
 
             GUILayout.Label(map.id.ToString(), GUILayout.Width(50));
 
-            GUILayout.Label(map.name, GUILayout.ExpandWidth(true));
+            GUILayout.Label(map.data.mapName, GUILayout.ExpandWidth(true));
 
             GUILayout.Label(map.prefab != null ? AssetDatabase.GetAssetPath(map.prefab) : "Missing", GUILayout.ExpandWidth(true));
 
-            GUILayout.Label(map.spawnPoints != null ? map.spawnPoints.Count.ToString() : "0", GUILayout.Width(70));
+            GUILayout.Label(map.data.spawns != null ? map.data.spawns.Count.ToString() : "0", GUILayout.Width(70));
 
             int monsterCount = 0;
 
             if (spawnDatabase != null)
             {
-                var spawn = spawnDatabase.maps.FirstOrDefault(x => x.MapID == map.id);
+                var spawn = spawnDatabase.maps.FirstOrDefault(x => x != null && x.spawnData != null && x.spawnData.ID == map.id);
 
                 if (spawn != null)
                 {
-                    monsterCount = spawn.Spawns.Count;
+                    monsterCount = spawn.spawnData.Spawners.Count;
                 }
             }
 
@@ -148,23 +149,12 @@ namespace UnityRose.ImportEditor
                 return;
             }
 
-            var dto = new RevolutionShared.JSON.MapData(
-                map.id,
-                map.name,
-                map.spawnPoints?.Select(x => new RevolutionShared.JSON.MapSpawn(
-                    x.name,
-                    x.position.x,
-                    x.position.y,
-                    x.position.z
-                )).ToList() ?? new List<RevolutionShared.JSON.MapSpawn>()
-            );
-
-            string path = EditorUtility.SaveFilePanel("Export Map", Application.dataPath, map.name, "json");
+            string path = EditorUtility.SaveFilePanel("Export Map", Application.dataPath, map.data.mapName, "json");
 
             if (string.IsNullOrEmpty(path))
                 return;
 
-            string json = JsonConvert.SerializeObject(dto, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(map.data, Formatting.Indented);
 
             File.WriteAllText(path, json);
 
@@ -180,7 +170,7 @@ namespace UnityRose.ImportEditor
                 return;
             }
 
-            var map = spawnDatabase.maps.FirstOrDefault(x => x.MapID == mapID);
+            var map = spawnDatabase.maps.FirstOrDefault(x => x != null && x.spawnData != null && x.spawnData.ID == mapID);
 
             if (map == null)
             {
@@ -189,67 +179,11 @@ namespace UnityRose.ImportEditor
                 return;
             }
 
-            var root = new JObject();
-            var monstersArray = new JArray();
-
-            root["MapID"] = map.MapID;
-            root["MapName"] = map.MapName;
-            root["Spawns"] = monstersArray;
-
-            foreach (var monster in map.Spawns)
-            {
-                var basicArray = new JArray();
-
-                foreach (var b in monster.Basic)
-                {
-                    basicArray.Add(new JObject
-                    {
-                        ["ID"] = b.ID,
-                        ["Count"] = b.Count,
-                        ["Description"] = b.Description
-                    });
-                }
-
-                var tacticArray = new JArray();
-
-                foreach (var t in monster.Tactic)
-                {
-                    tacticArray.Add(new JObject
-                    {
-                        ["ID"] = t.ID,
-                        ["Count"] = t.Count,
-                        ["Description"] = t.Description
-                    });
-                }
-
-                var monsterObj = new JObject
-                {
-                    ["Settings"] = new JObject
-                    {
-                        ["Name"] = monster.Name,
-                        ["MapX"] = monster.MapX,
-                        ["MapY"] = monster.MapY,
-                        ["ID"] = monster.ID,
-                        ["WorldX"] = monster.WorldX,
-                        ["WorldY"] = monster.WorldY,
-                        ["WorldZ"] = monster.WorldZ,
-                        ["Interval"] = monster.Interval,
-                        ["LimitCount"] = monster.LimitCount,
-                        ["Range"] = monster.Range,
-                        ["TacticPoints"] = monster.TacticPoints
-                    },
-                    ["Basic"] = basicArray,
-                    ["Tactic"] = tacticArray
-                };
-
-                monstersArray.Add(monsterObj);
-            }
-
-            string path = EditorUtility.SaveFilePanel("Export Monster Spawns", Application.dataPath, map.MapName + "_MonsterSpawns", "json");
+            string path = EditorUtility.SaveFilePanel("Export Monster Spawns", Application.dataPath, map.spawnData.MapName + "_MonsterSpawns", "json");
 
             if (!string.IsNullOrEmpty(path))
             {
-                System.IO.File.WriteAllText(path, root.ToString(Newtonsoft.Json.Formatting.Indented));
+                File.WriteAllText(path, JsonConvert.SerializeObject(map.spawnData, Formatting.Indented));
 
                 Debug.Log($"Exported monster spawns for map {mapID}");
             }

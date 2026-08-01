@@ -5,6 +5,9 @@ using System.Linq;
 using UnityEngine;
 using UnityRose.Formats;
 
+/// <summary>
+/// Rose export.
+/// </summary>
 public class RoseExport : MonoBehaviour
 {
     public static DropTableData ExportDropTable(STB stb, int row)

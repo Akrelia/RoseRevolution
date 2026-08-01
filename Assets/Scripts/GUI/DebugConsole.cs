@@ -52,13 +52,22 @@ public class DebugConsole : BaseWindow
 
         PushButton(defaultButton);
         ShowPanel(defaultPanel);
+
+        display.SetActive(false);
     }
 
+    /// <summary>
+    /// Toggle the display.
+    /// </summary>
     public void ToggleDisplay()
     {
         display.SetActive(!display.activeSelf);
     }
 
+    /// <summary>
+    /// Click on a push button.
+    /// </summary>
+    /// <param name="button">Button.</param>
     public void PushButton(Button button)
     {
         for (int i = 0; i < buttons.Count; i++)
@@ -69,6 +78,10 @@ public class DebugConsole : BaseWindow
         button.interactable = false;
     }
 
+    /// <summary>
+    /// Show the panel.
+    /// </summary>
+    /// <param name="panel">Panel.</param>
     public void ShowPanel(GameObject panel)
     {
         for (int i = 0; i < panels.Count; i++)
@@ -79,26 +92,47 @@ public class DebugConsole : BaseWindow
         panel.SetActive(true);
     }
 
+    /// <summary>
+    /// On warning log.
+    /// </summary>
+    /// <param name="entry">Entry.</param>
     private void OnWarningLog(LogEntry entry)
     {
         UpdateText(warningText, warningColor, RoseDebug.warningLogs);
     }
 
+    /// <summary>
+    /// On Unnity log.
+    /// </summary>
+    /// <param name="entry">Entry.</param>
     private void OnUnityLog(LogEntry entry)
     {
         UpdateText(unityText, unityColor, RoseDebug.unityLogs);
     }
 
+    /// <summary>
+    /// On packet log.
+    /// </summary>
+    /// <param name="entry">Entry.</param>
     private void OnPacketLog(LogEntry entry)
     {
         UpdateText(packetText, packetColor, RoseDebug.packetLogs);
+
     }
 
+    /// <summary>
+    /// On general log.
+    /// </summary>
+    /// <param name="entry">Entry.</param>
     private void OnGeneralLog(LogEntry entry)
     {
         UpdateText(generalText, generalColor, RoseDebug.generalLogs);
     }
 
+    /// <summary>
+    /// On error.
+    /// </summary>
+    /// <param name="entry">Entry.</param>
     private void OnErrorLog(LogEntry entry)
     {
         UpdateText(errorText, errorColor, RoseDebug.errorLogs);
@@ -129,6 +163,11 @@ public class DebugConsole : BaseWindow
     /// <param name="type">Log's type.</param>
     private void HandleUnityLog(string logString, string stackTrace, LogType type)
     {
+        if (RoseDebug.IgnoreUnityLog)
+        {
+            return;
+        }
+
         RoseDebug.LogUnity(logString);
     }
 }
@@ -152,27 +191,39 @@ public static class RoseDebug
     public static event Action<LogEntry> OnGeneralLog;
     public static event Action<LogEntry> OnUnityLog;
 
+    public static bool IgnoreUnityLog { get; private set; }
+
     /// <summary>
     /// Add a log.
     /// </summary>
     /// <param name="list">List.</param>
     /// <param name="message">Message.</param>
     /// <param name="logEvent">Log event.</param>
-    private static void AddLog(List<LogEntry> list, string message, Action<LogEntry> logEvent)
+    private static void AddLog(List<LogEntry> list, string message, Action<LogEntry> logEvent, Action<string> unityLog = null)
     {
         if (list.Count >= maxLogCount)
+        {
             list.RemoveAt(0);
-
+        }
         var entry = new LogEntry(DateTime.Now, message);
+        
         list.Add(entry);
+        
         logEvent?.Invoke(entry);
+
+        if (unityLog != null)
+        {
+            IgnoreUnityLog = true;
+            unityLog(message);
+            IgnoreUnityLog = false;
+        }
     }
 
     public static void LogException(Exception exception) => LogError($"Exception: {exception.Message}\n{exception.StackTrace}");
-    public static void LogError(string message) => AddLog(errorLogs, message, OnErrorLog);
-    public static void LogWarning(string message) => AddLog(warningLogs, message, OnWarningLog);
-    public static void LogPacket(string message) => AddLog(packetLogs, message, OnPacketLog);
-    public static void Log(string message) => AddLog(generalLogs, message, OnGeneralLog);
+    public static void LogError(string message) => AddLog(errorLogs, message, OnErrorLog, Debug.LogError);
+    public static void LogWarning(string message) => AddLog(warningLogs, message, OnWarningLog, Debug.LogWarning);
+    public static void LogPacket(string message) => AddLog(packetLogs, message, OnPacketLog, message => Debug.Log($"[PACKET] {message}"));
+    public static void Log(string message) => AddLog(generalLogs, message, OnGeneralLog, Debug.Log);
     public static void LogUnity(string message) => AddLog(unityLogs, message, OnUnityLog);
 }
 

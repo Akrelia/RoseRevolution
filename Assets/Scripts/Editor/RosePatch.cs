@@ -428,7 +428,7 @@ namespace UnityRose.Game
                 terrainObject.transform.SetParent(parent, false);
                 terrainObject.transform.localPosition = (ifo.Position / 100.0f);
 
-                Debug.Log($"IFO local={terrainObject.transform.localPosition} world={terrainObject.transform.position}");
+             //   Debug.Log($"IFO local={terrainObject.transform.localPosition} world={terrainObject.transform.position}");
                 bool isAnimated = false;
                 AnimationClip clip = new AnimationClip();
                 clip.legacy = true;

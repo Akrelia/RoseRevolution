@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using UnityRose.ImportEditor;
 
 using UnityEditor;
+using RevolutionShared.Rose.Data;
 
 namespace UnityRose.Import
 {
@@ -108,9 +109,22 @@ namespace UnityRose.Import
             SpawnSpawnPoints(map, patches);
             // SpawnNpcs(map, patches); // TODO : remove later
 
+            var mapSpawns = BuildSpawnPoints(patches);
+
             roseMap.mapID = mapID;
             roseMap.mapName = mapName;
-            roseMap.spawns = BuildSpawnPoints(patches);
+
+            roseMap.data = new MapData(mapID, mapName, mapSpawns);
+            roseMap.data.skyID =  Utils.ParseSTBInt(stb.Cells[mapID][8]);
+            roseMap.data.planetID = Utils.ParseSTBInt(stb.Cells[mapID][20]);
+
+            var dayPeriod = Utils.ParseSTBInt(stb.Cells[mapID][14]);
+            var morning = Utils.ParseSTBInt(stb.Cells[mapID][15]);
+            var day = Utils.ParseSTBInt(stb.Cells[mapID][16]);
+            var evening = Utils.ParseSTBInt(stb.Cells[mapID][17]);
+            var night = Utils.ParseSTBInt(stb.Cells[mapID][18]);
+
+            roseMap.data.time = new MapTime(dayPeriod,morning,day,evening,night);
 
             AssetDatabase.SaveAssets();
 
@@ -122,7 +136,6 @@ namespace UnityRose.Import
 
             Debug.Log($"Prefab saved: {prefabPath}");
 
-            // Nettoyage mémoire
             UnityEngine.Object.DestroyImmediate(map);
 
             patches.Clear();
@@ -236,18 +249,13 @@ namespace UnityRose.Import
             }
         }
 
-        public static List<SpawnData> BuildSpawnPoints(List<RosePatch> patches)
+        public static List<MapSpawn> BuildSpawnPoints(List<RosePatch> patches)
         {
-            var result = new List<SpawnData>();
+            var result = new List<MapSpawn>();
 
             foreach (var spawnPoint in patches[0].m_ZON.SpawnPoints)
             {
-                result.Add(new SpawnData
-                {
-                    name = spawnPoint.Name,
-                    position = Utils.r2uScale(spawnPoint.Position)
-
-                });
+                result.Add(new MapSpawn(spawnPoint.Name, Utils.r2uScale(spawnPoint.Position).ToWorldPosition()));
             }
 
             return result;
@@ -281,89 +289,6 @@ namespace UnityRose.Import
             }
 
             return npcImporter;
-        }
-
-        public static string BuildSpawnExportJson(int mapID) // Remove it, useless
-        {
-            var stb = ResourceManager.Instance.stb_zone; // TODO : use the Map Database for that
-            var stbNPC = ResourceManager.Instance.stb_npc_list; // TODO : use the Map Database for that
-
-            var mapDirectory = Path.Combine(RoseDataSource.DataPath, Path.GetDirectoryName(Utils.FixPath(stb.Cells[mapID][2].ToString())));
-
-            var dirs = new DirectoryInfo(mapDirectory);
-            var patches = new List<RosePatch>();
-
-            foreach (var dir in dirs.GetDirectories())
-            {
-                if (dir.Name.Contains(".")) continue;
-
-                var patch = new RosePatch(dir);
-
-                var valid = patch.Load(mapID);
-
-                if (valid)
-                    patches.Add(patch);
-            }
-
-            var root = new JObject();
-            var monstersArray = new JArray();
-
-            root["Spawns"] = monstersArray;
-            root["MapID"] = mapID;
-            root["MapName"] = stb.Cells[mapID][1];
-
-            foreach (var patch in patches)
-            {
-                foreach (var monster in patch.m_IFO.Monsters)
-                {
-                    var basicArray = new JArray();
-
-                    foreach (var b in monster.Basic)
-                    {
-                        basicArray.Add(new JObject
-                        {
-                            ["ID"] = b.ID,
-                            ["Count"] = b.Count,
-                            ["Description"] = stbNPC.Cells[b.ID][1]
-                        });
-                    }
-
-                    var tacticArray = new JArray();
-                    foreach (var t in monster.Tactic)
-                    {
-                        tacticArray.Add(new JObject
-                        {
-                            ["ID"] = t.ID,
-                            ["Count"] = t.Count,
-                            ["Description"] = stbNPC.Cells[t.ID][1]
-                        });
-                    }
-
-                    var monsterObj = new JObject
-                    {
-                        ["Settings"] = new JObject
-                        {
-                            ["Name"] = monster.Name,
-                            ["MapX"] = monster.MapPosition.x,
-                            ["MapY"] = monster.MapPosition.y,
-                            ["ID"] = monster.ObjectID,
-                            ["WorldX"] = (monster.Position.x + 520000.0f) / 100F,
-                            ["WorldY"] = (monster.Position.y + 520000.0f) / 100F,
-                            ["WorldZ"] = monster.Position.z / -10000F,
-                            ["Interval"] = monster.Interval,
-                            ["LimitCount"] = monster.Limit,
-                            ["Range"] = monster.Range,
-                            ["TacticPoints"] = monster.TacticPoints,
-                        },
-                        ["Basic"] = basicArray,
-                        ["Tactic"] = tacticArray
-                    };
-
-                    monstersArray.Add(monsterObj);
-                }
-            }
-
-            return root.ToString(Newtonsoft.Json.Formatting.Indented);
         }
 
         /// <summary>

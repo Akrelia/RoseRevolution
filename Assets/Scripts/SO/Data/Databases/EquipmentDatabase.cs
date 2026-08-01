@@ -35,16 +35,21 @@ public class EquipmentDatabase : ScriptableObject
         };
     }
 
+    public EquipmentData GetItem(BodyPartType slot, int id, GenderType gender)
+    {
+        if (!databases.TryGetValue(slot, out var database))
+            return null;
 
-    public ItemDatabaseEntry<T> GetItem<T>(BodyPartType slot, int id, GenderType gender)
-        where T : EquipmentData
+        return database.Get(id, gender)?.Item;
+    }
+
+    public ItemDatabaseEntry<T> GetItem<T>(BodyPartType slot, int id, GenderType gender) where T : EquipmentData
     {
         if (!databases.TryGetValue(slot, out var database))
             return null;
 
         return (database as ItemDatabase<T>)?.Get(id, gender);
     }
-
 
     public GameObject GetPrefab(BodyPartType slot, int id, GenderType gender)
     {
@@ -59,6 +64,11 @@ public class EquipmentDatabase : ScriptableObject
                     ? database.Get(id, gender)?.prefab
                     : null;
         }
+    }
+
+    public Dictionary<BodyPartType, IItemDatabase> Databases
+    {
+        get { return databases; }
     }
 }
 
@@ -81,6 +91,8 @@ public abstract class ItemDatabaseEntryBase
     public int id;
     public GenderType gender;
     public GameObject prefab;
+    public abstract EquipmentData Item { get; }
+
 }
 
 
@@ -108,6 +120,8 @@ public abstract class ItemDatabase<T> : ScriptableObject, IItemDatabase where T 
     }
 
 
+
+
     ItemDatabaseEntryBase IItemDatabase.Get(int id, GenderType gender)
     {
         return Get(id, gender);
@@ -122,4 +136,9 @@ public abstract class ItemDatabase<T> : ScriptableObject, IItemDatabase where T 
 public class ItemDatabaseEntry<T> : ItemDatabaseEntryBase where T : EquipmentData
 {
     public T item;
+
+    public override EquipmentData Item
+    {
+        get { return item; }
+    }
 }

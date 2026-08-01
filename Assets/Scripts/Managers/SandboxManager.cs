@@ -24,11 +24,17 @@ public class SandboxManager : MonoBehaviour
     public MapDatabase mapDatabase;
     public EquipmentDatabase equipmentDatabase;
     public NPCDatabase npcDatabase;
+    public SkyboxDatabase skyboxDatabase;
     [Header("Server")]
     public string address;
     public short port;
     [Header("Player")]
     public string playerName;
+    public string clanName;
+    public Sprite clanSprite;
+    [Range(1, 7)]
+    public int clanGrade;
+    [Header("Appearence")]
     public GenderType gender;
     public byte hair;
     public byte face;
@@ -45,6 +51,7 @@ public class SandboxManager : MonoBehaviour
     public CameraController cameraController;
     public WorldManager worldManager;
     public GUIController guiController;
+    public WorldGUIController worldGUIController;
 
     CharacterAppearance appearance;
     Dictionary<long, RosePlayer> players;
@@ -69,8 +76,11 @@ public class SandboxManager : MonoBehaviour
             if (equipmentDatabase == null)
                 Addressables.LoadAssetAsync<EquipmentDatabase>(nameof(EquipmentDatabase)).Completed += OnDatabaseLoaded;
 
-            if (equipmentDatabase == null)
+            if (npcDatabase == null)
                 Addressables.LoadAssetAsync<NPCDatabase>(nameof(NPCDatabase)).Completed += OnDatabaseLoaded;
+
+            if (skyboxDatabase == null)
+                Addressables.LoadAssetAsync<SkyboxDatabase>(nameof(SkyboxDatabase)).Completed += OnDatabaseLoaded;
         }
 
         catch (Exception ex)
@@ -122,6 +132,20 @@ public class SandboxManager : MonoBehaviour
     }
 
     /// <summary>
+    /// When the Skybox database is loaded.
+    /// </summary>
+    /// <param name="handle">Handle.</param>
+    private void OnDatabaseLoaded(AsyncOperationHandle<SkyboxDatabase> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            skyboxDatabase = handle.Result;
+
+            Debug.Log($"Loaded Skybox Database");
+        }
+    }
+
+    /// <summary>
     /// Start.
     /// </summary>
     public async void Start()
@@ -147,22 +171,17 @@ public class SandboxManager : MonoBehaviour
             var name = packet.GetString();
             var mapID = packet.GetInt();
 
+            var motd = packet.GetString();
+
             var x = packet.GetFloat();
             var y = packet.GetFloat();
             var z = packet.GetFloat();
 
             var mapSpawn = new Vector3(x, y, z);
 
-            var map = mapDatabase.GetMapById(mapID);
+            var map = worldManager.SpawnMap(mapID);
 
-            if (map != null)
-            {
-                Instantiate(map.prefab);
-
-                RoseDebug.Log($"{map.name} has been loaded");
-            }
-
-            var mainPlayer = worldManager.SpawnPlayer(true, playerName, appearance, WorldManager.RoseToUnity(mapSpawn));
+            var mainPlayer = worldManager.SpawnPlayer(true, playerName, clanName, clanGrade, clanSprite, appearance, WorldManager.RoseToUnity(mapSpawn));
 
             guiController.characterPreview.SetCharacterInformations(playerName, 856, 950, 350, 350, 15, "Visitor");
 
@@ -170,7 +189,9 @@ public class SandboxManager : MonoBehaviour
 
             players.Add(id, mainPlayer);
 
-            // EntitiesReceived(client, packet);
+            EntitiesReceived(client, packet);
+
+            guiController.chatController.AddSystemMessage(motd);
 
             RoseDebug.Log("Character for the player has been added");
         }
@@ -198,7 +219,7 @@ public class SandboxManager : MonoBehaviour
 
             guiController.chatController.AddPlayerMessage(author.charModel.name, message);
 
-            author.player.GetComponentInChildren<EntityGUIController>().bubble.ShowMessage(message);
+            author.player.GetComponentInChildren<PlayerGUIController>().bubble.ShowMessage(message);
         }
 
         else
@@ -223,6 +244,8 @@ public class SandboxManager : MonoBehaviour
         {
             var id = packet.GetLong();
             var playerName = packet.GetString();
+          //  var clanName = packet.GetString();
+          //  var clanGrade = packet.GetByte();
 
             if (!players.ContainsKey(id))
             {
@@ -329,7 +352,7 @@ public class SandboxManager : MonoBehaviour
             var entry = npcDatabase.GetEntry(entityInfos.dataID);
             var position = entityInfos.position.ToVector3();
 
-            var entity = worldManager.SpawnEntity(entityInfos, subInfos, entry);
+            var entity = worldManager.SpawnEntity(entityInfos, subInfos, entry, position);
 
             entities.Add(entityInfos.id, entity);
         }

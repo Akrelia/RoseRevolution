@@ -57,7 +57,7 @@ namespace UnityRose
         public ZMD zmd_female;
 
         // STB's
-        public STB stb_animation_list; // TODO : Clean this legacy stuff 
+        public STB stb_animation_list;
         public STB stb_animation_type;
         public STB stb_weapon_list;
         public STB stb_cap_list;
@@ -69,6 +69,7 @@ namespace UnityRose
         public STB stb_faceitem_list;
         public STB stb_hair_list;
         public STB stb_npc_list;
+        public STB stb_sky_list;
         public STB stb_zone;
 
         // STL
@@ -121,6 +122,7 @@ namespace UnityRose
             stb_npc_list = (STB)loadResource("3DDATA/STB/LIST_NPC.STB");
             stb_drops_list = (STB)loadResource("3DDATA/STB/ITEM_DROP.STB");
             stb_zone = (STB)loadResource("3DDATA/STB/LIST_ZONE.STB");
+            stb_sky_list = (STB)loadResource("3DDATA/STB/LIST_SKY.STB");
 
             stl_zone_list = (STL)loadResource("3DDATA/STB/LIST_ZONE_S.STL");
 
@@ -368,14 +370,6 @@ namespace UnityRose
                 string unityPath = "Assets/Resources/Animation/" + gender.ToString() + "/" + weapon.ToString() + "/clips/" + action.ToString() + ".anim";
                 Utils.EnsureFolder(unityPath);
 
-                // NOTE: not using Utils.SaveReloadAsset here - it internally reroutes the path
-                // through r2uDir(), which expects a raw ROSE path and rewrites it into its own
-                // Unity path, silently ignoring the exact unityPath we just prepared with
-                // EnsureFolder above. That mismatch (create the folder at path A, then try to
-                // write to path B) made CreateAsset fail silently inside SaveReloadAsset (no
-                // try/catch, no log in there), so the clip vanished with nothing but the
-                // ActionType/GetZMOPath warnings visible - hence "thousands of warnings, no
-                // error, nothing saved". Writing directly here avoids that mismatch entirely.
                 var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);
 
                 AnimationClip clip;

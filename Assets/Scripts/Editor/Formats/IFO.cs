@@ -1078,9 +1078,9 @@ namespace UnityRose.Formats
                                     },
                                     Position = new Vector3()
                                     {
-                                        x = fh.Read<float>(),
-                                        z = fh.Read<float>(),
-                                        y = fh.Read<float>()
+                                        x = (fh.Read<float>() + 520000.0f) / 100.0f,
+                                        y = (fh.Read<float>() + 520000.0f) / 100.0f,
+                                        z = fh.Read<float>() / 100.0f
                                     },
                                     Scale = new Vector3()
                                     {

@@ -9,77 +9,125 @@
         _NormalMapBottom("Normals (RGBA)", 2D) = "white" {}
         _TintColor("Tint Color", Color) = (1,1,1,1)
     }
-        SubShader
+
+    SubShader
+    {
+        Tags
         {
-            Tags { "RenderType" = "Opaque" "Queue" = "Geometry" }
-            LOD 200
+            "RenderType" = "Opaque"
+            "Queue" = "Geometry"
+            "RenderPipeline" = "UniversalPipeline"
+        }
 
-            Pass
+        LOD 200
+
+        Pass
+        {
+            Tags { "LightMode" = "UniversalForward" }
+
+            HLSLPROGRAM
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma multi_compile_fog
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS
+            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+            struct Attributes
             {
-                Tags { "LightMode" = "UniversalForward" }
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                float2 uv : TEXCOORD0;
+                float2 uv2 : TEXCOORD1;
+                float4 color : COLOR;
+            };
 
-                HLSLPROGRAM
-                #pragma vertex vert
-                #pragma fragment frag
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            struct Varyings
+            {
+                float4 positionHCS : SV_POSITION;
+                float3 positionWS : TEXCOORD0;
+                float3 normalWS : TEXCOORD1;
+                float2 uv : TEXCOORD2;
+                float2 uv2 : TEXCOORD3;
+                float2 lightUV : TEXCOORD4;
+                float fogFactor : TEXCOORD5;
+            };
 
-                struct Attributes
-                {
-                    float4 positionOS : POSITION;
-                    float2 uv : TEXCOORD0;
-                    float2 uv2 : TEXCOORD1;
-                    float4 color : COLOR; // Akima : use the colors here
-                };
+            sampler2D _BottomTex;
+            sampler2D _TopTex;
+            sampler2D _LightTex;
 
-                struct Varyings
-                {
-                    float4 positionHCS : SV_POSITION;
-                    float2 uv : TEXCOORD0;
-                    float2 uv2 : TEXCOORD1;
-                    float2 lightUV : TEXCOORD2;
-                };
+            float4 _TintColor;
+            float4 _GlobalTintColor;
 
-                sampler2D _BottomTex;
-                sampler2D _TopTex;
-                sampler2D _LightTex;
+            Varyings vert(Attributes IN)
+            {
+                Varyings OUT;
 
-                float4 _TintColor;
+                VertexPositionInputs positionInputs = GetVertexPositionInputs(IN.positionOS.xyz);
 
-                Varyings vert(Attributes IN)
-                {
-                    Varyings OUT;
-                    OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-                    OUT.uv = IN.uv;
-                    OUT.uv2 = IN.uv2;
-                    OUT.lightUV = IN.color.rgb; // Akima : use the colors as UVs
-                    return OUT;
-                }
+                OUT.positionHCS = positionInputs.positionCS;
+                OUT.positionWS = positionInputs.positionWS;
+                OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
 
-                float4 _GlobalTintColor;
+                OUT.uv = IN.uv;
+                OUT.uv2 = IN.uv2;
+                OUT.lightUV = IN.color.rgb;
 
-                half4 frag(Varyings IN) : SV_Target
-                {
-                    half4 bottom = tex2D(_BottomTex, IN.uv);
-                    half4 top = tex2D(_TopTex, IN.uv2);
-                    half4 light = tex2D(_LightTex, IN.lightUV);
+                OUT.fogFactor = ComputeFogFactor(positionInputs.positionCS.z);
 
-                    half3 albedo = lerp(bottom.rgb, top.rgb, top.a);
-                    half3 emission = albedo * light.rgb * 5;
+                return OUT;
+            }
 
-                    float4 tint = _GlobalTintColor;
+            half4 frag(Varyings IN) : SV_Target
+            {
+                half4 bottom = tex2D(_BottomTex, IN.uv);
+                half4 top = tex2D(_TopTex, IN.uv2);
+                half4 lightTex = tex2D(_LightTex, IN.lightUV);
 
-                    if (tint.a == 0)
+                half3 albedo = lerp(bottom.rgb, top.rgb, top.a);
+                half3 emission = albedo * lightTex.rgb * 5.0;
+
+                half3 baseColor = (albedo + emission) * _GlobalTintColor.rgb;
+
+                half3 lighting = 0;
+
+                Light mainLight = GetMainLight();
+
+                half NdotL = saturate(dot(normalize(IN.normalWS), mainLight.direction));
+
+                lighting += mainLight.color * NdotL * mainLight.distanceAttenuation* mainLight.shadowAttenuation;
+
+                #if defined(_ADDITIONAL_LIGHTS)
+
+                    uint additionalLightsCount = GetAdditionalLightsCount();
+
+                    for (uint i = 0; i < additionalLightsCount; i++)
                     {
-                        tint = float4(1, 1, 1, 1); // fallback
+                        Light light = GetAdditionalLight(i, IN.positionWS);
+
+                        half lightNdotL = saturate(dot(normalize(IN.normalWS), light.direction));
+
+                        lighting += light.color * lightNdotL * light.distanceAttenuation * light.shadowAttenuation;
                     }
 
-                    half3 finalColor = (albedo + emission) * tint.rgb;
+                #endif
 
-                    return half4(finalColor, 1.0);
-                }
-                ENDHLSL
+                half3 finalColor = baseColor + albedo * lighting;
+
+                finalColor = MixFog(finalColor, IN.fogFactor);
+
+                return half4(finalColor, 1.0);
             }
+
+            ENDHLSL
         }
-            FallBack "Diffuse"
+    }
+
+    FallBack "Diffuse"
 }

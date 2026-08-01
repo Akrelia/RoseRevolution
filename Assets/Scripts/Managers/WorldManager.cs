@@ -1,9 +1,11 @@
 using RevolutionShared.Data;
 using RevolutionShared.Rose.Data;
 using RevolutionShared.Rose.Data.NPC;
+using Unity.VisualScripting;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityRose;
+using UnityRose.Game;
 
 /// <summary>
 /// World manager.
@@ -11,6 +13,7 @@ using UnityRose;
 public class WorldManager : MonoBehaviour
 {
     public SandboxManager sandboxManager;
+    public WorldGUIController worldGUIController;
     [Header("Prefabs")]
     public GameObject mainPlayer;
     public GameObject monstersParent;
@@ -18,6 +21,8 @@ public class WorldManager : MonoBehaviour
     public FakeDictionary<EntityType, GameObject> entityPrefabs;
     [Header("Components")]
     public CameraController cameraController;
+    [Header("Data")]
+    public ClanDisplayData clanData;
 
     /// <summary>
     /// Awake.
@@ -27,11 +32,53 @@ public class WorldManager : MonoBehaviour
         Screen.SetResolution(1600, 800, FullScreenMode.Windowed);
     }
 
+    public RoseMap SpawnMap(int id)
+    {
+        var mapEntry = sandboxManager.mapDatabase.GetMapById(id); // Move the databases here now
+
+        if (mapEntry != null)
+        {
+            var skyboxEntry = sandboxManager.skyboxDatabase.Get(mapEntry.data.skyID);
+
+            var map = Instantiate(mapEntry.prefab).GetComponent<RoseMap>();
+
+            if (skyboxEntry != null)
+            {
+                var skybox = new GameObject($"Skybox_{skyboxEntry.Id}");
+                var meshFilter = skybox.AddComponent<MeshFilter>();
+                var meshRenderer = skybox.AddComponent<MeshRenderer>();
+                var controller = skybox.AddComponent<SkyboxController>(); // Turn this into a prefab
+
+                meshFilter.sharedMesh = skyboxEntry.Mesh;
+                meshRenderer.sharedMaterial = skyboxEntry.Material;
+
+                map.skyboxData = skyboxEntry;
+                map.skyboxRenderer = meshRenderer;
+            }
+
+            else
+            {
+                RoseDebug.LogWarning($"Can't find a skybox for the map");
+            }
+
+            RoseDebug.Log($"{mapEntry.data.mapName} has been loaded");
+
+            return map;
+        }
+
+        else
+        {
+            RoseDebug.LogError("Can't find the map prefab for ID : " + id); // Should be a serious error but shouldn't happen, except for bad client
+
+            return null;
+        }
+    }
+
     /// <summary>
     /// Spawn a character player.
     /// </summary>
     /// <param name="position">Position.</param>
-    public RosePlayer SpawnPlayer(bool mainPlayer, string playerName, CharacterAppearance appearence, Vector3 position)
+    public RosePlayer SpawnPlayer(bool mainPlayer, string playerName, string clanName, int clanGrade, Sprite clanSprite, CharacterAppearance appearence, Vector3 position)
     {
         CharModel model = new CharModel();
 
@@ -56,7 +103,7 @@ public class WorldManager : MonoBehaviour
             cameraController.target = rosePlayer.player;
         }
 
-        var gui = Instantiate(entityGUI, rosePlayer.player.transform).GetComponentInChildren<EntityGUIController>();
+        var gui = Instantiate(entityGUI, rosePlayer.player.transform).GetComponentInChildren<PlayerGUIController>();
 
         var bubble = gui.gameObject.GetComponentInChildren<SpeechBubble>(true);
 
@@ -66,7 +113,30 @@ public class WorldManager : MonoBehaviour
 
         gui.SetName(playerName);
 
+        if (!string.IsNullOrEmpty(clanName))
+        {
+            gui.SetClan(clanName, clanData.Get(clanGrade).color, clanSprite);
+        }
+
+        else
+        {
+            gui.DisableClan();
+        }
+
         return rosePlayer;
+    }
+
+    /// <summary>
+    /// Spawn a player without clan.
+    /// </summary>
+    /// <param name="mainPlayer"></param>
+    /// <param name="playerName"></param>
+    /// <param name="appearence"></param>
+    /// <param name="position"></param>
+    /// <returns></returns>
+    public RosePlayer SpawnPlayer(bool mainPlayer, string playerName, CharacterAppearance appearence, Vector3 position)
+    {
+        return SpawnPlayer(mainPlayer, playerName, "", 0, null, appearence, position);
     }
 
     /// <summary>
@@ -76,7 +146,7 @@ public class WorldManager : MonoBehaviour
     /// <param name="dataId">Data id.</param>
     /// <param name="position">Position.</param>
     /// <returns>Entity spawned.</returns>
-    public EntityModelBehavior SpawnEntity(EntityInfos infos, EntitySubInfos subInfos, NPCDatabaseEntry entityData)
+    public EntityModelBehavior SpawnEntity(EntityInfos infos, EntitySubInfos subInfos, NPCDatabaseEntry entityData, Vector3 position)
     {
         var prefab = entityPrefabs[infos.type];
         var data = entityData.data.monsterData;
@@ -86,13 +156,15 @@ public class WorldManager : MonoBehaviour
         var entityModel = Instantiate(entityData.prefab);
         entityModel.transform.SetParent(entity.transform, false);
 
-        entity.transform.SetPositionAndRotation(infos.position.ToVector3(),Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+        entity.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
 
         var mod = entity.GetComponent<IEntityMod>();
 
         mod?.LoadMod(subInfos);
 
         entity.name = $"{data.ID}{data.displayName}";
+
+        worldGUIController.SpawnEntityGUI(infos.id, entity, entityData.data.monsterData);
 
         return entity.GetComponent<EntityModelBehavior>();
     }
@@ -107,6 +179,11 @@ public class WorldManager : MonoBehaviour
         return new Vector3(10400 - rose.z, rose.y, rose.x);
     }
 
+    /// <summary>
+    /// Unity to rose posiition.
+    /// </summary>
+    /// <param name="unity"></param>
+    /// <returns></returns>
     public static Vector3 UnityToRose(Vector3 unity)
     {
         return new Vector3(unity.z, unity.y, 10400 - unity.x);

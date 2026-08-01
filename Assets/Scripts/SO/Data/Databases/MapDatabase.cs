@@ -1,3 +1,4 @@
+using RevolutionShared.Rose.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,15 +37,6 @@ public class MapDatabase : ScriptableObject
 public class RoseMapEntry
 {
     public int id;
-    public string name;
+    public MapData data;
     public GameObject prefab;
-    public List<SpawnData> spawnPoints;
-}
-
-
-[Serializable]
-public class SpawnData
-{
-    public Vector3 position;
-    public string name;
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RevolutionShared.Rose.Data;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -10,16 +11,18 @@ namespace UnityRose.Game
         [Header("Data")]
         public int mapID;
         public string mapName;
-        public List<SpawnData> spawns;
-        //      public List<RosePatch> patches = new List<RosePatch>();
+        public MapData data;
         [Header("Colors")]
         public Color dawn = Color.white;
         public Color noon = Color.white;
         public Color sunset = Color.white;
         public Color night = Color.white;
         [Header("Time")]
-        public float timeRate;
+        public float timeRate = 500;
         public float time = 12F;
+        [Header("Skybox")]
+        public SkyboxData skyboxData;
+        public MeshRenderer skyboxRenderer;
 
         float lastTick;
 
@@ -28,6 +31,7 @@ namespace UnityRose.Game
         /// </summary>
         private void Start()
         {
+            UpdateTimeOfDay();
         }
 
         /// <summary>
@@ -38,13 +42,47 @@ namespace UnityRose.Game
             if (lastTick + timeRate <= Time.time)
             {
                 time += 0.5F;
+                time %= 24f;
 
-                time %= 24;
-
-                Shader.SetGlobalColor("_GlobalTintColor", GetTimeOfDayColor(time));
+                UpdateTimeOfDay();
 
                 lastTick = Time.time;
             }
+        }
+
+        private float GetSkyboxBlend(float hour)
+        {
+            hour %= 24f;
+
+            if (hour >= 5f && hour < 9f)
+            {
+                return Mathf.InverseLerp(5f, 9f, hour);
+            }
+
+            if (hour >= 9f && hour < 17f)
+            {
+                return 1f;
+            }
+
+            if (hour >= 17f && hour < 21f)
+            {
+                return 1f - Mathf.InverseLerp(17f, 21f, hour);
+            }
+
+            return 0f;
+        }
+
+        private void UpdateTimeOfDay()
+        {
+            time %= 24f;
+
+            var colors = GetTimeOfDayColors(time);
+
+            skyboxRenderer.sharedMaterial.SetFloat("_Blend", GetSkyboxBlend(time));
+
+            Shader.SetGlobalColor("_GlobalTintColor", colors.background);
+            Shader.SetGlobalColor("_CharacterAmbientColor", colors.ambient);
+            Shader.SetGlobalColor("_CharacterDiffuseColor", colors.diffuse);
         }
 
         /// <summary>
@@ -52,36 +90,50 @@ namespace UnityRose.Game
         /// </summary>
         /// <param name="hour">Hour.</param>
         /// <returns>Time of the  day color.</returns>
-        public Color GetTimeOfDayColor(float hour)
+        private (Color background, Color ambient, Color diffuse) GetTimeOfDayColors(float hour)
         {
-            hour = hour % 24f;
+            hour %= 24f;
 
             if (hour >= 5f && hour < 9f)
             {
-                float t = Mathf.InverseLerp(5f, 9f, hour);
-                
-                return Color.Lerp(dawn, noon, t);
+                var t = Mathf.InverseLerp(5f, 9f, hour);
+
+                return (
+                    Color.Lerp(skyboxData.BackgroundColor1, skyboxData.BackgroundColor2, t),
+                    Color.Lerp(skyboxData.AmbientCharacter1, skyboxData.AmbientCharacter2, t),
+                    Color.Lerp(skyboxData.DiffuseCharacter1, skyboxData.DiffuseCharacter2, t)
+                );
             }
 
-            else if (hour >= 9f && hour < 17f)
+            if (hour >= 9f && hour < 17f)
             {
-                float t = Mathf.InverseLerp(9f, 17f, hour);
-                
-                return Color.Lerp(noon, sunset, t);
+                var t = Mathf.InverseLerp(9f, 17f, hour);
+
+                return (
+                    Color.Lerp(skyboxData.BackgroundColor2, skyboxData.BackgroundColor3, t),
+                    Color.Lerp(skyboxData.AmbientCharacter2, skyboxData.AmbientCharacter3, t),
+                    Color.Lerp(skyboxData.DiffuseCharacter2, skyboxData.DiffuseCharacter3, t)
+                );
             }
 
-            else if (hour >= 17f && hour < 21f)
+            if (hour >= 17f && hour < 21f)
             {
-                float t = Mathf.InverseLerp(17f, 21f, hour);
-             
-                return Color.Lerp(sunset, night, t);
+                var t = Mathf.InverseLerp(17f, 21f, hour);
+
+                return (
+                    Color.Lerp(skyboxData.BackgroundColor3, skyboxData.BackgroundColor4, t),
+                    Color.Lerp(skyboxData.AmbientCharacter3, skyboxData.AmbientCharacter4, t),
+                    Color.Lerp(skyboxData.DiffuseCharacter3, skyboxData.DiffuseCharacter4, t)
+                );
             }
 
-            else
-            {
-                float t = hour < 5f ? Mathf.InverseLerp(21f, 29f, hour + 24f) : Mathf.InverseLerp(21f, 29f, hour);
-                return Color.Lerp(night, dawn, t);
-            }
+            var nightT = hour < 5f ? Mathf.InverseLerp(21f, 29f, hour + 24f) : Mathf.InverseLerp(21f, 29f, hour);
+
+            return (
+                Color.Lerp(skyboxData.BackgroundColor4, skyboxData.BackgroundColor1, nightT),
+                Color.Lerp(skyboxData.AmbientCharacter4, skyboxData.AmbientCharacter1, nightT),
+                Color.Lerp(skyboxData.DiffuseCharacter4, skyboxData.DiffuseCharacter1, nightT)
+            );
         }
     }
 

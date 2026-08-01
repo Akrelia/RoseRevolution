@@ -1,4 +1,7 @@
+using RevolutionShared.Rose.Data;
+using RevolutionShared.Rose.Data.Equipment;
 using RevolutionShared.Rose.Data.NPC;
+using RevolutionShared.Utils;
 using System;
 using System.Linq;
 using TMPro;
@@ -6,6 +9,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UIElements;
+using static UnityEditor.Progress;
 
 public class GMPanelMonsterTab : MonoBehaviour
 {
@@ -18,6 +22,7 @@ public class GMPanelMonsterTab : MonoBehaviour
     public GameObject monsterSpawnZone;
     public GameObject monsterPreviewZone;
     public GameObject monsterSearchZone;
+    public TextMeshProUGUI monsterDatabaseCountLabel;
     public TextMeshProUGUI monsterNameLabel;
     public TextMeshProUGUI monsterLevelLabel;
     public TextMeshProUGUI monsterHealthLabel;
@@ -30,15 +35,20 @@ public class GMPanelMonsterTab : MonoBehaviour
     public TextMeshProUGUI monsterExperienceLabel;
     [Header("Parents")]
     public Transform resultsParent;
+    public Transform dropListParent;
     [Header("Values")]
     public float rotationSpeed = 100f;
     [Header("Prefab")]
     public GameObject searchResultPrefab;
     public ModelPreview modelPreviewPrefab;
+    public GameObject itemPreviewPrefab;
     [Header("Components")]
 
     private ModelPreview modelPreview;
     private NPCDatabase npcDatabase;
+    private IconDatabase iconDatabase; // Put this somewhere to be accessible
+    private DropTableDatabase dropTableDatabase;
+    private EquipmentDatabase equipmentDatabase;
 
     /// <summary>
     /// Start.
@@ -46,6 +56,9 @@ public class GMPanelMonsterTab : MonoBehaviour
     private void Start()
     {
         Addressables.LoadAssetAsync<NPCDatabase>(nameof(NPCDatabase)).Completed += OnDatabaseLoaded;
+        Addressables.LoadAssetAsync<IconDatabase>(nameof(IconDatabase)).Completed += OnDatabaseLoaded;
+        Addressables.LoadAssetAsync<DropTableDatabase>(nameof(DropTableDatabase)).Completed += OnDatabaseLoaded;
+        Addressables.LoadAssetAsync<EquipmentDatabase>(nameof(EquipmentDatabase)).Completed += OnDatabaseLoaded;
 
         monsterPreviewZone.SetActive(false);
     }
@@ -61,9 +74,51 @@ public class GMPanelMonsterTab : MonoBehaviour
             npcDatabase = handle.Result;
 
             monsterSpawnZone.SetActive(true); // Display the search zone only when the database is loaded
+
+            monsterDatabaseCountLabel.gameObject.SetActive(true);
+            monsterDatabaseCountLabel.text = $"Enemies in Database: {npcDatabase.entries.Count}";
         }
     }
 
+    /// <summary>
+    /// When the database is loaded.
+    /// </summary>
+    /// <param name="handle">Handle.</param>
+    private void OnDatabaseLoaded(AsyncOperationHandle<IconDatabase> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            iconDatabase = handle.Result;
+        }
+    }
+
+    /// <summary>
+    /// When the database is loaded.
+    /// </summary>
+    /// <param name="handle">Handle.</param>
+    private void OnDatabaseLoaded(AsyncOperationHandle<DropTableDatabase> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            dropTableDatabase = handle.Result;
+        }
+    }
+
+    /// <summary>
+    /// When the database is loaded.
+    /// </summary>
+    /// <param name="handle">Handle.</param>
+    private void OnDatabaseLoaded(AsyncOperationHandle<EquipmentDatabase> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            equipmentDatabase = handle.Result;
+        }
+    }
+
+    /// <summary>
+    /// Update.
+    /// </summary>
     private void Update()
     {
         RotateModel(1);
@@ -133,17 +188,17 @@ public class GMPanelMonsterTab : MonoBehaviour
     /// <summary>
     /// Display a monster.
     /// </summary>
-    /// <param name="npcData">NPC Data.</param>
-    public void DisplayMonster(NPCDatabaseEntry npcData)
+    /// <param name="npcEntry">NPC entry.</param>
+    public void DisplayMonster(NPCDatabaseEntry npcEntry)
     {
         searchInput.text = "";
-        monsterIDInput.text = npcData.id.ToString();
+        monsterIDInput.text = npcEntry.id.ToString();
 
-        DisplayModel(npcData);
+        DisplayModel(npcEntry);
 
-        var data = npcData.data.monsterData;
+        var data = npcEntry.data.monsterData;
 
-        monsterNameLabel.text = npcData.name;
+        monsterNameLabel.text = npcEntry.name;
         monsterLevelLabel.text = "Level : " + Utils.Colorize(data.level, valueColor);
         monsterHealthLabel.text = "Health : " + Utils.Colorize(data.healthPoints, valueColor);
         monsterExperienceLabel.text = "Experience : " + Utils.Colorize(data.experience, valueColor);
@@ -156,6 +211,52 @@ public class GMPanelMonsterTab : MonoBehaviour
 
         monsterSearchZone.SetActive(false);
         monsterPreviewZone.SetActive(true);
+
+        DisplayDropList(data);
+    }
+
+    public void DisplayDropList(EnemyData data)
+    {
+        Utils.DestroyChildren(dropListParent.gameObject);
+
+        var dropTable = dropTableDatabase.GetEntry(data.dropTableID);
+
+        if (dropTable != null)
+        {
+            for (int i = 0; i < dropTable.table.drops.Count; i++)
+            {
+                var drop = dropTable.table.drops[i];
+
+                var type = GetBodyPartType(drop.Type);
+
+                var preview = Instantiate(itemPreviewPrefab, dropListParent).GetComponent<ItemPreview>();
+
+                if (type != 0)
+                {
+                    var itemDB = equipmentDatabase.GetItem(type, drop.ID, type == BodyPartType.WEAPON || type == BodyPartType.BACK ? GenderType.NONE : GenderType.MALE); // Akima : the whole system will be better
+
+                    if (itemDB != null)
+                    {
+                        preview.SetIcon(null, drop.dropChance, iconDatabase.GetIcon(itemDB.iconID));
+                    }
+
+                    else
+                    {
+                        preview.SetIcon(drop.dropChance);
+                    }
+                }
+
+                else
+                {
+                    preview.SetIcon(drop.dropChance);
+                }
+            }
+        }
+
+        else
+        {
+            RoseDebug.LogWarning($"Drop table not found for ID: {data.dropTableID}.");
+        }
     }
 
     /// <summary>
@@ -209,5 +310,43 @@ public class GMPanelMonsterTab : MonoBehaviour
     public void SpawnMonsterClick()
     {
         Client.Instance.SendPacket(Packets.GMCommandSpawn(Convert.ToInt32(monsterIDInput.text), Convert.ToInt32(monsterAmountInput.text)));
+    }
+
+    public static BodyPartType GetBodyPartType(ItemType itemType) // Debug method, remove ASAP
+    {
+        if (itemType == ItemType.FACEITEM)
+        {
+            return BodyPartType.FACEITEM;
+        }
+        else if (itemType == ItemType.HAT)
+        {
+            return BodyPartType.CAP;
+        }
+        else if (itemType == ItemType.BODY)
+        {
+            return BodyPartType.BODY;
+        }
+        else if (itemType == ItemType.GLOVES)
+        {
+            return BodyPartType.ARMS;
+        }
+        else if (itemType == ItemType.BOOTS)
+        {
+            return BodyPartType.FOOT;
+        }
+        else if (itemType == ItemType.BACK)
+        {
+            return BodyPartType.BACK;
+        }
+        else if (itemType == ItemType.WEAPON)
+        {
+            return BodyPartType.WEAPON;
+        }
+        else if (itemType == ItemType.SUBWEAPON)
+        {
+            return BodyPartType.SUBWEAPON;
+        }
+
+        return 0;
     }
 }

@@ -56,7 +56,6 @@ public class FakeDictionary<T, U> : IEnumerable
         return entries.Any(e => e.key.Equals(key));
     }
 
-
     public IEnumerator<KeyValuePair<T, U>> GetEnumerator()
     {
         foreach (var entry in entries)
@@ -65,7 +64,6 @@ public class FakeDictionary<T, U> : IEnumerable
         }
     }
 
-    // Implémentation non générique pour compatibilité
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
