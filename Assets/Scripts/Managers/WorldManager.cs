@@ -2,7 +2,6 @@ using RevolutionShared.Data;
 using RevolutionShared.Rose.Data;
 using RevolutionShared.Rose.Data.NPC;
 using Unity.VisualScripting;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityRose;
 using UnityRose.Game;
@@ -29,7 +28,9 @@ public class WorldManager : MonoBehaviour
     /// </summary>
     private void Awake()
     {
-        Screen.SetResolution(1600, 800, FullScreenMode.Windowed);
+        //   Screen.SetResolution(1600, 800, FullScreenMode.Windowed);
+
+        Debug.Log("Metabel");
     }
 
     public RoseMap SpawnMap(int id)
@@ -96,7 +97,7 @@ public class WorldManager : MonoBehaviour
 
         rosePlayer.Equip(BodyPartType.FACEITEM, appearence.Mask); // Hair adjustment ?
         rosePlayer.Equip(BodyPartType.WEAPON, appearence.Weapon); // TODOD : This is redundant a bit with LoadObject, but this load the right stance etc ... so maybe remove LoadObject from this
-        //rosePlayer.equip(BodyPartType.SUBWEAPON, subWeaponID);
+        rosePlayer.Equip(BodyPartType.SUBWEAPON, appearence.SubWeapon);
 
         if (mainPlayer)
         {

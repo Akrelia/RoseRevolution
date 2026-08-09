@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEngine;
 
 public class EFT
@@ -73,7 +74,7 @@ public class EFT
         }
     }
 
-    static string ReadLStr(BinaryReader r) => System.Text.Encoding.UTF8.GetString(r.ReadBytes(r.ReadInt32()));
+    static string ReadLStr(BinaryReader r) => Encoding.GetEncoding("EUC-KR").GetString(r.ReadBytes(r.ReadInt32()));
     static Vector3 ReadVector3(BinaryReader r) => new(r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
     static Quaternion ReadQuaternion(BinaryReader r) => new(r.ReadSingle(), r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
 

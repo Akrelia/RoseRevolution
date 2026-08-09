@@ -8,6 +8,7 @@ using UnityRose.Formats;
 using UnityRose.Import;
 using RevolutionShared.Rose.Data;
 using System.Linq;
+using System;
 
 namespace UnityRose.ImportEditor
 {
@@ -34,23 +35,40 @@ namespace UnityRose.ImportEditor
 
             int builtParts = 0;
 
-            foreach (var model in zscObject.Models)
+            try
             {
-                if (BuildPart(root.transform, bodyPart, model.DummyIndex, model.ModelID, model.TextureID, zsc, zscPath))
-                    builtParts++;
+
+                foreach (var model in zscObject.Models)
+                {
+                    if (BuildPart(root.transform, bodyPart, model.DummyIndex, model.ModelID, model.TextureID, zsc, zscPath))
+                        builtParts++;
+                }
+
+                if (builtParts == 0)
+                {
+                    GameObject.DestroyImmediate(root);
+
+                    return null;
+                }
+
+                var prefab = SavePrefab(root, name);
+
+                GameObject.DestroyImmediate(root);
+
+                return prefab;
             }
 
-            if (builtParts == 0)
+            catch (Exception ex)
             {
-                Object.DestroyImmediate(root);
+                Debug.Log("Error while baking equipment: " + ex.Message);
+
+                if (root)
+                {
+                    GameObject.DestroyImmediate(root);
+                }
+
                 return null;
             }
-
-            var prefab = SavePrefab(root, name);
-
-            Object.DestroyImmediate(root);
-
-            return prefab;
         }
 
         private bool BuildPart(Transform parent, BodyPartType bodyPart, ZSC.DummyType dummy, int modelID, int textureID, ZSC zsc, string zscPath)
@@ -76,7 +94,7 @@ namespace UnityRose.ImportEditor
 
 
             var attachment = obj.AddComponent<RoseAttachment>();
-         //   attachment.dummy = dummy;
+            //   attachment.dummy = dummy;
 
             if (mesh.boneWeights != null && mesh.boneWeights.Length > 0)
             {

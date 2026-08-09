@@ -53,7 +53,7 @@ public class DebugConsole : BaseWindow
         PushButton(defaultButton);
         ShowPanel(defaultPanel);
 
-        display.SetActive(false);
+    //    display.SetActive(false);
     }
 
     /// <summary>

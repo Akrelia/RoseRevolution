@@ -10,6 +10,10 @@ public class GUIBootstrap : MonoBehaviour
     [Header("Shortcuts")]
     public KeyCode toggleConsoleKey;
 
+    private void Awake()
+    {
+    }
+
     /// <summary>
     /// Update. 
     /// </summary>

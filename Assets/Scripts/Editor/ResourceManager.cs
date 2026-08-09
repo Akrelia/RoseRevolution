@@ -60,6 +60,7 @@ namespace UnityRose
         public STB stb_animation_list;
         public STB stb_animation_type;
         public STB stb_weapon_list;
+        public STB stb_subweapon_list;
         public STB stb_cap_list;
         public STB stb_arms_list;
         public STB stb_armor_list;
@@ -112,6 +113,7 @@ namespace UnityRose
             stb_animation_type = (STB)loadResource("3DDATA/STB/TYPE_MOTION.STB");
 
             stb_weapon_list = (STB)loadResource("3DDATA/STB/LIST_WEAPON.STB");
+            stb_subweapon_list = (STB)loadResource("3DDATA/STB/LIST_SUBWPN.STB");
             stb_cap_list = (STB)loadResource("3DDATA/STB/LIST_CAP.STB");
             stb_armor_list = (STB)loadResource("3DDATA/STB/LIST_BODY.STB");
             stb_back_list = (STB)loadResource("3DDATA/STB/LIST_BACK.STB");

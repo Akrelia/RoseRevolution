@@ -78,12 +78,14 @@ namespace UnityRose.ImportEditor
             public const string Root = ImportPaths.Root + "/Skyboxes";
         }
 
-        /// <summary>
-        /// Everything Bake* needs to know about WHERE to write assets, independent of
-        /// whether the thing being baked is an NPC or a player equipment piece.
-        /// NPCImportContext and EquipmentImportContext just populate this with
-        /// different folder layouts - all Bake* methods work off this base type.
-        /// </summary>
+        public static class Effects
+        {
+            public const string Root = ImportPaths.Root + "/Effects";
+            public const string Prefabs = Effects.Root + "/Prefabs";
+            public const string Materials = Effects.Root + "/Materials";
+            public const string Textures = Effects.Root + "/Textures";
+        }
+
         public class ImportContext
         {
             public string Root;
@@ -124,15 +126,6 @@ namespace UnityRose.ImportEditor
             }
         }
 
-        /// <summary>
-        /// Flat, shared layout for player equipment - unlike NPCs, equipment pieces
-        /// don't each get their own subfolder; they all share
-        /// Assets/GameData/Player/{Meshes,Materials,Textures}, so identical meshes and
-        /// textures reused across many equipment IDs (common in ROSE) get naturally
-        /// deduplicated by BakeMesh/BakeMaterial's "does this asset path already
-        /// exist" checks - same mechanism as NPCs, just one shared folder instead of
-        /// one folder per item.
-        /// </summary>
         public class EquipmentImportContext : ImportContext
         {
             public EquipmentImportContext()
@@ -152,7 +145,7 @@ namespace UnityRose.ImportEditor
                 Root = ImportPaths.Skyboxes.Root;
                 Meshes = Root;
                 Materials = Root;
-                Textures= Root;
+                Textures = Root;
             }
         }
 
@@ -162,6 +155,16 @@ namespace UnityRose.ImportEditor
             {
                 Root = ImportPaths.Icons.Root;
                 Textures = Root;
+            }
+        }
+
+        public class EffectImportContext : ImportContext
+        {
+            public EffectImportContext()
+            {
+                Root = ImportPaths.Effects.Root;
+                Textures = ImportPaths.Effects.Textures;
+                Materials = ImportPaths.Effects.Materials;
             }
         }
     }
@@ -333,7 +336,7 @@ namespace UnityRose.ImportEditor
 
             if (!File.Exists(fullPath))
             {
-             //   Debug.LogWarning("Missing texture " + fullPath);
+                //   Debug.LogWarning("Missing texture " + fullPath);
 
                 return null;
             }
@@ -367,6 +370,62 @@ namespace UnityRose.ImportEditor
 
             return texture;
         }
+
+        public static Material BakeMaterialHome(string rosePath, Texture2D texture, Shader shader, ImportContext context)
+        {
+            var fullPath = Utils.ResolvePathWithCorrectCase(DataPath, rosePath);
+
+            if (!File.Exists(fullPath))
+            {
+                //   Debug.LogWarning("Missing texture " + fullPath);
+
+                return null;
+            }
+
+            var fileName = Path.GetFileNameWithoutExtension(rosePath) + ".asset";
+            var assetPath = $"{context.Materials}/{fileName}".Replace("\\", "/");
+
+            var existing = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            Directory.CreateDirectory(context.Materials);
+
+            var material = new Material(shader);
+
+            material.mainTexture = texture;
+
+            material.SetFloat("_Mode", 4); // Additive
+            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetInt("_ZWrite", 0);
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.EnableKeyword("_ALPHABLEND_ON");
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.renderQueue = 3000;
+
+            // Transparency
+            material.SetFloat("_Surface", 1); // Transparent
+            material.SetFloat("_Blend", 0);   // Alpha
+
+            material.SetOverrideTag("RenderType", "Transparent");
+
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+            material.name = Path.GetFileNameWithoutExtension(rosePath);
+
+            AssetDatabase.CreateAsset(material, assetPath);
+
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssets();
+
+            return material;
+        }
+
 
         public static Material BakeMaterial(int materialIdx, ZSC zsc, string pathZ, ImportContext context)
         {
@@ -433,6 +492,7 @@ namespace UnityRose.ImportEditor
                     color.a = Mathf.Clamp01(zscMat.Alpha);
                     mat.color = color;
                 }
+
                 else
                 {
                     mat.SetFloat("_Surface", 0);
@@ -440,7 +500,7 @@ namespace UnityRose.ImportEditor
                 }
 
                 // Backface culling
-                mat.SetInt("_Cull", zscMat.TwoSided? (int)UnityEngine.Rendering.CullMode.Off: (int)UnityEngine.Rendering.CullMode.Back);
+                mat.SetInt("_Cull", zscMat.TwoSided ? (int)UnityEngine.Rendering.CullMode.Off : (int)UnityEngine.Rendering.CullMode.Back);
 
                 // ZTest
                 mat.SetInt("_ZTest", zscMat.ZTestEnabled ? (int)UnityEngine.Rendering.CompareFunction.LessEqual : (int)UnityEngine.Rendering.CompareFunction.Always);

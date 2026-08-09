@@ -10,11 +10,6 @@ using UnityRose;
 using RevolutionShared.Rose.Data;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEditor.SceneManagement;
-
-
-
-
 
 
 #if UNITY_EDITOR
@@ -746,16 +741,7 @@ public class Utils
         }
     }
 
-    /// Destroy every children of a game object.
-    /// </summary>
-    /// <param name="gameObject">Game object.</param>
-    static public void DestroyChildren(GameObject gameObject)
-    {
-        foreach (Transform child in gameObject.transform)
-        {
-            GameObject.Destroy(child.gameObject);
-        }
-    }
+
 
     //****************************************************************************************************
     //  static function DrawLine(rect : Rect) : void
@@ -879,4 +865,15 @@ public class Utils
     }
 
 #endif
+
+    /// Destroy every children of a game object.
+    /// </summary>
+    /// <param name="gameObject">Game object.</param>
+    static public void DestroyChildren(GameObject gameObject)
+    {
+        foreach (Transform child in gameObject.transform)
+        {
+            GameObject.Destroy(child.gameObject);
+        }
+    }
 }

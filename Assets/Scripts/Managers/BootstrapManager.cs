@@ -18,6 +18,12 @@ public class BootstrapManager : MonoBehaviour
     public GUIBootstrap gui;
     public DebugConsole debugConsole;
 
+    void Awake()
+    {
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
+    }
+
     /// <summary>
     /// Initialize the bootstrap.
     /// </summary>
@@ -51,6 +57,7 @@ public class BootstrapManager : MonoBehaviour
     {
         if (Input.GetKeyDown(toggleConsoleKey))
         {
+
         }
     }
 

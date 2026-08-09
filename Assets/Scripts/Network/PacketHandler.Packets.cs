@@ -103,7 +103,7 @@ public static class Packets
 
         packet.Add(username);
 
-        packet.Add(appearence);
+        packet.AddNew(appearence);
 
         return packet;
     }

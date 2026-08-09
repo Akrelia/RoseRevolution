@@ -142,13 +142,15 @@ public class SandboxManager : MonoBehaviour
             skyboxDatabase = handle.Result;
 
             Debug.Log($"Loaded Skybox Database");
+
+            ConnectToServer();
         }
     }
 
     /// <summary>
     /// Start.
     /// </summary>
-    public async void Start()
+    public async void ConnectToServer()
     {
         await Client.ConnectAsync(address, port);
 
@@ -244,12 +246,12 @@ public class SandboxManager : MonoBehaviour
         {
             var id = packet.GetLong();
             var playerName = packet.GetString();
-          //  var clanName = packet.GetString();
-          //  var clanGrade = packet.GetByte();
+            var clanName = packet.GetString();
+            var clanGrade = packet.GetByte();
 
             if (!players.ContainsKey(id))
             {
-                var appearence = packet.Get<CharacterAppearance>();
+                var appearence = packet.GetNew<CharacterAppearance>();
 
                 var x = packet.GetFloat();
                 var y = packet.GetFloat();
@@ -259,7 +261,7 @@ public class SandboxManager : MonoBehaviour
 
                 var player = worldManager.SpawnPlayer(false, playerName, appearence, position);
 
-                players.Add(id, player);
+                 players.Add(id, player);
             }
         }
     }
@@ -277,7 +279,7 @@ public class SandboxManager : MonoBehaviour
 
         if (!players.ContainsKey(id))
         {
-            var appearence = packet.Get<CharacterAppearance>();
+            var appearence = packet.GetNew<CharacterAppearance>();
 
             var player = worldManager.SpawnPlayer(false, playerName, appearence, spawnPosition);
 

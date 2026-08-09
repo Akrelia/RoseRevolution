@@ -9,7 +9,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UIElements;
-using static UnityEditor.Progress;
 
 public class GMPanelMonsterTab : MonoBehaviour
 {

@@ -9,6 +9,9 @@ public class BaseWindow : MonoBehaviour
     [HideInInspector]
     public WindowController window;
 
+    /// <summary>
+    /// Awake.
+    /// </summary>
     public void Awake()
     {
         window = GetComponent<WindowController>();

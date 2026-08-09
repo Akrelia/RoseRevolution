@@ -1,3 +1,4 @@
+using RevolutionShared.Rose.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +11,7 @@ public class PTL
     public void Read(BinaryReader r)
     {
         uint emitterCount = r.ReadUInt32();
+
         for (int i = 0; i < emitterCount; i++)
         {
             Emitter e = new();
@@ -33,18 +35,33 @@ public class PTL
             e.DestinationBlend = (BlendMode)r.ReadUInt32();
             e.SourceBlend = (BlendMode)r.ReadUInt32();
             e.BlendOp = (BlendOpType)r.ReadUInt32();
-            uint infoCount = r.ReadUInt32();
+
+            int infoCount = r.ReadInt32();
 
             for (int j = 0; j < infoCount; j++)
             {
+                long pos = r.BaseStream.Position;
+
                 ParticleInfo info = new();
                 info.Type = (AnimType)r.ReadUInt32();
-                info.TimeRange = r.ReadSingle();
+                info.TimeRange = new(r.ReadSingle(), r.ReadSingle());
+
                 info.Fade = r.ReadByte();
+
+                UnityEngine.Debug.Log($"Info {j} pos={pos} type={info.Type}");
+
                 switch (info.Type)
                 {
+                    case AnimType.NONE:
+                        break;
+
                     case AnimType.SIZE:
-                        info.Size = new(r.ReadSingle(), r.ReadSingle()); break;
+                        info.SizeMinimum = new(r.ReadSingle(), r.ReadSingle());
+                        info.SizeMaximum = new(r.ReadSingle(), r.ReadSingle());
+                        break;
+                    case AnimType.ROTATION:
+                        UnityEngine.Debug.Log("Rotation event found");
+                        break;
                     case AnimType.EVENTTIMER:
                     case AnimType.RED:
                     case AnimType.GREEN:
@@ -53,14 +70,23 @@ public class PTL
                     case AnimType.VELOCITYX:
                     case AnimType.VELOCITYY:
                     case AnimType.VELOCITYZ:
-                        info.Value = r.ReadSingle(); break;
+                        info.ValueMinimum = r.ReadSingle();
+                        info.ValueMaximum = r.ReadSingle();
+                        break;
+
                     case AnimType.COLOR:
                         info.ColorMinimum = ReadColor(r);
-                        info.ColorMaximum = ReadColor(r); break;
+                        info.ColorMaximum = ReadColor(r);
+                        break;
+
                     case AnimType.VELOCITY:
-                        info.Velocity = ReadVector3(r); break;
-                    case AnimType.UV:
-                        info.UV = new(r.ReadSingle(), r.ReadSingle()); break;
+                        info.VelocityMinimum = ReadVector3(r);
+                        info.VelocityMaximum = ReadVector3(r);
+                        break;
+
+                    case AnimType.TEXTUREINDEX:
+                        info.TextureIndex = new(r.ReadSingle(), r.ReadSingle());
+                        break;
                 }
                 e.Infos.Add(info);
             }
@@ -71,7 +97,7 @@ public class PTL
 
     static string ReadLStr(BinaryReader r) => System.Text.Encoding.UTF8.GetString(r.ReadBytes(r.ReadInt32()));
     static Vector3 ReadVector3(BinaryReader r) => new(r.ReadSingle(), r.ReadSingle(), r.ReadSingle());
-    static Color ReadColor(BinaryReader r) => new() { R = r.ReadByte(), G = r.ReadByte(), B = r.ReadByte(), A = r.ReadByte() };
+    static Color ReadColor(BinaryReader r) => new() { R = r.ReadSingle(), G = r.ReadSingle(), B = r.ReadSingle(), A = r.ReadSingle() };
 
     public class Emitter
     {
@@ -92,12 +118,16 @@ public class PTL
     public class ParticleInfo
     {
         public AnimType Type;
-        public float TimeRange;
+        public Vector2 TimeRange;
         public byte Fade;
-        public Vector2 Size;
-        public float Value;
+        public Vector2 SizeMinimum;
+        public Vector2 SizeMaximum;
+        public float ValueMinimum;
+        public float ValueMaximum;
+        public Vector2 TextureIndex;
         public Color ColorMinimum, ColorMaximum;
-        public Vector3 Velocity;
+        public Vector3 VelocityMinimum;
+        public Vector3 VelocityMaximum;
         public Vector2 UV;
     }
 
@@ -116,13 +146,24 @@ public class PTL
 
     public enum AnimType : uint
     {
-        SIZE = 1, EVENTTIMER, RED, GREEN, BLUE,
-        ALPHA, COLOR, VELOCITYX, VELOCITYY, VELOCITYZ,
-        VELOCITY, UV, TEXTUREINDEX
+        NONE = 0,
+        SIZE = 1,
+        EVENTTIMER = 2,
+        RED = 3,
+        GREEN = 4,
+        BLUE = 5,
+        ALPHA = 6,
+        COLOR = 7,
+        VELOCITYX = 8,
+        VELOCITYY = 9,
+        VELOCITYZ = 10,
+        VELOCITY = 11,
+        TEXTUREINDEX = 12,
+        ROTATION = 13
     }
 
     public struct Color
     {
-        public byte R, G, B, A;
+        public float R, G, B, A;
     }
 }

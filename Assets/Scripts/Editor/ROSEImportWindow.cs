@@ -2,22 +2,15 @@
 using UnityEditor;
 using UnityRose.Formats;
 using UnityEditor.AddressableAssets;
-using UnityEditor.AddressableAssets.Settings;
-using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityRose;
 using UnityRose.Import;
 using System.IO;
 using System;
 using System.Collections.Generic;
-using static AddressableIndex;
-using System.Text;
 using UnityRose.Game;
 using System.Linq;
-using static UnityRose.Formats.ZON;
 using RevolutionShared.Rose.Data;
 using RevolutionShared.Rose.Data.Equipment;
-using RevolutionShared.Rose.Data.NPC.Drops;
-using Unity.VisualScripting;
 using static UnityRose.ImportEditor.ImportPaths;
 
 namespace UnityRose.ImportEditor
@@ -217,6 +210,9 @@ namespace UnityRose.ImportEditor
             if (database.weaponDatabase == null)
                 database.weaponDatabase = CreateDatabase<WeaponDatabase>("WeaponDatabase");
 
+            if (database.subWeaponDatabase == null)
+                database.subWeaponDatabase = CreateDatabase<ArmorDatabase>("SubWeaponDatabase");
+
             if (database.bodyDatabase == null)
                 database.bodyDatabase = CreateDatabase<ArmorDatabase>("BodyDatabase");
 
@@ -278,6 +274,8 @@ namespace UnityRose.ImportEditor
                 BakeSlot<HeadgearData, HeadgearDataImporter>(baker, database.headgearDatabase, "Cap_F", rm.zsc_cap_female, "3DDATA/AVATAR/CAP/CAP_F.ZSC", BodyPartType.CAP, GenderType.FEMALE, maxIdsPerSlot, ResourceManager.Instance.stb_cap_list);
 
                 BakeSlot<WeaponData, WeaponDataImporter>(baker, database.weaponDatabase, "Weapon", rm.zsc_weapon, "3DDATA/WEAPON/LIST_WEAPON.ZSC", BodyPartType.WEAPON, GenderType.NONE, maxIdsPerSlot, ResourceManager.Instance.stb_weapon_list);
+                
+                BakeSlot<ArmorData, ArmorDataImporter>(baker, database.subWeaponDatabase, "Sub_Weapon", rm.zsc_subweapon, "3DDATA/WEAPON/LIST_SUBWPN.ZSC", BodyPartType.SUBWEAPON, GenderType.NONE, maxIdsPerSlot, ResourceManager.Instance.stb_subweapon_list);
 
                 BakeSlot<ArmorData, ArmorDataImporter>(baker, database.faceItemDatabase, "FaceItem", rm.zsc_faceItem, "3DDATA/AVATAR/FACEITEM/FACEITEM.ZSC", BodyPartType.FACEITEM, GenderType.NONE, maxIdsPerSlot, ResourceManager.Instance.stb_faceitem_list);
 
@@ -899,6 +897,11 @@ namespace UnityRose.ImportEditor
                 ImportIcons();
             }
 
+            if (GUILayout.Button("Import ALL EFT"))
+            {
+                ImportEffects();
+            }
+
             GUILayout.BeginHorizontal();
 
             indexNPC = EditorGUILayout.IntField("NPC ID", indexNPC);
@@ -992,6 +995,311 @@ namespace UnityRose.ImportEditor
 
                 ROSEMapListCache.MaybeUpdate();
             }
+        }
+
+        public void ImportEffects()
+        {
+            Utils.EnsureFolder(ImportPaths.Effects.Root + "/dummy.asset");
+
+            var files = Directory.GetFiles(dataPath + "/3DDATA/Effect", "*.eft", SearchOption.AllDirectories);
+
+            for (int i = 0; i < 150; i++)
+            {
+                var file = files[i];
+
+                try
+                {
+                    EFT eft = LoadEFT(file);
+
+                    if (eft == null)
+                    {
+                        continue;
+                    }
+
+                    GameObject prefab = BuildEffect(eft);
+
+                    string path = $"{ImportPaths.Effects.Prefabs}/{Path.GetFileName(file)}.prefab";
+
+                    Utils.EnsureFolder(path);
+
+                    PrefabUtility.SaveAsPrefabAsset(prefab, path);
+
+                    GameObject.DestroyImmediate(prefab);
+                }
+
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Failed to import effect {file}: {ex.Message}\n{ex.StackTrace}");
+                }
+
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+            }
+        }
+
+        EFT LoadEFT(string path)
+        {
+            EFT eft = new();
+
+            using (var stream = File.OpenRead(path))
+            using (var reader = new BinaryReader(stream))
+            {
+                eft.Read(reader);
+            }
+
+            return eft;
+        }
+
+        PTL LoadPTL(string path)
+        {
+            if (!File.Exists(path))
+            {
+                Debug.LogWarning($"Missing PTL: {path}");
+                return null;
+            }
+
+            PTL ptl = new();
+
+            using (var stream = File.OpenRead(path))
+            using (var reader = new BinaryReader(stream))
+            {
+                ptl.Read(reader);
+            }
+
+            return ptl;
+        }
+
+        public GameObject BuildEffect(EFT eft)
+        {
+            GameObject root = new(eft.Name);
+
+            foreach (var system in eft.Systems)
+            {
+                string ptlPath = Path.Combine(dataPath, system.PtlFile);
+
+                PTL ptl = LoadPTL(ptlPath);
+
+                if (ptl == null)
+                {
+                    continue;
+                }
+
+                foreach (var emitter in ptl.Emitters)
+                {
+                    GameObject obj = BuildEmitter(emitter);
+
+                    obj.transform.SetParent(root.transform);
+
+                    obj.transform.localPosition = new Vector3(emitter.MaxEmitRadius.X, emitter.MaxEmitRadius.Z, emitter.MaxEmitRadius.Y) / 100F;
+
+           //         obj.transform.localPosition = system.Position;
+                    obj.transform.localRotation = system.Rotation;
+
+                }
+            }
+
+            return root;
+        }
+
+        GameObject BuildEmitter(PTL.Emitter emitter)
+        {
+            GameObject obj = new(emitter.Name);
+
+            ParticleSystem particle = obj.AddComponent<ParticleSystem>();
+            ParticleSystemRenderer renderer = obj.GetComponent<ParticleSystemRenderer>();
+
+            var main = particle.main;
+
+            main.maxParticles = (int)emitter.ParticleNumber;
+            main.loop = emitter.LoopCount == 0;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(emitter.LifeTime.X, emitter.LifeTime.Y);
+            main.startSpeed = 0;
+
+            main.startRotationX = new ParticleSystem.MinMaxCurve(emitter.MinSpawnDir.X, emitter.MaxSpawnDir.X);
+            main.startRotationY = new ParticleSystem.MinMaxCurve(emitter.MinSpawnDir.Y, emitter.MaxSpawnDir.Y);
+            main.startRotationZ = new ParticleSystem.MinMaxCurve(emitter.MinSpawnDir.Z, emitter.MaxSpawnDir.Z);
+
+            var emission = particle.emission;
+
+            emission.rateOverTime = new ParticleSystem.MinMaxCurve(emitter.EmitRate.X, emitter.EmitRate.Y);
+
+            var shape = particle.shape;
+
+            shape.enabled = true;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            //    shape.radius = Mathf.Max(emitter.MaxEmitRadius.X, emitter.MaxEmitRadius.Y, emitter.MaxEmitRadius.Z);
+            shape.radius = 0.001F;
+
+            particle.gameObject.transform.position = new Vector3(emitter.MaxEmitRadius.X, emitter.MaxEmitRadius.Z, emitter.MaxEmitRadius.Y) / 100F;
+
+            var velocity = particle.velocityOverLifetime;
+
+            velocity.enabled = true;
+            velocity.x = new ParticleSystem.MinMaxCurve(emitter.MinGravity.X, emitter.MaxGravity.X);
+            velocity.y = new ParticleSystem.MinMaxCurve(emitter.MinGravity.Y, emitter.MaxGravity.Y);
+            velocity.z = new ParticleSystem.MinMaxCurve(emitter.MinGravity.Z, emitter.MaxGravity.Z);
+
+            var textureSheetAnimation = particle.textureSheetAnimation;
+
+            foreach (var info in emitter.Infos)
+            {
+                switch (info.Type)
+                {
+                    case PTL.AnimType.SIZE:
+                        {
+                            var size = particle.sizeOverLifetime;
+
+                            size.enabled = true;
+                            size.size = new ParticleSystem.MinMaxCurve(info.SizeMinimum.X, info.SizeMaximum.X);
+
+                            break;
+                        }
+
+                    case PTL.AnimType.COLOR:
+                        {
+                            var color = particle.colorOverLifetime;
+
+                            color.enabled = true;
+
+                            Gradient gradient = new();
+
+                            gradient.SetKeys(
+                                new[]
+                                {
+                    new GradientColorKey(ToUnityColor(info.ColorMinimum), 0f),
+                    new GradientColorKey(ToUnityColor(info.ColorMaximum), 1f)
+                                },
+                                new[]
+                                {
+                    new GradientAlphaKey(info.ColorMinimum.A, 0f),
+                    new GradientAlphaKey(info.ColorMaximum.A, 1f)
+                                });
+
+                            color.color = new ParticleSystem.MinMaxGradient(gradient);
+
+                            break;
+                        }
+
+                    case PTL.AnimType.RED:
+                    case PTL.AnimType.GREEN:
+                    case PTL.AnimType.BLUE:
+                    case PTL.AnimType.ALPHA:
+                        {
+
+                            break;
+                        }
+
+                    case PTL.AnimType.VELOCITY:
+                        {
+                            var velo1 = particle.velocityOverLifetime;
+
+                            velo1.enabled = true;
+
+                            velo1.x = new ParticleSystem.MinMaxCurve(info.VelocityMinimum.X, info.VelocityMaximum.X);
+                            velo1.y = new ParticleSystem.MinMaxCurve(info.VelocityMinimum.Y, info.VelocityMaximum.Y);
+                            velo1.z = new ParticleSystem.MinMaxCurve(info.VelocityMinimum.Z, info.VelocityMaximum.Z);
+
+                            break;
+                        }
+
+                    case PTL.AnimType.VELOCITYX:
+                        {
+                            var velo2 = particle.velocityOverLifetime;
+
+                            velo2.enabled = true;
+                            velo2.x = new ParticleSystem.MinMaxCurve(info.ValueMinimum, info.ValueMaximum);
+
+                            break;
+                        }
+
+                    case PTL.AnimType.VELOCITYY:
+                        {
+                            var velo3 = particle.velocityOverLifetime;
+
+                            velo3.enabled = true;
+                            velo3.y = new ParticleSystem.MinMaxCurve(info.ValueMinimum, info.ValueMaximum);
+
+                            break;
+                        }
+
+                    case PTL.AnimType.VELOCITYZ:
+                        {
+                            var velo3 = particle.velocityOverLifetime;
+
+                            velo3.enabled = true;
+                            velo3.z = new ParticleSystem.MinMaxCurve(info.ValueMinimum, info.ValueMaximum);
+
+                            break;
+                        }
+
+                    case PTL.AnimType.TEXTUREINDEX:
+                        {
+                            textureSheetAnimation.enabled = true;
+                            textureSheetAnimation.mode = ParticleSystemAnimationMode.Grid;
+                            textureSheetAnimation.numTilesX = (int)info.TextureIndex.X - 1;
+                            textureSheetAnimation.numTilesY = (int)info.TextureIndex.Y - 1;
+
+                            // Texture Sheet Animation.
+                            // Si TextureWidth / TextureHeight > 1 :
+                            // - textureSheetAnimation.enabled = true;
+                            // - numTilesX = TextureWidth;
+                            // - numTilesY = TextureHeight;
+                            // - frameOverTime = TextureMinimum -> TextureMaximum
+
+                            break;
+                        }
+
+                    case PTL.AnimType.EVENTTIMER:
+                        {
+                            // Evénement interne ROSE.
+                            break;
+                        }
+
+                    case PTL.AnimType.NONE:
+                        {
+                            break;
+                        }
+
+                    case PTL.AnimType.ROTATION:
+                        {
+                            var rotation = particle.rotationOverLifetime;
+
+                            rotation.enabled = true;
+                            rotation.z = new ParticleSystem.MinMaxCurve(info.ValueMinimum, info.ValueMaximum);
+
+                            break;
+                        }
+
+                    default:
+                        {
+                            Debug.LogWarning($"Unknown PTL animation type: {info.Type}");
+                            break;
+                        }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(emitter.Texture))
+            {
+                var context = new EffectImportContext();
+
+                Texture2D texture = ROSEEditorBaker.BakeTextureHome(dataPath + "/" + emitter.Texture, context);
+
+                if (texture != null)
+                {
+                    var shader = Shader.Find("Particles/Standard Unlit");
+
+                    Material material = ROSEEditorBaker.BakeMaterialHome(dataPath + "/" + emitter.Texture, texture, shader, context);
+
+                    renderer.sharedMaterial = material;
+                }
+            }
+
+            return obj;
+        }
+
+        Color ToUnityColor(PTL.Color color)
+        {
+            return new UnityEngine.Color(color.R, color.G, color.B, color.A);
         }
 
         public void ImportIcons()

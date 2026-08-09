@@ -121,6 +121,7 @@ namespace UnityRose
             changeID(BodyPartType.FACEITEM, appearence.Mask);
             changeID(BodyPartType.CAP, appearence.Hat);
 			changeID(BodyPartType.WEAPON, appearence.Weapon);
+			changeID(BodyPartType.SUBWEAPON, appearence.SubWeapon);
         }
 
 		public void changeID(BodyPartType bodyPart, int id)

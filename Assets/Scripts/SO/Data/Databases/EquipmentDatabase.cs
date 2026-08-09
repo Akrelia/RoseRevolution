@@ -10,6 +10,7 @@ using RevolutionShared.Rose.Data.Equipment;
 public class EquipmentDatabase : ScriptableObject
 {
     public WeaponDatabase weaponDatabase;
+    public ArmorDatabase subWeaponDatabase;
     public ArmorDatabase backDatabase;
     public HeadgearDatabase headgearDatabase;
     public FootwearDatabase footwearDatabase;
@@ -31,7 +32,8 @@ public class EquipmentDatabase : ScriptableObject
             { BodyPartType.FOOT, footwearDatabase },
             { BodyPartType.BODY, bodyDatabase },
             { BodyPartType.ARMS, armDatabase },
-            { BodyPartType.FACEITEM, faceItemDatabase }
+            { BodyPartType.FACEITEM, faceItemDatabase },
+            { BodyPartType.SUBWEAPON, subWeaponDatabase }
         };
     }
 
