@@ -127,8 +127,6 @@ namespace UnityRose
             stb_sky_list = (STB)loadResource("3DDATA/STB/LIST_SKY.STB");
 
             stl_zone_list = (STL)loadResource("3DDATA/STB/LIST_ZONE_S.STL");
-
-            cache = new Cache(this, CACHE_SIZE);
         }
 
         /// <summary>
@@ -168,16 +166,6 @@ namespace UnityRose
         public void unloadResource(UnityEngine.Object resource)
         {
             Resources.UnloadAsset(resource);
-        }
-
-        /// <summary>
-        /// Checks the cache to see if the resource has already been loaded recently
-        /// If found, returns the cached resource from memory (fast)
-        /// If not found, loads the resource from file (slow) and caches the resource
-        /// </summary>
-        public object cachedLoad(string path)
-        {
-            return cache.request(path);
         }
 
         /// <summary>
