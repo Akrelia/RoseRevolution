@@ -312,10 +312,7 @@ namespace UnityRose
             {
                 var attachment = part.GetComponent<RoseAttach>();
 
-                var anchor = attachment != null
-                    ? GetAnchorForDummy(bodyPart, attachment.dummy)
-                    : GetDefaultAnchor(bodyPart);
-
+                var anchor = attachment != null ? GetAnchorForDummy(bodyPart, attachment.dummy): GetDefaultAnchor(bodyPart);
 
                 part.SetParent(anchor, false);
                 part.localPosition = Vector3.zero;

@@ -426,7 +426,6 @@ namespace UnityRose.ImportEditor
             return material;
         }
 
-
         public static Material BakeMaterial(int materialIdx, ZSC zsc, string pathZ, ImportContext context)
         {
             var zscName = Path.GetFileNameWithoutExtension(pathZ);

@@ -6,194 +6,144 @@ using RevolutionShared.Rose.Data;
 
 namespace UnityRose
 {
+    public class PlayerController : MonoBehaviour
+    {
+        public bool isMainPlayer = false;
+        public PlayerInfo playerInfo;
+        public GameObject cursor;
 
-	public class PlayerController : MonoBehaviour
-	{
-		public bool isMainPlayer = false;
-		public PlayerInfo playerInfo;
-		public GameObject cursor;
-		public bool VR = false;
+        private int floorMask;
+        private float camRayLength = 500f;
+        public Vector3 destinationPosition;
+        private CharacterController controller;
+        private State animationStateMachine;
+        private bool isWalking = false;
+        private States state = States.STANDING;
+        public RosePlayer rosePlayer;
 
-		private int floorMask;
-		private float camRayLength = 500f;
-		public Vector3 destinationPosition;
-		private CharacterController controller;
-		private State animationStateMachine;
-		private bool isWalking = false;
-		private States state = States.STANDING;
-		public RosePlayer rosePlayer;
+        public void Start()
+        {
+            floorMask = LayerMask.GetMask("Floor") | LayerMask.GetMask("MapObjects");
+            controller = this.gameObject.GetComponent<CharacterController>();
+            destinationPosition = transform.position;
+            playerInfo.name = this.name;
+        }
 
-		void Awake()
-		{
-			Application.targetFrameRate = 60;
-		}
+        public void SetAnimationStateMachine(RigType rig, States initialState)
+        {
+            state = initialState;
 
-		// Use this for initialization
-		void Start()
-		{
-			floorMask = LayerMask.GetMask("Floor") | LayerMask.GetMask("MapObjects");
-			controller = this.gameObject.GetComponent<CharacterController>();
-			destinationPosition = transform.position;
-			playerInfo.name = this.name;
-		}
+            animationStateMachine = new PlayerState(initialState, "Player State Machine", this.gameObject);
 
+            animationStateMachine.Entry();
+        }
 
-		public void SetAnimationStateMachine(RigType rig, States initialState)
-		{
-			state = initialState;
-			switch (rig)
-			{
-				case RigType.FOOT:
-					animationStateMachine = new PlayerState(initialState, "Player State Machine", this.gameObject);
-					break;
-				case RigType.CHARSELECT:
-					animationStateMachine = new CharSelectState(initialState, "Char Select State Machine", this.gameObject);
-					break;
-				default:
-					break;
-			}
+        public void SetAnimationState(States state)
+        {
+            this.state = state;
 
-			animationStateMachine.Entry();
-		}
+            if (animationStateMachine != null)
+            {
+                animationStateMachine.Evaluate(state);
+            }
+        }
 
-		public void SetAnimationState(States state)
-		{
-			this.state = state;
-			if (animationStateMachine != null)
-				animationStateMachine.Evaluate(state);
-		}
+        public void OnSkeletonChange()
+        {
+            SetAnimationStateMachine(rosePlayer.charModel.rig, animationStateMachine.state);
+        }
 
-		public void OnSkeletonChange()
-		{
-			// Persist current rig and animation state
-			SetAnimationStateMachine(rosePlayer.charModel.rig, animationStateMachine.state);
-		}
+        public void OnChangeEquip(BodyPartType bodyPart, int id)
+        {
+            rosePlayer.Equip(bodyPart, id);
+        }
 
-		public void OnChangeEquip(BodyPartType bodyPart, int id)
-		{
-			rosePlayer.Equip(bodyPart, id);
-		}
+        private void Update()
+        {
+            if (rosePlayer.charModel.rig == RigType.FOOT)
+            {
+                if (isMainPlayer)
+                {
+                    bool locate = false;
 
-		// Update is called once per frame
-		void Update()
-		{
-			// Only handle walking movement if the correct rig is used
-			if (rosePlayer.charModel.rig == RigType.FOOT)
-			{
-				// Only take input if this player is the main player
-				if (this.isMainPlayer)
-				{
-					bool locate = false;
+                    locate = Input.GetMouseButton(0);
 
-					switch (Application.platform)
-					{
-						case RuntimePlatform.IPhonePlayer:
-						case RuntimePlatform.Android:
-							locate = Input.touchCount > 0;
-							break;
-						default:
-							locate = Input.GetMouseButton(0);
-							break;
+                    if (locate)
+                    {
+                        LocatePosition();
+                    }
+                }
 
-					}
+                MoveToPosition();
 
-					if (locate)
-						LocatePosition();
-				}
+                if (isWalking)
+                {
+                    state = States.RUN;
+                }
 
+                else
+                {
+                    state = States.STANDING;
+                }
+            }
 
-				MoveToPosition();
+            if (animationStateMachine != null)
+            {
+                animationStateMachine.Evaluate(state);
+            }
+        }
 
+        public void LocatePosition()
+        {
+            Vector2 screenPoint;
+            bool fire = false;
 
-				// TODO: use character state packets to control state
-				if (isWalking)
-					state = States.RUN;
-				else
-					state = States.STANDING;
-			}
+            screenPoint = Input.mousePosition;
+            fire = Input.GetMouseButtonDown(0);
 
-			// Evaluate the animation state machine
-			if (animationStateMachine != null)
-				animationStateMachine.Evaluate(state);
-		}
+            Ray camRay = Camera.main.ScreenPointToRay(screenPoint);
+            RaycastHit floorHit;
 
+            if (fire)
+            {
+                if (EventSystem.current.IsPointerOverGameObject())
+                {
+                    return;
+                }
 
-		public void LocatePosition()
-		{
-			Vector2 screenPoint;
-			bool fire = false;
-			switch (Application.platform)
-			{
-				case RuntimePlatform.IPhonePlayer:
-				case RuntimePlatform.Android:
-					screenPoint = Input.GetTouch(0).position;
-					fire = (Input.GetTouch(0).tapCount > 0) && (Input.GetTouch(0).phase == TouchPhase.Ended);
-					break;
-				default:
-					screenPoint = Input.mousePosition;
-					fire = Input.GetMouseButtonDown(0);
-					break;
+                else
+                {
+                    if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
+                    {
+                        destinationPosition = floorHit.point;
+                    }
 
-			}
+                    Client.Instance.SendPacket(Packets.Move(destinationPosition));
+                }
+            }
+        }
 
-			Ray camRay = Camera.main.ScreenPointToRay(screenPoint);
-			RaycastHit floorHit;
+        public void MoveToPosition()
+        {
+            if (Vector3.Distance(transform.position, destinationPosition) > 0.5f)
+            {
+                Vector3 playerToMouse = destinationPosition - transform.position;
 
-			if (fire)
-			{
-				if (EventSystem.current.IsPointerOverGameObject())
-				{
-					return;
-				}
+                playerToMouse.y = 0;
 
-				else
-				{
+                Quaternion newRotation = Quaternion.LookRotation(playerToMouse);
 
-					if (VR)
-						destinationPosition = cursor.transform.position;
-					// Perform the raycast and if it hits something on the floor layer...
-					else if (Physics.Raycast(camRay, out floorHit, camRayLength, floorMask))
-						destinationPosition = floorHit.point;
+                transform.rotation = newRotation;
 
-					// Send a clicked on ground packet
-					//NetworkManager.Send(new GroundClick(gameObject.name, destinationPosition)); // TODO : Here send ours instead
-					Client.Instance.SendPacket(Packets.Move(destinationPosition));
-					//destinationPosition = transform.position; // TODO: restore this
-				}
-			}
-		}
+                controller.SimpleMove(transform.forward * playerInfo.tMovS);
 
-		public void MoveToPosition()
-		{
-			if (Vector3.Distance(transform.position, destinationPosition) > 0.5f)
-			{
-				Vector3 playerToMouse = destinationPosition - transform.position;
-				playerToMouse.y = 0;
+                isWalking = true;
+            }
 
-				// Create a quaternion (rotation) based on looking down the vector from the player to the mouse.
-				Quaternion newRotation = Quaternion.LookRotation(playerToMouse);
-				transform.rotation = newRotation;
-
-				if (VR)
-				{
-					// TODO: use a smooth rotation
-					GameObject cameraObject = GameObject.Find("Main Camera");
-					Vector3 camRotationEuler = cameraObject.transform.rotation.eulerAngles;
-					Vector3 newRotationEuler = newRotation.eulerAngles;
-
-					Quaternion newCamRotation = Quaternion.Euler(camRotationEuler.x, newRotationEuler.y, newRotationEuler.z);
-					cameraObject.transform.rotation = newRotation;
-				}
-
-				//check hangout
-				controller.SimpleMove(transform.forward * playerInfo.tMovS);
-				isWalking = true;
-			}
-			else
-			{
-				isWalking = false;
-			}
-		}
-
-	}
+            else
+            {
+                isWalking = false;
+            }
+        }
+    }
 }

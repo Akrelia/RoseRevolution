@@ -292,7 +292,9 @@ namespace UnityRose.ImportEditor
                 //       AssetDatabase.StopAssetEditing();
             }
 
+
             EditorUtility.SetDirty(database.weaponDatabase);
+            EditorUtility.SetDirty(database.subWeaponDatabase);
             EditorUtility.SetDirty(database.bodyDatabase);
             EditorUtility.SetDirty(database.armDatabase);
             EditorUtility.SetDirty(database.backDatabase);
@@ -779,6 +781,7 @@ namespace UnityRose.ImportEditor
             var subDatabases = new ScriptableObject[]
             {
         database.weaponDatabase,
+        database.subWeaponDatabase,
         database.bodyDatabase,
         database.armDatabase,
         database.backDatabase,
@@ -969,6 +972,14 @@ namespace UnityRose.ImportEditor
                     GUILayout.Label(spawnsExist ? "✔️" : "", centeredStyle, GUILayout.Width(80));
 
                     if (GUILayout.Button("Import", GUILayout.Width(100)))
+                    {
+                        var map = RoseMapImporter.ImportMap(i);
+
+                        RegisterMapInInternalDB(i);
+                        RegisterSpawnInInternalDB(i);
+                    }
+
+                    if (GUILayout.Button("Magic Import", GUILayout.Width(100)))
                     {
                         var map = RoseMapImporter.ImportMap(i);
 

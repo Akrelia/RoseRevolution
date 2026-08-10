@@ -221,6 +221,26 @@ namespace UnityRose.Formats
             Load(filePath, camera, divide);
         }
 
+        private Vector3 GetContinuousEulerRotation(int channelIndex, int frameIndex)
+        {
+            Vector3 current = Frames[frameIndex].Channels[channelIndex].Rotation.eulerAngles;
+
+            current.x = Mathf.DeltaAngle(0f, current.x);
+            current.y = Mathf.DeltaAngle(0f, current.y);
+            current.z = Mathf.DeltaAngle(0f, current.z);
+
+            if (frameIndex > 0)
+            {
+                Vector3 previous = GetContinuousEulerRotation(channelIndex, frameIndex - 1);
+
+                current.x = previous.x + Mathf.DeltaAngle(previous.x, current.x);
+                current.y = previous.y + Mathf.DeltaAngle(previous.y, current.y);
+                current.z = previous.z + Mathf.DeltaAngle(previous.z, current.z);
+            }
+
+            return current;
+        }
+
         public AnimationClip buildAnimationClip(ZMD skeleton)
         {
             var clip = new AnimationClip();
@@ -234,44 +254,49 @@ namespace UnityRose.Formats
                 }
 
                 string cbn = skeleton.bones[Channels[i].ID].Path;
+
                 if (Channels[i].Type == ChannelType.Rotation)
                 {
                     var curvex = new AnimationCurve();
                     var curvey = new AnimationCurve();
                     var curvez = new AnimationCurve();
-                    var curvew = new AnimationCurve();
+
                     for (var j = 0; j < frameCount; ++j)
                     {
-                        Frame.Channel chan = Frames[j].Channels[i];
-                        curvex.AddKey((float)j / (float)FPS, chan.Rotation.x);
-                        curvey.AddKey((float)j / (float)FPS, chan.Rotation.y);
-                        curvez.AddKey((float)j / (float)FPS, chan.Rotation.z);
-                        curvew.AddKey((float)j / (float)FPS, chan.Rotation.w);
+                        float time = (float)j / FPS;
+                        Vector3 rotation = GetContinuousEulerRotation(i, j);
+
+                        curvex.AddKey(time, rotation.x);
+                        curvey.AddKey(time, rotation.y);
+                        curvez.AddKey(time, rotation.z);
                     }
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.x", curvex);
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.y", curvey);
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.z", curvez);
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.w", curvew);
+
+                    clip.SetCurve(cbn, typeof(Transform), "localEulerAnglesRaw.x", curvex);
+                    clip.SetCurve(cbn, typeof(Transform), "localEulerAnglesRaw.y", curvey);
+                    clip.SetCurve(cbn, typeof(Transform), "localEulerAnglesRaw.z", curvez);
                 }
                 else if (Channels[i].Type == ChannelType.Position)
                 {
                     var curvex = new AnimationCurve();
                     var curvey = new AnimationCurve();
                     var curvez = new AnimationCurve();
+
                     for (var j = 0; j < frameCount; ++j)
                     {
+                        float time = (float)j / FPS;
                         Frame.Channel chan = Frames[j].Channels[i];
-                        curvex.AddKey((float)j / (float)FPS, chan.Position.x);
-                        curvey.AddKey((float)j / (float)FPS, chan.Position.y);
-                        curvez.AddKey((float)j / (float)FPS, chan.Position.z);
+
+                        curvex.AddKey(time, chan.Position.x);
+                        curvey.AddKey(time, chan.Position.y);
+                        curvez.AddKey(time, chan.Position.z);
                     }
+
                     clip.SetCurve(cbn, typeof(Transform), "localPosition.x", curvex);
                     clip.SetCurve(cbn, typeof(Transform), "localPosition.y", curvey);
                     clip.SetCurve(cbn, typeof(Transform), "localPosition.z", curvez);
                 }
             }
 
-            clip.EnsureQuaternionContinuity();
             return clip;
         }
 
@@ -284,10 +309,6 @@ namespace UnityRose.Formats
             {
                 var boneId = Channels[i].ID;
 
-                // was: var cbn = "Bone_" + boneId.ToString();
-                // "Bone_{index}" never matched the real bone names ("b1_pelvis", "b1_lfoot", ...)
-                // that BuildNpcPrefab uses for its GameObjects, so every curve bound to nothing -
-                // hence "missing" for every single track in the Animator window.
                 if (skeleton == null || boneId < 0 || boneId >= skeleton.bones.Count)
                 {
                     Debug.LogWarning("Found invalid channel index or null skeleton.");
@@ -296,13 +317,20 @@ namespace UnityRose.Formats
 
                 var cbn = skeleton.bones[boneId].name;
                 int curBoneIdx = boneId;
+
                 while (true)
                 {
-                    if (curBoneIdx == 0) break;
+                    if (curBoneIdx == 0)
+                    {
+                        break;
+                    }
 
                     curBoneIdx = skeleton.bones[curBoneIdx].parent;
 
-                    if (curBoneIdx < 0) break; // reached a bone with no parent before hitting index 0
+                    if (curBoneIdx < 0)
+                    {
+                        break;
+                    }
 
                     cbn = skeleton.bones[curBoneIdx].name + "/" + cbn;
                 }
@@ -312,32 +340,37 @@ namespace UnityRose.Formats
                     var curvex = new AnimationCurve();
                     var curvey = new AnimationCurve();
                     var curvez = new AnimationCurve();
-                    var curvew = new AnimationCurve();
+
                     for (var j = 0; j < frameCount; ++j)
                     {
-                        Frame.Channel chan = Frames[j].Channels[i];
-                        curvex.AddKey((float)j / (float)FPS, chan.Rotation.x);
-                        curvey.AddKey((float)j / (float)FPS, chan.Rotation.y);
-                        curvez.AddKey((float)j / (float)FPS, chan.Rotation.z);
-                        curvew.AddKey((float)j / (float)FPS, chan.Rotation.w);
+                        float time = (float)j / FPS;
+                        Vector3 rotation = GetContinuousEulerRotation(i, j);
+
+                        curvex.AddKey(time, rotation.x);
+                        curvey.AddKey(time, rotation.y);
+                        curvez.AddKey(time, rotation.z);
                     }
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.x", curvex);
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.y", curvey);
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.z", curvez);
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.w", curvew);
+
+                    clip.SetCurve(cbn, typeof(Transform), "localEulerAnglesRaw.x", curvex);
+                    clip.SetCurve(cbn, typeof(Transform), "localEulerAnglesRaw.y", curvey);
+                    clip.SetCurve(cbn, typeof(Transform), "localEulerAnglesRaw.z", curvez);
                 }
                 else if (Channels[i].Type == ChannelType.Position)
                 {
                     var curvex = new AnimationCurve();
                     var curvey = new AnimationCurve();
                     var curvez = new AnimationCurve();
+
                     for (var j = 0; j < frameCount; ++j)
                     {
+                        float time = (float)j / FPS;
                         Frame.Channel chan = Frames[j].Channels[i];
-                        curvex.AddKey((float)j / (float)FPS, chan.Position.x);
-                        curvey.AddKey((float)j / (float)FPS, chan.Position.y);
-                        curvez.AddKey((float)j / (float)FPS, chan.Position.z);
+
+                        curvex.AddKey(time, chan.Position.x);
+                        curvey.AddKey(time, chan.Position.y);
+                        curvez.AddKey(time, chan.Position.z);
                     }
+
                     clip.SetCurve(cbn, typeof(Transform), "localPosition.x", curvex);
                     clip.SetCurve(cbn, typeof(Transform), "localPosition.y", curvey);
                     clip.SetCurve(cbn, typeof(Transform), "localPosition.z", curvez);
@@ -348,27 +381,19 @@ namespace UnityRose.Formats
             settings.loopTime = true;
             AnimationUtility.SetAnimationClipSettings(clip, settings);
 
-            clip.EnsureQuaternionContinuity();
-
-
             return clip;
         }
 
-        //append animation clip
         public AnimationClip buildAnimationClip(string objectName, AnimationClip clip)
         {
-            //var clip = new AnimationClip();
-
             for (var i = 0; i < channelCount; ++i)
             {
-
                 if (Channels[i].ID < 0)
                 {
                     Debug.LogWarning("Found invalid channel index.");
                     continue;
                 }
 
-                //string cbn = skeleton.bones[Channels[i].ID].Path;
                 string cbn = objectName;
 
                 if (Channels[i].Type == ChannelType.Rotation)
@@ -376,45 +401,47 @@ namespace UnityRose.Formats
                     var curvex = new AnimationCurve();
                     var curvey = new AnimationCurve();
                     var curvez = new AnimationCurve();
-                    var curvew = new AnimationCurve();
+
                     for (var j = 0; j < frameCount; ++j)
                     {
-                        Frame.Channel chan = Frames[j].Channels[i];
-                        curvex.AddKey((float)j / (float)FPS, chan.Rotation.x);
-                        curvey.AddKey((float)j / (float)FPS, chan.Rotation.y);
-                        curvez.AddKey((float)j / (float)FPS, chan.Rotation.z);
-                        curvew.AddKey((float)j / (float)FPS, chan.Rotation.w);
+                        float time = (float)j / FPS;
+                        Vector3 rotation = GetContinuousEulerRotation(i, j);
+
+                        curvex.AddKey(time, rotation.x);
+                        curvey.AddKey(time, rotation.y);
+                        curvez.AddKey(time, rotation.z);
                     }
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.x", curvex);
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.y", curvey);
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.z", curvez);
-                    clip.SetCurve(cbn, typeof(Transform), "localRotation.w", curvew);
+
+                    clip.SetCurve(cbn, typeof(Transform), "localEulerAnglesRaw.x", curvex);
+                    clip.SetCurve(cbn, typeof(Transform), "localEulerAnglesRaw.y", curvey);
+                    clip.SetCurve(cbn, typeof(Transform), "localEulerAnglesRaw.z", curvez);
                 }
                 else if (Channels[i].Type == ChannelType.Position)
                 {
                     var curvex = new AnimationCurve();
                     var curvey = new AnimationCurve();
                     var curvez = new AnimationCurve();
+
                     for (var j = 0; j < frameCount; ++j)
                     {
+                        float time = (float)j / FPS;
                         Frame.Channel chan = Frames[j].Channels[i];
-                        curvex.AddKey((float)j / (float)FPS, chan.Position.x);
-                        curvey.AddKey((float)j / (float)FPS, chan.Position.y);
-                        curvez.AddKey((float)j / (float)FPS, chan.Position.z);
+
+                        curvex.AddKey(time, chan.Position.x);
+                        curvey.AddKey(time, chan.Position.y);
+                        curvez.AddKey(time, chan.Position.z);
                     }
+
                     clip.SetCurve(cbn, typeof(Transform), "localPosition.x", curvex);
                     clip.SetCurve(cbn, typeof(Transform), "localPosition.y", curvey);
                     clip.SetCurve(cbn, typeof(Transform), "localPosition.z", curvez);
                 }
             }
 
-
-
-            //AssetDatabase.CreateAsset(clip, "Assets/Animations/" + Path.GetFileName( fileName) + ".anim");
-            //AssetDatabase.SaveAssets();
-
             return clip;
         }
+
+
 
         /// <summary>
         /// Loads the specified file.
@@ -471,7 +498,7 @@ namespace UnityRose.Formats
                             break;
                         case ChannelType.Rotation:
                             {
-                                Frames[i].Channels[j].Rotation = Utils.r2uRotation(new Quaternion()
+                                Frames[i].Channels[j].Rotation = Utils.R2URotation2(new Quaternion()
                                 {
                                     w = fh.Read<float>(),
                                     x = fh.Read<float>(),

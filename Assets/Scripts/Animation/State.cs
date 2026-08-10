@@ -32,20 +32,6 @@ public enum States
 	HOVERING,
 };
 
-/*
-public struct StateParams
-{
-	public bool sitting;
-	public bool standing;
-	public bool walking;
-	public bool targetLocked;
-	public bool chase;
-	public bool skill;
-	public bool defaultAttack;
-	public string nextSkill;
-}
-*/
-
 public class StateConnection
 {
 	public States stateName;
@@ -54,16 +40,10 @@ public class StateConnection
 
 	public bool condition(States state, States current)
 	{
-
 		if (state != current)
 			return true;
 
 		return false;
-		//Type type = typeof(StateParams);
-		//bool value = (bool)type.GetField(paramName).GetValue(stateParams);
-		//return value;	
-
-
 	}
 
 	public StateConnection(States stateName, State nextState, string parameter)
@@ -71,7 +51,6 @@ public class StateConnection
 		this.stateName = stateName;
 		this.nextState = nextState;
 		this.paramName = parameter;
-
 	}
 
 	public StateConnection(States stateName, State nextState)
@@ -82,7 +61,6 @@ public class StateConnection
 
 	}
 }
-
 
 public class State
 {
@@ -152,8 +130,8 @@ public class State
 public class TransitionState : State
 {
 	private State nextState;
-	public TransitionState(States activeState, State nextState, GameObject gameObject)
-		: base(activeState, gameObject, WrapMode.Once)
+
+	public TransitionState(States activeState, State nextState, GameObject gameObject) : base(activeState, gameObject, WrapMode.Once)
 	{
 		this.nextState = nextState;
 	}
@@ -335,8 +313,7 @@ public class PlayerState : State
 	private Dictionary<string, State> states;
 	private State currentState;
 
-	public PlayerState(States cState, string name, GameObject gameObject)
-		: base(cState, gameObject)
+	public PlayerState(States cState, string name, GameObject gameObject) : base(cState, gameObject)
 	{
 		// Generate list of states
 		states = new Dictionary<string, State>();

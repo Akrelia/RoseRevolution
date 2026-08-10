@@ -125,7 +125,9 @@ public class MonsterViewerWindow : BaseWindow
         var animations = npcDatabase.entries[index].data.animations;
 
         if (animations == null || animations.Count == 0)
+        {
             return;
+        }
 
         var count = animations.Count;
 
@@ -134,10 +136,14 @@ public class MonsterViewerWindow : BaseWindow
             animationIndex = Mod(animationIndex + direction, count);
 
             if (animations[animationIndex] != null)
+            {
                 break;
+            }
 
             if (i == count - 1)
+            {
                 return;
+            }
         }
 
         var animatorController = modelPreview.CurrentModel.GetComponent<Animator>();

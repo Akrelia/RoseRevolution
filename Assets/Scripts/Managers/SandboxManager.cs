@@ -55,7 +55,7 @@ public class SandboxManager : MonoBehaviour
 
     CharacterAppearance appearance;
     Dictionary<long, RosePlayer> players;
-    Dictionary<int, EntityModelBehavior> entities;
+    Dictionary<int, EntityBehavior> entities;
 
     /// <summary>
     /// Awake.
@@ -63,7 +63,7 @@ public class SandboxManager : MonoBehaviour
     private void Awake()
     {
         players = new Dictionary<long, RosePlayer>();
-        entities = new Dictionary<int, EntityModelBehavior>();
+        entities = new Dictionary<int, EntityBehavior>();
 
 #if UNITY_EDITOR
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged; // This is just for sending a proper packet like we will do in the standalone client, but for the Editor special case
@@ -261,7 +261,7 @@ public class SandboxManager : MonoBehaviour
 
                 var player = worldManager.SpawnPlayer(false, playerName, appearence, position);
 
-                 players.Add(id, player);
+                players.Add(id, player);
             }
         }
     }
@@ -372,6 +372,26 @@ public class SandboxManager : MonoBehaviour
         var message = packet.GetString();
 
         guiController.chatController.AddSystemMessage($"{username} issued the command {message}");
+    }
+
+    [PacketEvent(ServerCommands.EntityUpdate)]
+    public void EntityUpdate(Client client, PacketIn packet)
+    {
+        var entityID = packet.GetInt();
+
+        var position = packet.GetReadable<WorldPosition>();
+
+        if (entities.ContainsKey(entityID))
+        {
+            var entity = entities[entityID];
+
+            entity.SetDestination(position);
+        }
+
+        else
+        {
+            RoseDebug.LogWarning($"Received an update for an entity that doesn't exist : {entityID}");
+        }
     }
 
     /// <summary>

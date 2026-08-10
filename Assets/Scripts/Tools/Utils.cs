@@ -25,10 +25,8 @@ public class Utils
 
     public static Quaternion r2uRotation(Quaternion q)
     {
-        Vector3 axis;
-        float angle;
-        q.ToAngleAxis(out angle, out axis);
-        return Quaternion.AngleAxis(angle, new Vector3(axis.x, axis.z, -axis.y));
+        return new Quaternion(q.x, q.z, -q.y, q.w);
+
     }
 
     public static Quaternion R2URotation2(Quaternion q)

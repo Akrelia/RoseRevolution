@@ -147,27 +147,30 @@ public class WorldManager : MonoBehaviour
     /// <param name="dataId">Data id.</param>
     /// <param name="position">Position.</param>
     /// <returns>Entity spawned.</returns>
-    public EntityModelBehavior SpawnEntity(EntityInfos infos, EntitySubInfos subInfos, NPCDatabaseEntry entityData, Vector3 position)
+    public EntityBehavior SpawnEntity(EntityInfos infos, EntitySubInfos subInfos, NPCDatabaseEntry entityData, Vector3 position)
     {
         var prefab = entityPrefabs[infos.type];
         var data = entityData.data.monsterData;
 
-        var entity = Instantiate(prefab, monstersParent.transform);
-
-        var entityModel = Instantiate(entityData.prefab);
-        entityModel.transform.SetParent(entity.transform, false);
+        var entity = Instantiate(prefab, monstersParent.transform).GetComponent<EntityBehavior>();
 
         entity.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+
+        var entityModel = Instantiate(entityData.prefab);
+
+        entityModel.transform.SetParent(entity.transform, false);
 
         var mod = entity.GetComponent<IEntityMod>();
 
         mod?.LoadMod(subInfos);
 
         entity.name = $"{data.ID}{data.displayName}";
+        entity.mod = mod;
+        entity.model = entityModel.GetComponent<EntityModelBehavior>();
 
-        worldGUIController.SpawnEntityGUI(infos.id, entity, entityData.data.monsterData);
+        worldGUIController.SpawnEntityGUI(infos.id, entity.gameObject, entityData.data.monsterData);
 
-        return entity.GetComponent<EntityModelBehavior>();
+        return entity;
     }
 
     /// <summary>
