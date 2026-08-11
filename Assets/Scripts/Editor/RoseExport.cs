@@ -1,15 +1,26 @@
+using Newtonsoft.Json;
 using RevolutionShared.Rose.Data;
+using RevolutionShared.Rose.Data.NPC;
 using RevolutionShared.Rose.Data.NPC.Drops;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using UnityRose;
 using UnityRose.Formats;
 
 /// <summary>
 /// Rose export.
 /// </summary>
-public class RoseExport : MonoBehaviour
+public class RoseExport
 {
+    /// <summary>
+    /// Exports the drop table from the given STB and row index.
+    /// </summary>
+    /// <param name="stb">STB.</param>
+    /// <param name="row"></param>
+    /// <returns>Drop table data.</returns>
     public static DropTableData ExportDropTable(STB stb, int row)
     {
         var table = new DropTableData();
@@ -44,10 +55,9 @@ public class RoseExport : MonoBehaviour
                 return;
             }
 
-            ItemType type = RoseExport.GetItemType(itemId);
+            ItemType type = GetItemTypeFromFullID(itemId);
 
-            // Remove the type prefix from the item ID.
-            int cleanId = itemId % 1000;
+            int cleanId = itemId % 1000; // Remove the type prefix from the item ID.
 
             if (drops.TryGetValue(itemId, out var drop))
             {
@@ -103,7 +113,12 @@ public class RoseExport : MonoBehaviour
         return table;
     }
 
-    public static ItemType GetItemType(int itemId)
+    /// <summary>
+    /// Gets the item type from the given item ID.
+    /// </summary>
+    /// <param name="itemId">Item type.</param>
+    /// <returns></returns>
+    public static ItemType GetItemTypeFromFullID(int itemId)
     {
         if (itemId <= 0)
         {

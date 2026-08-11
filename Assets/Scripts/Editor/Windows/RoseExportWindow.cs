@@ -1,97 +1,331 @@
-using Newtonsoft.Json;
-using RevolutionShared.Rose.Data.NPC;
-using RevolutionShared.Rose.Data.NPC.Drops;
-using System.IO;
-using System.Linq;
-using UnityEditor;
 using UnityEngine;
-using UnityRose;
+using UnityEditor;
+using System.Linq;
+using System.IO;
+using Newtonsoft.Json;
+using UnityEngine.AddressableAssets;
+using Codice.Client.BaseCommands;
 
-public class RoseExportWindow : EditorWindow
+namespace UnityRose.ImportEditor
 {
-    [MenuItem("ROSE Online/Drop Exporter")]
-    public static void ShowWindow()
+    /// <summary>
+    /// ROse Database Window.
+    /// </summary>
+    public class ROSEExportWindow : EditorWindow
     {
-        GetWindow<RoseExportWindow>("Drop Exporter");
-    }
+        private Vector2 scroll;
+        private NPCDatabase npcDatabase;
+        private MapDatabase mapDatabase;
+        private DropTableDatabase dropTableDatabase;
+        private MonsterSpawnDatabase spawnDatabase;
 
-    private void OnGUI()
-    {
-        GUILayout.Space(10);
-
-        if (GUILayout.Button("Export Drops"))
+        /// <summary>
+        /// Open the window.
+        /// </summary>
+        [MenuItem("ROSE Online/Data Exporter")]
+        public static void Open()
         {
-            ExportDrops();
+            var window = GetWindow<ROSEExportWindow>("ROSE Exporter");
+
+            window.minSize = new Vector2(900, 600);
+            window.position = new Rect(window.position.x, window.position.y, 900, 600);
         }
-    }
 
-    private void ExportDrops()
-    {
-        Debug.Log("Starting drop export...");
-
-        var table = RoseExport.ExportDropTable(ResourceManager.Instance.stb_drops_list, 196); // Worm dragon Test
-
-        ExportJson(table);
-
-        Debug.Log("Drop export finished.");
-    }
-
-    public static string ExportJson(DropTableData table)
-    {
-        var export = new
+        /// <summary>
+        /// When enabled.
+        /// </summary>
+        private void OnEnable()
         {
-            dropSuccess = table.dropSuccess,
-            totalWeight = table.totalChance,
-            drops = table.drops.Select(x => new DropDataExport
+            LoadDatabases();
+        }
+
+        /// <summary>
+        /// Load every databases.
+        /// </summary>
+        private void LoadDatabases()
+        {
+            mapDatabase = Addressables.LoadAssetAsync<MapDatabase>(nameof(MapDatabase)).WaitForCompletion();
+            spawnDatabase = Addressables.LoadAssetAsync<MonsterSpawnDatabase>(nameof(MonsterSpawnDatabase)).WaitForCompletion();
+            npcDatabase = Addressables.LoadAssetAsync<NPCDatabase>(nameof(NPCDatabase)).WaitForCompletion();
+            dropTableDatabase = Addressables.LoadAssetAsync<DropTableDatabase>(nameof(DropTableDatabase)).WaitForCompletion();
+        }
+
+        /// <summary>
+        /// Drawing the GUI.
+        /// </summary>
+        private void OnGUI()
+        {
+            if (mapDatabase == null)
             {
-                ID = x.ID,
-                dropChance = x.dropChance,
-                Type = x.Type.ToString()
-            }).ToList()
-        };
+                EditorGUILayout.HelpBox("Map Database not found.", MessageType.Warning);
 
-        string json = JsonConvert.SerializeObject(export, Formatting.Indented);
+                if (GUILayout.Button("Reload"))
+                {
+                    LoadDatabases();
+                }
 
-        string path = EditorUtility.SaveFilePanel("Export Drop Table", "", "DropTable.json", "json");
+                return;
+            }
 
-        if (!string.IsNullOrEmpty(path))
-        {
-            File.WriteAllText(path, json);
+            GUILayout.Label("ROSE Databases", EditorStyles.boldLabel);
 
-            Debug.Log($"Drop table exported: {path}");
+            GUILayout.Space(5);
+
+            EditorGUILayout.LabelField("Maps", mapDatabase.maps.Count.ToString());
+
+            GUILayout.Space(10);
+
+            DrawMapHeader();
+
+            scroll = GUILayout.BeginScrollView(scroll);
+
+            foreach (var map in mapDatabase.maps.OrderBy(x => x.id))
+            {
+                DrawMapRow(map);
+            }
+
+            GUILayout.EndScrollView();
+
+            GUILayout.Space(10);
+
+            if (GUILayout.Button("Export Maps Data ..."))
+            {
+                ExportMaps();
+            }
+
+            if (GUILayout.Button("Export Enemies Data ..."))
+            {
+                ExportEnemies();
+            }
+
+            if (GUILayout.Button("Export Drop Tables ..."))
+            {
+                ExportDrops();
+            }
         }
 
-        return JsonConvert.SerializeObject(export, Formatting.Indented);
-    }
-
-    public static string ExportJson(EnemyData enemy)
-    {
-        var export = enemy;
-
-        string json = JsonConvert.SerializeObject(export, Formatting.Indented);
-
-        string fileName = $"[{enemy.ID}]{enemy.displayName}.json";
-
-        string path = EditorUtility.SaveFilePanel(
-            "Export Enemy",
-            "",
-            fileName,
-            "json");
-
-        if (!string.IsNullOrEmpty(path))
+        /// <summary>
+        /// Draw the header for the map list.
+        /// </summary>
+        private void DrawMapHeader()
         {
-            File.WriteAllText(path, json);
+            GUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-            Debug.Log($"Enemy exported: {path}");
+            GUILayout.Label("ID", GUILayout.Width(50));
+            GUILayout.Label("Name", GUILayout.ExpandWidth(true));
+            GUILayout.Label("Prefab", GUILayout.ExpandWidth(true));
+            GUILayout.Label("Spawns", GUILayout.Width(70));
+            GUILayout.Label("Monster Spawns", GUILayout.Width(120));
+            GUILayout.Label("Exports", GUILayout.Width(200));
+
+            GUILayout.EndHorizontal();
         }
 
-        return json;
-    }
-}
+        /// <summary>
+        /// Draw a row for a map entry.
+        /// </summary>
+        /// <param name="map">Map.</param>
+        private void DrawMapRow(RoseMapEntry map)
+        {
+            GUILayout.BeginHorizontal();
 
-public class DropDataExport
-{
-    public int ID;
-    public float dropChance;
-    public string Type;
+            GUILayout.Label(map.id.ToString(), GUILayout.Width(50));
+
+            GUILayout.Label(map.data.mapName, GUILayout.ExpandWidth(true));
+
+            GUILayout.Label(map.prefab != null ? AssetDatabase.GetAssetPath(map.prefab) : "Missing", GUILayout.ExpandWidth(true));
+
+            GUILayout.Label(map.data.spawns != null ? map.data.spawns.Count.ToString() : "0", GUILayout.Width(70));
+
+            int monsterCount = 0;
+
+            if (spawnDatabase != null)
+            {
+                var spawn = spawnDatabase.spawns.FirstOrDefault(x => x != null && x.spawnData != null && x.spawnData.ID == map.id);
+
+                if (spawn != null)
+                {
+                    monsterCount = spawn.spawnData.Spawners.Count;
+                }
+            }
+
+            GUILayout.Label(monsterCount.ToString(), GUILayout.Width(120));
+
+            if (GUILayout.Button("Map Data", GUILayout.Width(80)))
+            {
+                SaveAsJSONFile($"[{map.id}] {map.data.mapName}", map.data);
+            }
+
+            if (GUILayout.Button("Monster Spawns", GUILayout.Width(120)))
+            {
+                ExportMonsterSpawns(map);
+            }
+
+            GUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// Save data to a JSON file.
+        /// </summary>
+        /// <typeparam name="T">Data type.</typeparam>
+        /// <param name="fileName">File name.</param>
+        /// <param name="data">Data.</param>
+        private void SaveAsJSONFile<T>(string fileName, T data)
+        {
+            string name = typeof(T).Name;
+
+            string path = EditorUtility.SaveFilePanel($"Export {name} file", Application.dataPath, fileName, "json");
+
+            if (string.IsNullOrEmpty(path))
+            {
+                return;
+            }
+
+            SaveToJSONFile(path, data);
+
+            Debug.Log($"Exported ({name}) {fileName} to JSON : {path}");
+        }
+
+        /// <summary>
+        /// Save data to a JSON file in a directory.
+        /// </summary>
+        /// <typeparam name="T">Type.</typeparam>
+        /// <param name="fileName">File name.</param>
+        /// <param name="directory">Directory.</param>
+        /// <param name="data">Data.</param>
+        private void SaveToJSONFile<T>(string fileName, string directory, T data)
+        {
+            string path = Path.Combine(directory, fileName + ".json");
+
+            SaveToJSONFile(path, data);
+        }
+
+        /// <summary>
+        /// Save data to a JSON file at a specific path.
+        /// </summary>
+        /// <typeparam name="T">Type.</typeparam>
+        /// <param name="path">OS Path.</param>
+        /// <param name="data">Data.</param>
+        private void SaveToJSONFile<T>(string path, T data)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return;
+            }
+
+            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+
+            File.WriteAllText(path, json);
+        }
+
+        /// <summary>
+        /// Export monster spawns for a specific map to a JSON file.
+        /// </summary>
+        /// <param name="mapID">Map ID.</param>
+        private void ExportMonsterSpawns(RoseMapEntry entry)
+        {
+            if (spawnDatabase == null)
+            {
+                Debug.LogWarning("Monster spawn database not found.");
+
+                return;
+            }
+
+            var spawn = spawnDatabase.spawns.FirstOrDefault(x => x != null && x.spawnData != null && x.spawnData.ID == entry.id);
+
+            if (spawn == null)
+            {
+                Debug.LogWarning($"Monster spawns for map {entry.id} not found.");
+
+                return;
+            }
+
+            SaveAsJSONFile($"[{entry.data.mapName}] Spawns", spawn.spawnData);
+        }
+
+        /// <summary>
+        /// Export all maps to JSON files.
+        /// </summary>
+        private void ExportMaps()
+        {
+            Debug.Log("Exporting all maps ...");
+
+            string directory = EditorUtility.OpenFolderPanel("Export Maps", Application.dataPath, "");
+
+            if (string.IsNullOrEmpty(directory))
+            {
+                return;
+            }
+
+            foreach (var map in mapDatabase.maps.OrderBy(x => x.id))
+            {
+                SaveToJSONFile($"[{map.id}] {map.data.mapName}", directory, map.data);
+            }
+
+            Debug.Log($"Exported {mapDatabase.maps.Count} maps to JSON : {directory}");
+        }
+
+        /// <summary>
+        /// Export the drop tables to JSON files.
+        /// </summary>
+        private void ExportDrops()
+        {
+            Debug.Log("Starting drop tables export ...");
+
+            string directory = EditorUtility.OpenFolderPanel("Export Drop Tables", "", "");
+
+            if (string.IsNullOrEmpty(directory))
+            {
+                Debug.Log("Drop tables export canceled");
+
+                return;
+            }
+
+            foreach (var entry in dropTableDatabase.entries.OrderBy(x => x.id))
+            {
+                var table = RoseExport.ExportDropTable(ResourceManager.Instance.dropSTB, entry.id);
+
+                SaveToJSONFile($"[{entry.id}]", directory, table);
+            }
+
+            Debug.Log($"Exported {dropTableDatabase.entries.Count} drop tables to JSON : {directory}");
+        }
+
+        /// <summary>
+        /// Export the enemies.
+        /// </summary>
+        public void ExportEnemies()
+        {
+            if (npcDatabase == null)
+            {
+                Debug.LogWarning("Enemies database not found.");
+
+                return;
+            }
+
+            var folder = EditorUtility.OpenFolderPanel("Export Enemies", "", "");
+
+            if (string.IsNullOrEmpty(folder))
+            {
+                Debug.Log("Enemies export canceled");
+
+                return;
+            }
+
+            for (int i = 0; i < npcDatabase.entries.Count; i++)
+            {
+                var enemy = npcDatabase.entries[i].data.monsterData;
+
+                string fileName = $"[{enemy.ID}]{enemy.displayName}";
+
+                SaveToJSONFile(fileName, folder, enemy);
+            }
+
+            Debug.Log($"Exported {npcDatabase.entries.Count} enemies to {folder}");
+        }
+
+        public const string MapDatabasePath = ImportPaths.Database.Root + "/MapDatabase.asset";
+        public const string MonsterSpawnDatabasePath = ImportPaths.Database.Root + "/MonsterSpawnDatabase.asset";
+        public const string NPCDatabasePath = ImportPaths.Database.Root + "/NpcDatabase.asset";
+    }
 }

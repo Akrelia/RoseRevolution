@@ -55,9 +55,13 @@ namespace UnityRose.ImportEditor
             public const string Root = ImportPaths.Root + "/Maps";
             public const string Patches = Maps.Root + "/Patches";
             public const string Prefabs = Maps.Root + "/Prefabs";
+            public const string Meshes = Maps.Root + "/Meshes";
             public const string Chunks = Maps.Root + "/Chunks";
             public const string Animations = Maps.Root + "/Animations";
+            public const string Materials = Maps.Root + "/Materials";
             public const string Shared = Maps.Root + "/Shared";
+            public const string SharedMeshes = Maps.Shared + "/Meshes";
+            public const string SharedMaterials = Maps.Shared + "/Materials";
             public const string Atlas = Maps.Root + "/Atlas";
         }
 
@@ -866,7 +870,7 @@ namespace UnityRose.ImportEditor
                 return null;
             }
 
-            var stbName = ResourceManager.Instance.stb_npc_list.Cells[npcIdx][1].ToString();
+            var stbName = ResourceManager.Instance.npcSTB.Cells[npcIdx][1].ToString();
 
             var context = new NPCImportContext(npcIdx, "Monsters", stbName);
 
@@ -889,7 +893,7 @@ namespace UnityRose.ImportEditor
 
             EnemyData data = new EnemyData();
 
-            var stb = ResourceManager.Instance.stb_npc_list;
+            var stb = ResourceManager.Instance.npcSTB;
 
             data.id = npcIdx;
             data.displayName = stb.Cells[npcIdx][1];

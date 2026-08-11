@@ -5,5 +5,5 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "ROSE/Spawn Database")]
 public class MonsterSpawnDatabase : ScriptableObject
 {
-    public List<EnemySpawnSO> maps = new();
+    public List<EnemySpawnSO> spawns = new();
 }

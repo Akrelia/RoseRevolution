@@ -1,26 +1,17 @@
-using RevolutionShared.Rose.Data;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityRose;
 
+/// <summary>
+/// Importation settings.
+/// </summary>
 [CreateAssetMenu(menuName = "SO/Importation Settings")]
 public class ImportationSettings : ScriptableObject
 {
-    public List<STBConfiguration> filesToImport = new List<STBConfiguration>();
-}
-
-[System.Serializable]
-public class STBConfiguration
-{
-    public string stbID;
-    public int iconColumn;
-    public int categoryColumn;
-    [Tooltip("This is the column that you want to check for filter empty / uncomplete items")]
-    public int nullCheckColumn;
-    public ItemType type;
-    public string stbPath;
-    public string stlPath;
-    public string outputFolder;
-    public string groupName;
-    public string subgroupName;
+    [Header("Values")]
+    [Range(0, 16)]
+    public int anisotropyLevel = 8;
+    [Header("Shaders")]
+    public Shader terrainShader;
+    public Shader objectShader; 
+    public Shader entityShader;
+    public Shader playerShader;
 }

@@ -10,6 +10,8 @@ namespace UnityRose.RoseFile
 {
     #region New Value Types
 
+    // Akima : We should get rid of this class but it's a very low priority issue (it just works).
+
     /// <summary>
     /// NString class.
     /// </summary>

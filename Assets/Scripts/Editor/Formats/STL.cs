@@ -8,8 +8,11 @@ namespace UnityRose.Formats
     /// <summary>
     /// STL class.
     /// </summary>
-    public class STL
+    public class STL : IRoseFileFormat
     {
+        public string FormatName => "STL";
+
+
         #region Sub Classes
 
         /// <summary>

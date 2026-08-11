@@ -25,11 +25,11 @@ namespace UnityRose.Import
         /// </summary>
         /// <param name="mapID">Map ID.</param>
         /// <returns></returns>
-        public static GameObject ImportMap(int mapID)
+        public static GameObject ImportMap(int mapID, ImportationSettings settings)
         {
             Debug.Log("Importing map ID " + mapID + "...");
 
-            var stb = ResourceManager.Instance.stb_zone;
+            var stb = ResourceManager.Instance.zoneSTB;
 
             var mapName = stb.Cells[mapID][1].ToString();
 
@@ -64,11 +64,12 @@ namespace UnityRose.Import
                 if (valid)
                 {
                     patch.UpdateAtlas(ref atlasRectHash, ref atlasTexHash, ref textures);
+
                     patches.Add(patch);
                 }
             }
 
-            var atlas = BuildTextureAtlas(atlasRectHash.Count, textures, out var rects);
+            var atlas = BuildTextureAtlas(atlasRectHash.Count, textures, settings.anisotropyLevel, out var rects);
 
             atlas = SaveAtlas(atlas, mapName);
 
@@ -87,7 +88,7 @@ namespace UnityRose.Import
             {
                 foreach (var patch in patches)
                 {
-                    patch.Import(terrain.transform, terrainObjects.transform, atlas, atlas, atlasRectHash);
+                    patch.Import(terrain.transform, terrainObjects.transform, atlas, atlas, atlasRectHash, settings.terrainShader, settings.objectShader);
                 }
             }
 
@@ -106,8 +107,7 @@ namespace UnityRose.Import
             terrainObjects.transform.Rotate(0, -90, 0);
             terrainObjects.transform.position = new Vector3(5200, 0, 5200);
 
-            SpawnSpawnPoints(map, patches);
-            // SpawnNpcs(map, patches); // TODO : remove later
+            SpawnSpawnPoints(map, patches); // Could be removed but we keep this for debug
 
             var mapSpawns = BuildSpawnPoints(patches);
 
@@ -115,7 +115,7 @@ namespace UnityRose.Import
             roseMap.mapName = mapName;
 
             roseMap.data = new MapData(mapID, mapName, mapSpawns);
-            roseMap.data.skyID =  Utils.ParseSTBInt(stb.Cells[mapID][8]);
+            roseMap.data.skyID = Utils.ParseSTBInt(stb.Cells[mapID][8]);
             roseMap.data.planetID = Utils.ParseSTBInt(stb.Cells[mapID][20]);
 
             var dayPeriod = Utils.ParseSTBInt(stb.Cells[mapID][14]);
@@ -124,7 +124,7 @@ namespace UnityRose.Import
             var evening = Utils.ParseSTBInt(stb.Cells[mapID][17]);
             var night = Utils.ParseSTBInt(stb.Cells[mapID][18]);
 
-            roseMap.data.time = new MapTime(dayPeriod,morning,day,evening,night);
+            roseMap.data.time = new MapTime(dayPeriod, morning, day, evening, night);
 
             AssetDatabase.SaveAssets();
 
@@ -146,11 +146,17 @@ namespace UnityRose.Import
             Resources.UnloadUnusedAssets();
             GC.Collect();
 
-            Debug.Log("Import complete and memory cleaned.");
+            Debug.Log("Import complete.");
 
             return prefab;
         }
 
+        /// <summary>
+        /// Saves the texture atlas to the project as an asset.
+        /// </summary>
+        /// <param name="atlas">Atlas.</param>
+        /// <param name="mapName">Map name.</param>
+        /// <returns>Atlas texture.</returns>
         private static Texture2D SaveAtlas(Texture2D atlas, string mapName)
         {
             const string folder = ImportPaths.Maps.Atlas;
@@ -172,9 +178,18 @@ namespace UnityRose.Import
             return atlas;
         }
 
-        private static Texture2D BuildTextureAtlas(int tileCount, List<Texture2D> textures, out Rect[] rects)
+        /// <summary>
+        /// Builds a texture atlas from the given textures.
+        /// </summary>
+        /// <param name="tileCount">Tile ocunt.</param>
+        /// <param name="textures">Textures.</param>
+        /// <param name="anisotropicLevel">Ansitropic level.</param>
+        /// <param name="rects">Rectangles.</param>
+        /// <returns>Texture atlas.</returns>
+        /// <exception cref="Exception">Exceding the atlas max values.</exception>
+        private static Texture2D BuildTextureAtlas(int tileCount, List<Texture2D> textures, int anisotropicLevel, out Rect[] rects)
         {
-            int width, height; // must be powers of 2
+            int width, height;
             if (tileCount <= 16) width = height = 4 * 256;
             else if (tileCount <= 32) { width = 8 * 256; height = 4 * 256; }
             else if (tileCount <= 64) { width = 8 * 256; height = 8 * 256; }
@@ -183,13 +198,19 @@ namespace UnityRose.Import
             else throw new Exception("Number of tiles in terrain is larger than supported by terrain atlas");
 
             var atlas = new Texture2D(width, height);
+
             rects = atlas.PackTextures(textures.ToArray(), 0, Math.Max(width, height));
-            atlas.anisoLevel = 11;
+
+            atlas.anisoLevel = anisotropicLevel;
             atlas.Apply();
 
             return atlas;
         }
 
+        /// <summary>
+        /// Blends the normals of the seam vertices between patches to avoid lighting artifacts.
+        /// </summary>
+        /// <param name="patches">Patches.</param>
         private static void BlendSeamNormals(List<RosePatch> patches)
         {
             var patchNormalLookup = new Dictionary<string, List<PatchNormalIndex>>();
@@ -200,6 +221,7 @@ namespace UnityRose.Import
                 foreach (var vertex in patch.edgeVertexLookup.Keys)
                 {
                     var ids = new List<PatchNormalIndex>();
+
                     foreach (var id in patch.edgeVertexLookup[vertex])
                         ids.Add(new PatchNormalIndex(patchID, id));
 
@@ -218,18 +240,23 @@ namespace UnityRose.Import
 
                 foreach (var entry in patchNormalLookup[vertex])
                 {
-                    avg += patches[entry.patchID].m_mesh.normals[entry.normalID];
+                    avg += patches[entry.patchID].mesh.normals[entry.normalID];
                 }
 
                 avg.Normalize();
 
                 foreach (var entry in patchNormalLookup[vertex])
                 {
-                    patches[entry.patchID].m_mesh.normals[entry.normalID] = avg;
+                    patches[entry.patchID].mesh.normals[entry.normalID] = avg;
                 }
             }
         }
 
+        /// <summary>
+        /// Spawns the spawn points in the map (for debug purposes now).
+        /// </summary>
+        /// <param name="map">Map.</param>
+        /// <param name="patches">Patches.</param>
         private static void SpawnSpawnPoints(GameObject map, List<RosePatch> patches)
         {
             var spawns = new GameObject("Spawn Points");
@@ -238,7 +265,7 @@ namespace UnityRose.Import
             spawns.transform.Rotate(0, -90F, 0);
             spawns.transform.SetParent(map.transform);
 
-            foreach (var spawnPoint in patches[0].m_ZON.SpawnPoints)
+            foreach (var spawnPoint in patches[0].ZON.SpawnPoints)
             {
                 var spawn = new GameObject(spawnPoint.Name);
 
@@ -249,18 +276,13 @@ namespace UnityRose.Import
             }
         }
 
-        public static List<MapSpawn> BuildSpawnPoints(List<RosePatch> patches)
-        {
-            var result = new List<MapSpawn>();
-
-            foreach (var spawnPoint in patches[0].m_ZON.SpawnPoints)
-            {
-                result.Add(new MapSpawn(spawnPoint.Name, Utils.r2uScale(spawnPoint.Position).ToWorldPosition()));
-            }
-
-            return result;
-        }
-
+        [Obsolete("This spawn the NPC on the client side, within the Map prefab, use BuildNpcSpawns instead.")]
+        /// <summary>
+        /// Spawns the NPCs in the map.
+        /// </summary>
+        /// <param name="map"></param>
+        /// <param name="patches"></param>
+        /// <returns></returns>
         private static RoseNpcImporter SpawnNpcs(GameObject map, List<RosePatch> patches)
         {
             var npcs = new GameObject("NPCs");
@@ -273,9 +295,10 @@ namespace UnityRose.Import
 
             foreach (var patch in patches)
             {
-                foreach (var ifoNpc in patch.m_IFO.NPCs)
+                foreach (var ifoNpc in patch.IFO.NPCs)
                 {
                     var npcData = npcImporter.ImportNpc(ifoNpc.ObjectID);
+
                     if (npcData == null) continue;
 
                     var npc = new GameObject("NPC_" + ifoNpc.ObjectID);
@@ -289,6 +312,43 @@ namespace UnityRose.Import
             }
 
             return npcImporter;
+        }
+
+        /// <summary>
+        /// Build the spawn points list from the patches.
+        /// </summary>
+        /// <param name="patches">Patches.</param>
+        /// <returns>Map Spawn.</returns>
+        public static List<MapSpawn> BuildSpawnPoints(List<RosePatch> patches)
+        {
+            var result = new List<MapSpawn>();
+
+            foreach (var spawnPoint in patches[0].ZON.SpawnPoints)
+            {
+                result.Add(new MapSpawn(spawnPoint.Name, Utils.r2uScale(spawnPoint.Position).ToWorldPosition()));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Build the NPC spawn points list from the patches.
+        /// </summary>
+        /// <param name="patches">Patches.</param>
+        /// <returns>NPC spawns.</returns>
+        public static List<MapSpawn> BuildNpcSpawns(List<RosePatch> patches)
+        {
+            var result = new List<MapSpawn>();
+
+            foreach (var patch in patches)
+            {
+                foreach (var npc in patch.IFO.NPCs)
+                {
+                    result.Add(new MapSpawn($"NPC_{npc.ObjectID}", npc.Position.ToWorldPosition()));
+                }
+            }
+
+            return result;
         }
 
         /// <summary>

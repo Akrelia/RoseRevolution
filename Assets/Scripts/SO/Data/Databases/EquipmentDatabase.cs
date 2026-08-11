@@ -18,6 +18,7 @@ public class EquipmentDatabase : ScriptableObject
     public ArmorDatabase armDatabase;
     public ArmorDatabase faceItemDatabase;
     public AppearenceDatabase appearenceDatabase;
+    public PATDatabase patDatabase;
 
     private Dictionary<BodyPartType, IItemDatabase> databases;
 

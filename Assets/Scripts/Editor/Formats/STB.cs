@@ -9,8 +9,10 @@ namespace UnityRose.Formats
     /// <summary>
     /// STB class.
     /// </summary>
-    public class STB
+    public class STB : IRoseFileFormat
     {
+        public string FormatName => "STB";
+
         #region Member Declarations
 
         /// <summary>

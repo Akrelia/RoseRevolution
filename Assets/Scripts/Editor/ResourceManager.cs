@@ -10,9 +10,247 @@ using UnityRose.ImportEditor;
 
 namespace UnityRose
 {
+    /// <summary>
+    /// This is a resource manager for the editor only, so we don't reload constantly the STB / ZSC files.
+    /// </summary>
     public class ResourceManager
     {
-        public static Dictionary<int, WeaponType> weapon_type_lookup = new Dictionary<int, WeaponType>() {
+        /// <summary>
+        /// Private instance.
+        /// </summary>
+        private static ResourceManager instance;
+
+        /// <summary>
+        /// Singleton.
+        /// </summary>
+        public static ResourceManager Instance => instance ??= new ResourceManager();
+
+        public ZSC maleBodyZSC;
+        public ZSC maleArmsZSC;
+        public ZSC maleFootZSC;
+        public ZSC maleFaceZSC;
+        public ZSC maleHairZSC;
+        public ZSC maleCapZSC;
+
+        public ZSC femaleBodyZSC;
+        public ZSC femaleArmsZSC;
+        public ZSC femaleFootZSC;
+        public ZSC femaleFaceZSC;
+        public ZSC femaleHairZSC;
+        public ZSC femaleCapZSC;
+
+        public ZSC backZSC;
+        public ZSC faceItemZSC;
+        public ZSC weaponZSC;
+        public ZSC subWeaponZSC;
+        public ZSC patZSC;
+
+        public ZMD maleZMD;
+        public ZMD femaleZMD;
+
+        public STB animationSTB;
+        public STB animationTypeSTB;
+        public STB weaponSTB;
+        public STB subWeaponSTB;
+        public STB capSTB;
+        public STB armSTB;
+        public STB armorSTB;
+        public STB footSTB;
+        public STB backSTB;
+        public STB dropSTB;
+        public STB faceItemSTB;
+        public STB hairSTB;
+        public STB npcSTB;
+        public STB skySTB;
+        public STB zoneSTB;
+        public STB patSTB;
+
+        public STL zoneSTL;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public ResourceManager()
+        {
+            maleBodyZSC = LoadFile<ZSC>("3DData/Avatar/LIST_MBODY");
+            maleArmsZSC = LoadFile<ZSC>("3DData/Avatar/LIST_MARMS");
+            maleFootZSC = LoadFile<ZSC>("3DData/Avatar/LIST_MFOOT");
+            maleFaceZSC = LoadFile<ZSC>("3DData/Avatar/LIST_MFACE");
+            maleHairZSC = LoadFile<ZSC>("3DData/Avatar/LIST_MHAIR");
+            maleCapZSC = LoadFile<ZSC>("3DData/Avatar/LIST_MCAP");
+
+            femaleBodyZSC = LoadFile<ZSC>("3DData/Avatar/LIST_WBODY");
+            femaleArmsZSC = LoadFile<ZSC>("3DData/Avatar/LIST_WARMS");
+            femaleFootZSC = LoadFile<ZSC>("3DData/Avatar/LIST_WFOOT");
+            femaleFaceZSC = LoadFile<ZSC>("3DData/Avatar/LIST_WFACE");
+            femaleHairZSC = LoadFile<ZSC>("3DData/Avatar/LIST_WHAIR");
+            femaleCapZSC = LoadFile<ZSC>("3DData/Avatar/LIST_WCAP");
+
+            backZSC = LoadFile<ZSC>("3DData/Avatar/LIST_BACK");
+            faceItemZSC = LoadFile<ZSC>("3DData/Avatar/LIST_FACEIEM");
+
+            patZSC = LoadFile<ZSC>("3DData/PAT/LIST_PAT");
+
+            weaponZSC = LoadFile<ZSC>("3DData/Weapon/LIST_WEAPON");
+            subWeaponZSC = LoadFile<ZSC>("3DData/Weapon/LIST_SUBWPN");
+
+            animationSTB = LoadFile<STB>("3DData/STB/FILE_MOTION");
+            animationTypeSTB = LoadFile<STB>("3DData/STB/TYPE_MOTION");
+
+            weaponSTB = LoadFile<STB>("3DData/STB/LIST_WEAPON");
+            subWeaponSTB = LoadFile<STB>("3DData/STB/LIST_SUBWPN");
+            capSTB = LoadFile<STB>("3DData/STB/LIST_CAP");
+            armorSTB = LoadFile<STB>("3DData/STB/LIST_BODY");
+            backSTB = LoadFile<STB>("3DData/STB/LIST_BACK");
+            footSTB = LoadFile<STB>("3DData/STB/LIST_FOOT");
+            armSTB = LoadFile<STB>("3DData/STB/LIST_ARMS");
+            faceItemSTB = LoadFile<STB>("3DData/STB/LIST_FACEITEM");
+            hairSTB = LoadFile<STB>("3DData/STB/LIST_HAIR");
+            npcSTB = LoadFile<STB>("3DData/STB/LIST_NPC");
+            dropSTB = LoadFile<STB>("3DData/STB/ITEM_DROP");
+            zoneSTB = LoadFile<STB>("3DData/STB/LIST_ZONE");
+            skySTB = LoadFile<STB>("3DData/STB/LIST_SKY");
+
+            patSTB = LoadFile<STB>("3DData/STB/LIST_PAT");
+
+            zoneSTL = LoadFile<STL>("3DData/STB/LIST_ZONE_S");
+        }
+
+        /// <summary>
+        /// Load a ROSE Format file.
+        /// </summary>
+        /// <typeparam name="T">Rose Format file.</typeparam>
+        /// <param name="path">Path.</param>
+        /// <returns>Rose file.</returns>
+        public T LoadFile<T>(string path) where T : class, IRoseFileFormat, new()
+        {
+            path = Path.Combine(RoseDataSource.DataPath, path);
+
+            T resource = new T();
+
+            resource.Load($"{path}.{resource.FormatName}");
+
+            return resource;
+        }
+
+        /// <summary>
+        /// Get Animation ZMO File path
+        /// </summary>
+        public string GetZMOPath(WeaponType WeaponType, ActionType Action, GenderType Gender)
+        {
+            int actionIdx = (int)Action;
+
+            if (!WeaponAnimationColumn.TryGetValue(WeaponType, out int weaponIdx))
+            {
+                Debug.LogWarning($"GetZMOPath: no animation column mapping for {WeaponType}.");
+
+                return "";
+            }
+
+            if (actionIdx < 0 || actionIdx >= animationTypeSTB.Cells.Count)
+            {
+                Debug.LogWarning($"GetZMOPath: ActionType {Action} ({actionIdx}) is out of range for stb_animation_type ({animationTypeSTB.Cells.Count} rows).");
+
+                return "";
+            }
+
+            var row = animationTypeSTB.Cells[actionIdx];
+
+            if (weaponIdx < 0 || weaponIdx >= row.Count)
+            {
+                Debug.LogWarning($"GetZMOPath: WeaponType {WeaponType} ({weaponIdx}) is out of range for stb_animation_type row {actionIdx} ({row.Count} columns).");
+
+                return "";
+            }
+
+            string motionTypeCell = row[weaponIdx];
+
+            if (string.IsNullOrWhiteSpace(motionTypeCell) || !int.TryParse(motionTypeCell, out int motionTypeIdx))
+            {
+                Debug.LogWarning($"GetZMOPath: no valid motion type for {Gender}/{WeaponType}/{Action} (cell value: '{motionTypeCell}').");
+
+                return "";
+            }
+
+            if (motionTypeIdx < 0 || motionTypeIdx >= animationSTB.Cells.Count)
+            {
+                Debug.LogWarning($"GetZMOPath: motion type index {motionTypeIdx} out of range for stb_animation_list ({animationSTB.Cells.Count} rows).");
+
+                return "";
+            }
+
+            var animRow = animationSTB.Cells[motionTypeIdx];
+
+            int genderIdx = (int)Gender;
+
+            string filePath = (genderIdx >= 0 && genderIdx < animRow.Count) ? animRow[genderIdx] : "";
+
+            if (filePath == "")
+            {
+                int maleIdx = (int)GenderType.MALE;
+
+                filePath = (maleIdx >= 0 && maleIdx < animRow.Count) ? animRow[maleIdx] : "";
+            }
+
+            return filePath;
+        }
+
+        /// <summary>
+        /// Get the weapon type from the weapon STB file based on the weapon ID.
+        /// </summary>
+        /// <param name="weaponID">Weapon ID.</param>
+        /// <returns>Weapon Type.</returns>
+        public WeaponType GetWeaponTypeFromSTB(int weaponID)
+        {
+            int typeID = 0;
+
+            WeaponType type = WeaponType.EMPTY;
+
+            try
+            {
+                typeID = int.Parse(weaponSTB.Cells[weaponID][5]);
+                type = WeaponTypeLookUp[typeID];
+            }
+
+            catch (Exception ex)
+            {
+                Debug.Log(ex.Message);
+
+                type = WeaponType.EMPTY;
+            }
+
+            return type;
+        }
+
+        /// <summary>
+        /// Get the weapon animation column index based on the weapon type.
+        /// </summary>
+        private static readonly Dictionary<WeaponType, int> WeaponAnimationColumn = new()
+        {
+            { WeaponType.EMPTY, 1 },
+            { WeaponType.OHSWORD, 2 },
+            { WeaponType.THAXE, 3 },
+            { WeaponType.OHMACE, 4 },
+            { WeaponType.OHTOOL, 5 },
+            { WeaponType.THSWORD, 6 },
+            { WeaponType.THSPEAR, 7 },
+            { WeaponType.DSW, 8 },
+            { WeaponType.THBLUNT, 9 },
+            { WeaponType.CANNON, 10 },
+            { WeaponType.BOW, 11 },
+            { WeaponType.XBOX, 12 },
+            { WeaponType.GUN, 13 },
+            { WeaponType.STAFF, 14 },
+            { WeaponType.WAND, 15 },
+            { WeaponType.BOOK, 16 },
+            { WeaponType.KATAR, 17 },
+            { WeaponType.SHIELD, 18 }
+        };
+
+        /// <summary>
+        /// Get the weapon type from the weapon STB file based on the weapon type ID.
+        /// </summary>
+        public static Dictionary<int, WeaponType> WeaponTypeLookUp = new Dictionary<int, WeaponType>() {
             { 211, WeaponType.OHSWORD},
             { 212, WeaponType.OHMACE},
             { 271, WeaponType.XBOX},
@@ -28,426 +266,5 @@ namespace UnityRose
             { 252, WeaponType.DSW},
         };
 
-        // Male ZSC's (equipment model links) - still loaded and available for anything
-        // that reads model/texture data directly (e.g. tools, inspection), even though
-        // RosePlayer itself no longer builds body parts from these at runtime.
-        public ZSC zsc_body_male;
-        public ZSC zsc_arms_male;
-        public ZSC zsc_foot_male;
-        public ZSC zsc_face_male;
-        public ZSC zsc_hair_male;
-        public ZSC zsc_cap_male;
-
-        // Female ZSC's
-        public ZSC zsc_body_female;
-        public ZSC zsc_arms_female;
-        public ZSC zsc_foot_female;
-        public ZSC zsc_face_female;
-        public ZSC zsc_hair_female;
-        public ZSC zsc_cap_female;
-
-        // Unisex ZSC's
-        public ZSC zsc_back;
-        public ZSC zsc_faceItem;
-        public ZSC zsc_weapon;
-        public ZSC zsc_subweapon;
-
-        // ZMD's (skeleton)
-        public ZMD zmd_male;
-        public ZMD zmd_female;
-
-        // STB's
-        public STB stb_animation_list;
-        public STB stb_animation_type;
-        public STB stb_weapon_list;
-        public STB stb_subweapon_list;
-        public STB stb_cap_list;
-        public STB stb_arms_list;
-        public STB stb_armor_list;
-        public STB stb_foot_list;
-        public STB stb_back_list;
-        public STB stb_drops_list;
-        public STB stb_faceitem_list;
-        public STB stb_hair_list;
-        public STB stb_npc_list;
-        public STB stb_sky_list;
-        public STB stb_zone;
-
-        // STL
-        public STL stl_zone_list;
-
-        // TODO: add any other common persistent resources here
-
-        // TODO: determine optimal cache size
-        // Possibly have a different cache for each resource type ?
-        private const int CACHE_SIZE = 250;
-        private Cache cache;
-
-        private static ResourceManager instance;
-
-        public static ResourceManager Instance => instance ??= new ResourceManager();
-
-        private ResourceManager()
-        {
-            zsc_body_male = (ZSC)loadResource("3DDATA/AVATAR/LIST_MBODY.ZSC");
-            zsc_arms_male = (ZSC)loadResource("3DData/Avatar/LIST_MARMS.zsc");
-            zsc_foot_male = (ZSC)loadResource("3DData/Avatar/LIST_MFOOT.zsc");
-            zsc_face_male = (ZSC)loadResource("3DData/Avatar/LIST_MFACE.zsc");
-            zsc_hair_male = (ZSC)loadResource("3DData/Avatar/LIST_MHAIR.zsc");
-            zsc_cap_male = (ZSC)loadResource("3DData/Avatar/LIST_MCAP.zsc");
-
-            zsc_body_female = (ZSC)loadResource("3DData/Avatar/LIST_WBODY.zsc");
-            zsc_arms_female = (ZSC)loadResource("3DData/Avatar/LIST_WARMS.zsc");
-            zsc_foot_female = (ZSC)loadResource("3DData/Avatar/LIST_WFOOT.zsc");
-            zsc_face_female = (ZSC)loadResource("3DData/Avatar/LIST_WFACE.zsc");
-            zsc_hair_female = (ZSC)loadResource("3DData/Avatar/LIST_WHAIR.zsc");
-            zsc_cap_female = (ZSC)loadResource("3DData/Avatar/LIST_WCAP.zsc");
-
-            zsc_back = (ZSC)loadResource("3DData/Avatar/LIST_BACK.zsc");
-            zsc_faceItem = (ZSC)loadResource("3DData/Avatar/LIST_FACEIEM.zsc");
-
-            zsc_weapon = (ZSC)loadResource("3DDATA/WEAPON/LIST_WEAPON.zsc");
-            zsc_subweapon = (ZSC)loadResource("3DDATA/WEAPON/LIST_SUBWPN.zsc");
-
-            stb_animation_list = (STB)loadResource("3Ddata/STB/FILE_MOTION.STB");
-            stb_animation_type = (STB)loadResource("3DDATA/STB/TYPE_MOTION.STB");
-
-            stb_weapon_list = (STB)loadResource("3DDATA/STB/LIST_WEAPON.STB");
-            stb_subweapon_list = (STB)loadResource("3DDATA/STB/LIST_SUBWPN.STB");
-            stb_cap_list = (STB)loadResource("3DDATA/STB/LIST_CAP.STB");
-            stb_armor_list = (STB)loadResource("3DDATA/STB/LIST_BODY.STB");
-            stb_back_list = (STB)loadResource("3DDATA/STB/LIST_BACK.STB");
-            stb_foot_list = (STB)loadResource("3DDATA/STB/LIST_FOOT.STB");
-            stb_arms_list = (STB)loadResource("3DDATA/STB/LIST_ARMS.STB");
-            stb_faceitem_list = (STB)loadResource("3DDATA/STB/LIST_FACEITEM.STB");
-            stb_hair_list = (STB)loadResource("3DDATA/STB/LIST_HAIR.STB");
-            stb_npc_list = (STB)loadResource("3DDATA/STB/LIST_NPC.STB");
-            stb_drops_list = (STB)loadResource("3DDATA/STB/ITEM_DROP.STB");
-            stb_zone = (STB)loadResource("3DDATA/STB/LIST_ZONE.STB");
-            stb_sky_list = (STB)loadResource("3DDATA/STB/LIST_SKY.STB");
-
-            stl_zone_list = (STL)loadResource("3DDATA/STB/LIST_ZONE_S.STL");
-        }
-
-        /// <summary>
-        /// Load a Rose Asset from text asset resource file to memory. Not cached.
-        /// </summary>
-        public object loadResource(string path)
-        {
-            path = Path.Combine(RoseDataSource.DataPath, path);
-            var dir = new DirectoryInfo(path);
-
-            switch (dir.Extension)
-            {
-                case ".zms":
-                case ".ZMS":
-                    return new ZMS(path);
-                case ".zmd":
-                case ".ZMD":
-                    return new ZMD(path);
-                case ".zsc":
-                case ".ZSC":
-                    return new ZSC(path);
-                case ".stb":
-                case ".STB":
-                    return new STB(path);
-                case ".zmo":
-                case ".ZMO":
-                    return new ZMO(path);
-                // TODO: add all other rose formats here
-                case ".png":
-                case ".PNG":
-                    return Resources.Load(path.Replace(dir.Extension, ""));
-                default:
-                    return null;
-            }
-        }
-
-        public void unloadResource(UnityEngine.Object resource)
-        {
-            Resources.UnloadAsset(resource);
-        }
-
-        /// <summary>
-        /// Get Animation ZMO File path
-        /// </summary>
-        public string GetZMOPath(WeaponType WeaponType, ActionType Action, GenderType Gender)
-        {
-            int actionIdx = (int)Action;
-
-            if (!weaponAnimationColumn.TryGetValue(WeaponType, out int weaponIdx))
-            {
-                Debug.LogWarning($"GetZMOPath: no animation column mapping for {WeaponType}.");
-
-                return "";
-            }
-
-            if (actionIdx < 0 || actionIdx >= stb_animation_type.Cells.Count)
-            {
-                Debug.LogWarning($"GetZMOPath: ActionType {Action} ({actionIdx}) is out of range for stb_animation_type ({stb_animation_type.Cells.Count} rows).");
-                return "";
-            }
-
-            var row = stb_animation_type.Cells[actionIdx];
-
-            if (weaponIdx < 0 || weaponIdx >= row.Count)
-            {
-                Debug.LogWarning($"GetZMOPath: WeaponType {WeaponType} ({weaponIdx}) is out of range for stb_animation_type row {actionIdx} ({row.Count} columns).");
-
-                return "";
-            }
-
-            string motionTypeCell = row[weaponIdx];
-
-            if (string.IsNullOrWhiteSpace(motionTypeCell) || !int.TryParse(motionTypeCell, out int motionTypeIdx))
-            {
-                Debug.LogWarning($"GetZMOPath: no valid motion type for {Gender}/{WeaponType}/{Action} (cell value: '{motionTypeCell}').");
-               
-                return "";
-            }
-
-            if (motionTypeIdx < 0 || motionTypeIdx >= stb_animation_list.Cells.Count)
-            {
-                Debug.LogWarning($"GetZMOPath: motion type index {motionTypeIdx} out of range for stb_animation_list ({stb_animation_list.Cells.Count} rows).");
-           
-                return "";
-            }
-
-            var animRow = stb_animation_list.Cells[motionTypeIdx];
-            int genderIdx = (int)Gender;
-
-            string filePath = (genderIdx >= 0 && genderIdx < animRow.Count) ? animRow[genderIdx] : "";
-
-            if (filePath == "")
-            {
-                int maleIdx = (int)GenderType.MALE;
-               
-                filePath = (maleIdx >= 0 && maleIdx < animRow.Count) ? animRow[maleIdx] : "";
-            }
-
-            return filePath;
-        }
-
-        public WeaponType getWeaponType(int weaponID)
-        {
-            int typeID = 0;
-            WeaponType type = WeaponType.EMPTY;
-            try
-            {
-                typeID = int.Parse(stb_weapon_list.Cells[weaponID][5]); // TODO: create enums for the columns and use them to look things up
-                type = weapon_type_lookup[typeID];
-            }
-            catch (Exception ex)
-            {
-                Debug.Log(ex.Message);
-                type = WeaponType.EMPTY;
-            }
-
-            return type;
-        }
-
-        private static readonly Dictionary<WeaponType, int> weaponAnimationColumn = new()
-{
-    { WeaponType.EMPTY, 1 },
-    { WeaponType.OHSWORD, 2 },
-    { WeaponType.THAXE, 3 },
-    { WeaponType.OHMACE, 4 },
-    { WeaponType.OHTOOL, 5 },
-    { WeaponType.THSWORD, 6 },
-    { WeaponType.THSPEAR, 7 },
-    { WeaponType.DSW, 8 },
-    { WeaponType.THBLUNT, 9 },
-    { WeaponType.CANNON, 10 },
-    { WeaponType.BOW, 11 },
-    { WeaponType.XBOX, 12 },
-    { WeaponType.GUN, 13 },
-    { WeaponType.STAFF, 14 },
-    { WeaponType.WAND, 15 },
-    { WeaponType.BOOK, 16 },
-    { WeaponType.KATAR, 17 },
-    { WeaponType.SHIELD, 18 }
-};
-
-        /// <summary>
-        /// Loop through all weapon types for each gender and create an animation asset and all associated clips
-        /// The animations and clips are placed in GameData/Animation
-        /// </summary>      
-        public void GenerateAnimationAssets()
-        {
-            foreach (GenderType gender in Enum.GetValues(typeof(GenderType)))
-            {
-                if (gender == GenderType.NONE) continue;
-
-                foreach (WeaponType weapon in Enum.GetValues(typeof(WeaponType)))
-                {
-                    GenerateAnimationAsset(gender, weapon);
-                }
-            }
-        }
-
-        private string[] getBoneNames(Transform[] transforms)
-        {
-            List<string> names = new List<string>();
-            foreach (Transform transform in transforms)
-            {
-                names.Add(transform.name);
-            }
-
-            return names.ToArray();
-        }
-
-        public void GenerateAnimationAsset(GenderType gender, WeaponType weapon)
-        {
-            GameObject skeleton = new GameObject("skeleton");
-            bool male = (gender == GenderType.MALE);
-            ZMD zmd = new ZMD(male ? ROSEEditorBaker.DataPath + "/3DData/Avatar/MALE.ZMD" : ROSEEditorBaker.DataPath + "/3DData/Avatar/FEMALE.ZMD");
-            zmd.buildSkeleton(skeleton);
-
-            BindPoses poses = ScriptableObject.CreateInstance<BindPoses>();
-            poses.bindPoses = zmd.bindposes;
-            poses.boneNames = getBoneNames(zmd.boneTransforms);
-            poses.boneTransforms = zmd.boneTransforms;
-            LoadClips(skeleton, zmd, weapon, gender);
-
-            string path = "Assets/Resources/Animation/" + gender.ToString() + "/" + weapon.ToString() + "/skeleton.prefab";
-            Utils.EnsureFolder(path); // manquait - CreateAsset exige que le dossier existe déjà
-
-            AssetDatabase.CreateAsset(poses, path.Replace("skeleton.prefab", "bindPoses.asset"));
-            AssetDatabase.SaveAssets();
-            PrefabUtility.SaveAsPrefabAsset(skeleton, path);
-        }
-
-        public void GenerateAnimationAsset(GenderType gender, RigType rig, Dictionary<String, String> zmoPaths)
-        {
-            GameObject skeleton = new GameObject("skeleton");
-            bool male = (gender == GenderType.MALE);
-            ZMD zmd = new ZMD(male ? ROSEEditorBaker.DataPath + "/3DData/Avatar/MALE.ZMD" : ROSEEditorBaker.DataPath + "/3DData/Avatar/FEMALE.ZMD");
-            zmd.buildSkeleton(skeleton);
-
-            BindPoses poses = ScriptableObject.CreateInstance<BindPoses>();
-            poses.bindPoses = zmd.bindposes;
-            poses.boneNames = getBoneNames(zmd.boneTransforms);
-            poses.boneTransforms = zmd.boneTransforms;
-            LoadClips(skeleton, zmd, gender, rig, zmoPaths);
-            string path = "Assets/Resources/Animation/" + gender.ToString() + "/" + rig.ToString() + "/skeleton.prefab";
-            AssetDatabase.CreateAsset(poses, path.Replace("skeleton.prefab", "bindPoses.asset"));
-            AssetDatabase.SaveAssets();
-            PrefabUtility.SaveAsPrefabAsset(skeleton, path);
-        }
-
-        public void LoadClips(GameObject skeleton, ZMD zmd, WeaponType weapon, GenderType gender)
-        {
-            List<AnimationClip> clips = new List<AnimationClip>();
-
-            foreach (ActionType action in Enum.GetValues(typeof(ActionType)))
-            {
-                string zmoRelativePath = GetZMOPath(weapon, action, gender);
-
-                if (string.IsNullOrWhiteSpace(zmoRelativePath))
-                {
-                    Debug.LogWarning($"Skipping {gender}/{weapon}/{action}: no ZMO path found.");
-                    continue;
-                }
-
-                string zmoPath = ROSEEditorBaker.DataPath + "/" + Utils.FixPath(zmoRelativePath);
-
-                if (!File.Exists(zmoPath))
-                {
-                    Debug.LogWarning($"Skipping missing ZMO for {gender}/{weapon}/{action}: {zmoPath}");
-                    continue;
-                }
-
-                string unityPath = "Assets/Resources/Animation/" + gender.ToString() + "/" + weapon.ToString() + "/clips/" + action.ToString() + ".anim";
-                Utils.EnsureFolder(unityPath);
-
-                var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);
-
-                AnimationClip clip;
-                if (existing == null)
-                {
-                    clip = new ZMO(zmoPath).buildAnimationClip(zmd);
-                    clip.name = action.ToString().ToLowerInvariant();
-                    clip.legacy = true;
-
-                    AssetDatabase.CreateAsset(clip, unityPath);
-                    AssetDatabase.SaveAssets();
-
-                    clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);
-                }
-                else
-                {
-                    clip = existing;
-                }
-
-                clips.Add(clip);
-            }
-
-            Animation animation = skeleton.AddComponent<Animation>();
-            AnimationUtility.SetAnimationClips(animation, clips.ToArray());
-        }
-
-        public void LoadClips(GameObject skeleton, ZMD zmd, GenderType gender, RigType rig, Dictionary<String, String> zmoPaths)
-        {
-            List<AnimationClip> clips = new List<AnimationClip>();
-
-            foreach (KeyValuePair<String, String> motion in zmoPaths)
-            {
-                if (string.IsNullOrWhiteSpace(motion.Value))
-                {
-                    Debug.LogWarning($"Skipping motion '{motion.Key}' ({gender}/{rig}): empty ZMO path.");
-                    continue;
-                }
-
-                string zmoPath = ROSEEditorBaker.DataPath + "/" + motion.Value;
-
-                if (!File.Exists(zmoPath))
-                {
-                    Debug.LogWarning($"Skipping missing ZMO for motion '{motion.Key}' ({gender}/{rig}): {zmoPath}");
-                    continue;
-                }
-
-                string unityPath = "Assets/Resources/Animation/" + gender.ToString() + "/" + rig.ToString() + "/clips/" + motion.Key + ".anim";
-                Utils.EnsureFolder(unityPath);
-
-                var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);
-
-                AnimationClip clip;
-                if (existing == null)
-                {
-                    clip = new ZMO(zmoPath).buildAnimationClip(zmd);
-                    clip.name = motion.Key;
-                    clip.legacy = true;
-
-                    AssetDatabase.CreateAsset(clip, unityPath);
-                    AssetDatabase.SaveAssets();
-
-                    clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);
-                }
-                else
-                {
-                    clip = existing;
-                }
-
-                clips.Add(clip);
-            }
-
-            Animation animation = skeleton.AddComponent<Animation>();
-            AnimationUtility.SetAnimationClips(animation, clips.ToArray());
-        }
-        public void LoadAnimations(GameObject player, ZMD skeleton, WeaponType weapon, GenderType gender)
-        {
-            List<AnimationClip> clips = new List<AnimationClip>();
-
-            foreach (ActionType action in Enum.GetValues(typeof(ActionType)))
-            {
-                string zmoPath = Utils.FixPath(ResourceManager.Instance.GetZMOPath(weapon, action, gender));
-                AnimationClip clip = R2U.GetClip(zmoPath, skeleton, action.ToString());
-                clip.legacy = true;
-                clips.Add(clip);
-            }
-
-            Animation animation = player.GetComponent<Animation>();
-            AnimationUtility.SetAnimationClips(animation, clips.ToArray());
-        }
     }
 }

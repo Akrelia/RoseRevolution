@@ -1,9 +1,10 @@
 using UnityEngine;
 using System.Collections;
+using System;
 
 namespace UnityRose
 {
-	[System.Serializable]
+	[Serializable]
 	public class BindPoses : ScriptableObject
 	{
 		[SerializeField]

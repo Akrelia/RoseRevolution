@@ -9,8 +9,10 @@ namespace UnityRose.Formats
     /// <summary>
     /// ZSC class.
     /// </summary>
-    public class ZSC
+    public class ZSC : IRoseFileFormat
     {
+        public string FormatName => "ZSC";
+
         #region Enumerations
 
         /// <summary>

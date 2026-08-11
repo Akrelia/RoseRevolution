@@ -84,12 +84,10 @@
                 Varyings OUT;
 
 
-                VertexPositionInputs pos =
-                    GetVertexPositionInputs(IN.positionOS.xyz);
+                VertexPositionInputs pos = GetVertexPositionInputs(IN.positionOS.xyz);
 
 
-                VertexNormalInputs normal =
-                    GetVertexNormalInputs(IN.normalOS);
+                VertexNormalInputs normal = GetVertexNormalInputs(IN.normalOS);
 
 
                 OUT.positionHCS = pos.positionCS;
@@ -101,8 +99,7 @@
 
                 Light light = GetMainLight();
 
-                half NdotL =
-                    max(dot(normal.normalWS, light.direction), 0);
+                half NdotL = max(dot(normal.normalWS, light.direction), 0);
 
 
                 OUT.light = NdotL + 0.5;
