@@ -91,7 +91,7 @@ public class WorldManager : MonoBehaviour
 
         var rosePlayer = new RosePlayer(model);
 
-        rosePlayer.LoadPlayer(model, sandboxManager.equipmentDatabase);
+        rosePlayer.LoadPlayer(model, sandboxManager.equipmentDatabase, sandboxManager.characterDatabase);
 
         rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = mainPlayer;
 

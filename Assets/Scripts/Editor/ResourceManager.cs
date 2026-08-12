@@ -124,7 +124,7 @@ namespace UnityRose
         /// <returns>Rose file.</returns>
         public T LoadFile<T>(string path) where T : class, IRoseFileFormat, new()
         {
-            path = Path.Combine(RoseDataSource.DataPath, path);
+            path = Path.Combine(RoseImporter.DataPath, path);
 
             T resource = new T();
 

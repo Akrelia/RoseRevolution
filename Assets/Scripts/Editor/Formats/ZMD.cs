@@ -175,7 +175,7 @@ namespace UnityRose.Formats
                     z = fh.Read<float>() * zz_scale
                 };
 
-                node.Position = Utils.r2uPosition(node.Position);
+                node.Position = Utils.RoseToUnityPosition(node.Position);
                 node.Rotation = Utils.r2uRotation(new Quaternion()
                 {
                     w = fh.Read<float>(),
@@ -205,7 +205,7 @@ namespace UnityRose.Formats
                     z = fh.Read<float>() * zz_scale
                 };
 
-                node.Position = Utils.r2uPosition(node.Position);
+                node.Position = Utils.RoseToUnityPosition(node.Position);
 
                 if (version == 3)
                 {

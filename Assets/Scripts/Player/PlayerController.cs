@@ -33,7 +33,7 @@ namespace UnityRose
         {
             state = initialState;
 
-            animationStateMachine = new PlayerState(initialState, "Player State Machine", this.gameObject);
+            animationStateMachine = new PlayerState(initialState, "Player State Machine", rosePlayer.skeleton);
 
             animationStateMachine.Entry();
         }
@@ -50,7 +50,13 @@ namespace UnityRose
 
         public void OnSkeletonChange()
         {
-            SetAnimationStateMachine(rosePlayer.charModel.rig, animationStateMachine.state);
+            Debug.Log($"OnSkeletonChange - OLD MACHINE: {animationStateMachine}");
+
+            animationStateMachine = null;
+
+            SetAnimationStateMachine(rosePlayer.charModel.rig, state);
+
+            Debug.Log($"OnSkeletonChange - NEW MACHINE: {animationStateMachine}");
         }
 
         public void OnChangeEquip(BodyPartType bodyPart, int id)

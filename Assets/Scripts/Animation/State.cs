@@ -82,11 +82,11 @@ public class State
 		this.wrapMode = wrapMode;
 		connections = new List<StateConnection>();
 		animation = gameObject.GetComponentInChildren<Animation>(); // TODO: add exception if no animation	
-	}
+    }
 
 	public virtual void Exit(bool crossFade = true)
 	{
-		if (!crossFade)
+        if (!crossFade)
 			animation.Stop(clipName);
 		else
 			animation.CrossFade(clipName);
@@ -382,9 +382,7 @@ public class PlayerState : State
 
 		return this;
 	}
-
 }
-
 
 public class CharSelectState : State
 {
@@ -429,6 +427,7 @@ public class CharSelectState : State
 	public override void Entry(bool crossFade = false)
 	{
 		currentState = states[initialState.ToString()];
+
 		base.Entry();
 	}
 

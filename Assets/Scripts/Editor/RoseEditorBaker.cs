@@ -1,5 +1,3 @@
-#if UNITY_EDITOR
-
 using UnityEngine;
 using UnityEditor;
 using UnityRose.Formats;
@@ -13,166 +11,16 @@ using RevolutionShared.Rose.Data.NPC;
 using static UnityRose.Formats.IFO;
 using UnityRose.Game;
 using RevolutionShared.Rose.Data;
-using static UnityRose.ImportEditor.ImportPaths;
+using static UnityRose.Import.GameDataPaths;
+using GluonGui.WorkspaceWindow.Views.WorkspaceExplorer;
+using static UnityEditor.U2D.ScriptablePacker;
+using Unity.VisualScripting;
 
 namespace UnityRose.ImportEditor
 {
-    public static class ImportPaths
-    {
-        public const string Root = "Assets/GameData";
-
-        public static class Database
-        {
-            public const string Root = ImportPaths.Root + "/Databases";
-        }
-
-        public static class NPC
-        {
-            public const string Root = ImportPaths.Root + "/NPC";
-            public const string Data = NPC.Root + "/Data";
-            public const string Prefabs = NPC.Root + "/Prefabs";
-            public const string Materials = NPC.Root + "/Materials";
-            public const string Motions = NPC.Root + "/Motions";
-            public const string Textures = NPC.Root + "/Textures";
-            public const string Parts = NPC.Root + "/Parts";
-            public const string Meshes = NPC.Parts + "/Meshes";
-            public const string Animations = NPC.Root + "/Animations";
-            public const string Avatars = NPC.Root + "/Avatars";
-            public const string Controllers = NPC.Root + "/Controllers";
-        }
-
-        public static class Player
-        {
-            public const string Root = ImportPaths.Root + "/Player";
-            public const string Prefabs = Player.Root + "/Prefabs";
-            public const string Meshes = Player.Root + "/Meshes";
-            public const string Materials = Player.Root + "/Materials";
-            public const string Textures = Player.Root + "/Textures";
-        }
-
-        public static class Maps
-        {
-            public const string Root = ImportPaths.Root + "/Maps";
-            public const string Patches = Maps.Root + "/Patches";
-            public const string Prefabs = Maps.Root + "/Prefabs";
-            public const string Meshes = Maps.Root + "/Meshes";
-            public const string Chunks = Maps.Root + "/Chunks";
-            public const string Animations = Maps.Root + "/Animations";
-            public const string Materials = Maps.Root + "/Materials";
-            public const string Shared = Maps.Root + "/Shared";
-            public const string SharedMeshes = Maps.Shared + "/Meshes";
-            public const string SharedMaterials = Maps.Shared + "/Materials";
-            public const string Atlas = Maps.Root + "/Atlas";
-        }
-
-        public static class Items
-        {
-            public const string Root = ImportPaths.Root + "/Items";
-            public const string Data = Items.Root + "/Data";
-            public const string Prefabs = Items.Root + "/Prefabs";
-        }
-
-        public static class Icons
-        {
-            public const string Root = ImportPaths.Root + "/Icons";
-        }
-
-        public static class Skyboxes
-        {
-            public const string Root = ImportPaths.Root + "/Skyboxes";
-        }
-
-        public static class Effects
-        {
-            public const string Root = ImportPaths.Root + "/Effects";
-            public const string Prefabs = Effects.Root + "/Prefabs";
-            public const string Materials = Effects.Root + "/Materials";
-            public const string Textures = Effects.Root + "/Textures";
-        }
-
-        public class ImportContext
-        {
-            public string Root;
-            public string Data;
-            public string Prefab;
-            public string Meshes;
-            public string Materials;
-            public string Textures;
-            public string Motions;
-            public string Animations;
-            public string Avatars;
-            public string Controllers;
-
-            public int Id;
-            public string Name;
-        }
-
-        public class NPCImportContext : ImportContext
-        {
-            public NPCImportContext(int id, string category, string name)
-            {
-                Id = id;
-                Name = name;
-
-                var folderName = $"[{id}] {name}";
-
-                Root = $"{ImportPaths.NPC.Root}/{category}/{folderName}";
-
-                Data = $"{Root}/Data";
-                Prefab = $"{Root}/Prefab";
-                Meshes = $"{Root}/Meshes";
-                Materials = $"{Root}/Materials";
-                Textures = $"{Root}/Textures";
-                Motions = $"{Root}/Motions";
-                Animations = $"{Root}/Animations";
-                Avatars = $"{Root}/Avatars";
-                Controllers = $"{Root}/Controllers";
-            }
-        }
-
-        public class EquipmentImportContext : ImportContext
-        {
-            public EquipmentImportContext()
-            {
-                Root = ImportPaths.Player.Root;
-                Prefab = ImportPaths.Player.Prefabs;
-                Meshes = ImportPaths.Player.Meshes;
-                Materials = ImportPaths.Player.Materials;
-                Textures = ImportPaths.Player.Textures;
-            }
-        }
-
-        public class SkyboxImportContext : ImportContext
-        {
-            public SkyboxImportContext()
-            {
-                Root = ImportPaths.Skyboxes.Root;
-                Meshes = Root;
-                Materials = Root;
-                Textures = Root;
-            }
-        }
-
-        public class IconImportContext : ImportContext
-        {
-            public IconImportContext()
-            {
-                Root = ImportPaths.Icons.Root;
-                Textures = Root;
-            }
-        }
-
-        public class EffectImportContext : ImportContext
-        {
-            public EffectImportContext()
-            {
-                Root = ImportPaths.Effects.Root;
-                Textures = ImportPaths.Effects.Textures;
-                Materials = ImportPaths.Effects.Materials;
-            }
-        }
-    }
-
+    /// <summary>
+    /// Everything common in the Rose Import system.
+    /// </summary>
     public static class ROSEEditorBaker
     {
         private const string DataPathKey = "ROSE_DataPath";
@@ -183,44 +31,47 @@ namespace UnityRose.ImportEditor
             set
             {
                 EditorPrefs.SetString(DataPathKey, value);
-                RoseDataSource.DataPath = value; // keep the runtime-safe layer in sync
+                RoseImporter.DataPath = value; // keep the runtime-safe layer in sync
             }
         }
 
+        /// <summary>
+        /// Clear all imported data from the project.
+        /// </summary>
         public static void ClearData()
         {
-            File.Delete("Assets/GameData.meta");
+            File.Delete($"{GameDataPaths.Root}.meta");
 
-            if (Directory.Exists(ImportPaths.Root))
+            if (Directory.Exists(Root))
             {
-                Directory.Delete(ImportPaths.Root, true);
+                Directory.Delete(GameDataPaths.Root, true);
             }
 
             AssetDatabase.Refresh();
         }
 
-        private static string GenerateTexturePath(string rosePath, ImportContext context)
+        /// <summary>
+        /// Import a mesh.
+        /// </summary>
+        /// <param name="rosePath">Rose Path.</param>
+        /// <param name="context">Context.</param>
+        /// <returns>Mesh.</returns>
+        public static Mesh ImportMesh(string rosePath, ImportContext context)
         {
-            var name = Path.GetFileName(rosePath);
-            return $"{context.Textures}/{name}";
+            return ImportMesh(rosePath, context.Meshes);
         }
 
-        private static string GenerateAnimationPath(string rosePath, ImportContext context)
+        /// <summary>
+        /// Import a mesh.
+        /// </summary>
+        /// <param name="rosePath">Rose Path.</param>
+        /// <param name="context">Context.</param>
+        /// <returns>Mesh.</returns>
+        public static Mesh ImportMesh(string rosePath, string saveDirectory)
         {
             var name = Path.GetFileNameWithoutExtension(rosePath);
-            return $"{context.Animations}/{name}.anim.asset";
-        }
 
-        private static string GenerateMeshPath(string rosePath, ImportContext context)
-        {
-            var name = Path.GetFileNameWithoutExtension(rosePath);
-
-            return $"{context.Meshes}/{name}.mesh.asset";
-        }
-
-        public static Mesh BakeMesh(string rosePath, ImportContext context)
-        {
-            var assetPath = GenerateMeshPath(rosePath, context);
+            var assetPath = $"{saveDirectory}/{name}.mesh.asset";
 
             var existing = AssetDatabase.LoadAssetAtPath<Mesh>(assetPath);
 
@@ -234,7 +85,7 @@ namespace UnityRose.ImportEditor
                 AssetDatabase.DeleteAsset(assetPath);
             }
 
-            var mesh = RoseMeshImporter.Import(rosePath);
+            var mesh = new ZMS(Path.Combine(RoseImporter.DataPath, rosePath)).getMesh();
 
             if (mesh == null)
             {
@@ -263,17 +114,33 @@ namespace UnityRose.ImportEditor
             return mesh;
         }
 
-        public static RoseSkeletonData BakeSkeleton(string rosePath, ImportContext context)
+        /// <summary>
+        /// Import a skeleton from a ZMS file.
+        /// </summary>
+        /// <param name="rosePath">Rose path.</param>
+        /// <param name="context">Context.</param>
+        /// <returns>Skeleton.</returns>
+        public static RoseSkeletonData ImportSkeleton(string rosePath, ImportContext context)
         {
-            var assetPath = GenerateMeshPath(rosePath, context).Replace(".mesh.asset", ".skel.asset");
+            var name = Path.GetFileNameWithoutExtension(rosePath);
+
+            var assetPath =  $"{context.Meshes}/{name}.mesh.asset";
+
+            assetPath = assetPath.Replace(".mesh.asset", ".skel.asset");
 
             var existing = AssetDatabase.LoadAssetAtPath<RoseSkeletonData>(assetPath);
-            if (existing != null)
-                return existing;
 
-            var skeleton = RoseSkeletonImporter.Import(rosePath);
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            var skeleton = CreateSkeleton(rosePath);
+
             if (skeleton == null)
+            {
                 return null;
+            }
 
             Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
 
@@ -284,69 +151,63 @@ namespace UnityRose.ImportEditor
             return skeleton;
         }
 
-        public static AnimationClip BakeAnimation(string rosePath, RoseSkeletonData skeleton, ImportContext context)
+        /// <summary>
+        /// Import an animation based off a skeleton.
+        /// </summary>
+        /// <param name="rosePath">Rose path.</param>
+        /// <param name="skeleton">Skeleton.</param>
+        /// <param name="context">Context.</param>
+        /// <returns>Animation skeleton.</returns>
+        public static AnimationClip ImportAnimation(string rosePath, RoseSkeletonData skeleton, ImportContext context)
         {
-            var assetPath = GenerateAnimationPath(rosePath, context);
+            var name = Path.GetFileNameWithoutExtension(rosePath);
 
-            var clip = RoseAnimationImporter.Import(rosePath, skeleton);
+            var assetPath = $"{context.Animations}/{name}.anim.asset";
+
+            var clip = ImportClip(rosePath, skeleton);
+
             if (clip == null) return null;
 
             Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+
             AssetDatabase.CreateAsset(clip, assetPath);
 
             return clip;
         }
 
-        public static Texture2D BakeTexture(string rosePath, ImportContext context)
+        /// <summary>
+        /// Import a texture from the ROSE data path into the Unity project, optionally using a custom DDS loader.
+        /// </summary>
+        /// <param name="rosePath">Rose path.</param>
+        /// <param name="context"Context.></param>
+        /// <param name="useRoseLoader">Use role loader.</param>
+        /// <returns></returns>
+        public static Texture2D ImportTexture(string rosePath, ImportContext context, bool useRoseLoader = false)
         {
-            var fullPath = Utils.ResolvePathWithCorrectCase(DataPath, rosePath);
+            return ImportTexture(rosePath, context.Textures, useRoseLoader);
+        }
+
+        /// <summary>
+        /// Import a texture from the ROSE data path into the Unity project, optionally using a custom DDS loader.
+        /// </summary>
+        /// <param name="rosePath">Rose path.</param>
+        /// <param name="context"Context.></param>
+        /// <param name="useRoseLoader">Use role loader.</param>
+        /// <returns></returns>
+        public static Texture2D ImportTexture(string rosePath, string saveDirectory, bool useRoseLoader = false)
+        {
+            var fullPath = EditorUtils.ResolvePathWithCorrectCase(DataPath, rosePath);
 
             if (!File.Exists(fullPath))
             {
                 Debug.LogWarning("Missing texture " + fullPath);
-                return null;
-            }
-
-            var fileName = Path.GetFileName(rosePath);
-            var assetPath = $"{context.Textures}/{fileName}".Replace("\\", "/");
-
-            if (!File.Exists(assetPath))
-            {
-                Directory.CreateDirectory(context.Textures);
-
-                File.Copy(fullPath, assetPath, true);
-
-                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
-                AssetDatabase.Refresh();
-            }
-
-            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
-
-            if (texture == null)
-            {
-                Debug.LogWarning($"Failed loading imported texture: {assetPath}");
-
-                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
-
-                texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
-            }
-
-            return texture;
-        }
-
-        public static Texture2D BakeTextureHome(string rosePath, ImportContext context)
-        {
-            var fullPath = Utils.ResolvePathWithCorrectCase(DataPath, rosePath);
-
-            if (!File.Exists(fullPath))
-            {
-                //   Debug.LogWarning("Missing texture " + fullPath);
 
                 return null;
             }
 
-            var fileName = Path.GetFileNameWithoutExtension(rosePath) + ".asset";
-            var assetPath = $"{context.Textures}/{fileName}".Replace("\\", "/");
+            string fileName = Path.GetFileNameWithoutExtension(rosePath);
+            string assetPath = $"{saveDirectory}/{fileName}" + (useRoseLoader ? ".asset" : Path.GetExtension(rosePath));
+            assetPath = assetPath.Replace("\\", "/");
 
             var existing = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
 
@@ -355,39 +216,77 @@ namespace UnityRose.ImportEditor
                 return existing;
             }
 
-            Directory.CreateDirectory(context.Textures);
+            EditorUtils.EnsureFolder(assetPath);
 
-            var texture = RoseDdsLoader.LoadFromFile(fullPath);
-
-            if (texture == null)
+            if (useRoseLoader) // Akima : At term, we will use our own loader for DDS files, since we have to convert a lot of textures for Unity to load them in the first place.
             {
-                Debug.LogWarning($"Failed loading DDS texture: {fullPath}");
-                return null;
+                var texture = RoseDdsLoader.LoadFromFile(fullPath);
+
+                if (texture == null)
+                {
+                    Debug.LogWarning($"Failed loading DDS texture: {fullPath}");
+                    return null;
+                }
+
+                texture.name = fileName;
+
+                AssetDatabase.CreateAsset(texture, assetPath);
+                EditorUtility.SetDirty(texture);
+
+                return texture;
             }
 
-            texture.name = Path.GetFileNameWithoutExtension(rosePath);
+            File.Copy(fullPath, assetPath, true);
 
-            AssetDatabase.CreateAsset(texture, assetPath);
+            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.Refresh();
 
-            EditorUtility.SetDirty(texture);
-            AssetDatabase.SaveAssets();
+            var importedTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
 
-            return texture;
+            if (importedTexture == null)
+            {
+                Debug.LogWarning($"Failed loading imported texture: {assetPath}");
+
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
+                importedTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+            }
+            return importedTexture;
         }
 
-        public static Material BakeMaterialHome(string rosePath, Texture2D texture, Shader shader, ImportContext context)
+        /// <summary>
+        /// Create a material.
+        /// </summary>
+        /// <param name="rosePath"></param>
+        /// <param name="texture"></param>
+        /// <param name="shader"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static Material ImportMaterial(string rosePath, Texture2D texture, Shader shader, ImportContext context)
         {
-            var fullPath = Utils.ResolvePathWithCorrectCase(DataPath, rosePath);
+            return ImportMaterial(rosePath, texture, shader, context.Materials);
+        }
+
+        /// <summary>
+        /// Create a material.
+        /// </summary>
+        /// <param name="rosePath"></param>
+        /// <param name="texture"></param>
+        /// <param name="shader"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static Material ImportMaterial(string rosePath, Texture2D texture, Shader shader, string saveDirectory)
+        {
+            var fullPath = EditorUtils.ResolvePathWithCorrectCase(DataPath, rosePath);
 
             if (!File.Exists(fullPath))
             {
-                //   Debug.LogWarning("Missing texture " + fullPath);
+                Debug.LogWarning("Missing texture : " + fullPath);
 
                 return null;
             }
 
             var fileName = Path.GetFileNameWithoutExtension(rosePath) + ".asset";
-            var assetPath = $"{context.Materials}/{fileName}".Replace("\\", "/");
+            var assetPath = $"{saveDirectory}/{fileName}".Replace("\\", "/");
 
             var existing = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
 
@@ -396,7 +295,7 @@ namespace UnityRose.ImportEditor
                 return existing;
             }
 
-            Directory.CreateDirectory(context.Materials);
+            Directory.CreateDirectory(saveDirectory);
 
             var material = new Material(shader);
 
@@ -411,7 +310,6 @@ namespace UnityRose.ImportEditor
             material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
             material.renderQueue = 3000;
 
-            // Transparency
             material.SetFloat("_Surface", 1); // Transparent
             material.SetFloat("_Blend", 0);   // Alpha
 
@@ -430,7 +328,15 @@ namespace UnityRose.ImportEditor
             return material;
         }
 
-        public static Material BakeMaterial(int materialIdx, ZSC zsc, string pathZ, ImportContext context)
+        /// <summary>
+        /// Create equipment material from ZSC data, using the specified material index.
+        /// </summary>
+        /// <param name="materialIdx"></param>
+        /// <param name="zsc"></param>
+        /// <param name="pathZ"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static Material ImportEquipmentMaterial(int materialIdx, ZSC zsc, string pathZ, ImportContext context)
         {
             var zscName = Path.GetFileNameWithoutExtension(pathZ);
 
@@ -444,7 +350,9 @@ namespace UnityRose.ImportEditor
                 var tex = existing.GetTexture("_BaseMap");
 
                 if (tex != null)
+                {
                     return existing;
+                }
 
                 Debug.LogWarning($"Material exists but missing texture: {matPath}");
 
@@ -453,19 +361,13 @@ namespace UnityRose.ImportEditor
 
             Directory.CreateDirectory(matFolder);
 
-            var shader = Shader.Find("Universal Render Pipeline/Unlit");
-
-            if (shader == null)
-            {
-                Debug.LogError("URP Unlit shader not found");
-                return null;
-            }
+            var shader = Shader.Find("Universal Render Pipeline/Unlit"); // Use settings
 
             var mat = new Material(shader);
 
             var zscMat = zsc.Textures[materialIdx];
 
-            var texture = BakeTexture(zscMat.Path, context);
+            var texture = ImportTexture(zscMat.Path, context);
 
             if (texture == null)
             {
@@ -525,7 +427,15 @@ namespace UnityRose.ImportEditor
             return mat;
         }
 
-        public static Material BakeMaterial(string textureDayPath, string textureNightPath, string name, SkyboxImportContext context)
+        /// <summary>
+        /// Create a skybox material with day and night textures.
+        /// </summary>
+        /// <param name="textureDayPath">Texture day path.</param>
+        /// <param name="textureNightPath">Texture night path.</param>
+        /// <param name="name">Name.</param>
+        /// <param name="context">Context.</param>
+        /// <returns>Skybox material.</returns>
+        public static Material ImportSkyxboxMaterial(string textureDayPath, string textureNightPath, string name, SkyboxImportContext context)
         {
             var savePath = context.Materials + "/" + name;
 
@@ -559,12 +469,14 @@ namespace UnityRose.ImportEditor
                 return null;
             }
 
-            var dayTexture = BakeTexture(textureDayPath, context);
-            var nightTexture = BakeTexture(textureNightPath, context);
+            var dayTexture = ImportTexture(textureDayPath, context);
+
+            var nightTexture = ImportTexture(textureNightPath, context);
 
             if (dayTexture == null || nightTexture == null)
             {
                 Debug.LogWarning($"Missing skybox texture for material: {savePath}");
+
                 return null;
             }
 
@@ -582,562 +494,73 @@ namespace UnityRose.ImportEditor
             return material;
         }
 
-        public static List<Transform> BuildSkeleton(GameObject root, RoseSkeletonData skeleton)
-        {
-            var bones = new List<Transform>();
-
-            foreach (var bone in skeleton.bones)
-            {
-                var obj = new GameObject(bone.name);
-
-                obj.transform.SetParent(root.transform, false);
-
-                obj.transform.localPosition = bone.translation;
-                obj.transform.localRotation = bone.rotation;
-
-                bones.Add(obj.transform);
-            }
-
-            for (int i = 0; i < skeleton.bones.Count; i++)
-            {
-                int parent = skeleton.bones[i].parent;
-
-                if (parent >= 0 && parent < bones.Count)
-                    bones[i].SetParent(bones[parent], false);
-            }
-
-            return bones;
-        }
-
-        private static AnimatorController BakeAnimatorController(EntitySO npc, string path)
-        {
-            if (AssetDatabase.LoadAssetAtPath<AnimatorController>(path) != null)
-                AssetDatabase.DeleteAsset(path);
-
-            var controller = AnimatorController.CreateAnimatorControllerAtPath(path);
-
-            var stateMachine = controller.layers[0].stateMachine;
-
-            AnimatorState defaultState = null;
-
-            for (int i = 0; i < npc.animations.Count; i++)
-            {
-                var animation = npc.animations[i];
-
-                if (animation == null)
-                    continue;
-
-                var state = stateMachine.AddState($"Animation_{i}");
-                state.motion = animation;
-
-                if (defaultState == null)
-                    defaultState = state;
-            }
-
-            if (defaultState != null)
-                stateMachine.defaultState = defaultState;
-
-            var layers = controller.layers;
-            layers[0].defaultWeight = 1f;
-            controller.layers = layers;
-
-            EditorUtility.SetDirty(controller);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-
-            return AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
-        }
-
         /// <summary>
-        /// Import NPC.
+        /// Import an animation clip from a ZMO file, using the specified skeleton.
         /// </summary>
-        /// <param name="id">ID.</param>
-        /// <returns>Imported NPC.</returns>
-        public static GameObject ImportNPC(int id)
+        /// <param name="rosePath">Rose path.</param>
+        /// <param name="skeleton">Skeleton.</param>
+        /// <returns>Clip.</returns>
+        public static AnimationClip ImportClip(string rosePath, RoseSkeletonData skeleton)
         {
-            try
+            var fullPath = Path.Combine(RoseImporter.DataPath, rosePath);
+
+            if (!File.Exists(fullPath))
             {
-                var npc = BakeEntity(id);
-
-                return npc;
-            }
-
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Import all the NPC.
-        /// </summary>
-        public static void ImportAllNPC()
-        {
-            AssetHelper.StartAssetEditing();
-
-            try
-            {
-                var chr = new CHR(Utils.CombinePath(DataPath, "3DDATA/NPC/LIST_NPC.CHR"));
-
-                foreach (var i in Enumerable.Range(0, chr.Characters.Count))
-                {
-                    var npc = BakeEntity(i);
-
-                    if (npc != null)
-                    {
-                        //       RegisterNPCInInternalDB(npc);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError("Something went wrong while importing ALL NPC: " + ex.Message + "\n" + ex.StackTrace);
-            }
-
-            finally
-            {
-                AssetHelper.StopAssetEditing();
-            }
-        }
-
-        /// <summary>
-        /// Build the NPC Prefab.
-        /// </summary>
-        /// <param name="npc">NPC.</param>
-        /// <param name="context">Context.</param>
-        /// <returns>Game object.</returns>
-        private static GameObject BuildEntityModelPrefab(EntitySO npc, NPCImportContext context)
-        {
-            if (npc == null)
-            {
-                Debug.LogError("Cannot build NPC prefab: npc is null");
+                Debug.LogWarning("Could not find referenced animation: " + fullPath);
 
                 return null;
             }
 
-            var root = new GameObject(npc.monsterData.displayName);
+            var clip = new ZMO(fullPath).BuildSkeletonAnimationClip(skeleton);
 
-            var bones = new List<Transform>();
+            clip.name = Path.GetFileNameWithoutExtension(rosePath);
 
-            if (npc.skeleton != null)
-            {
-                foreach (var bone in npc.skeleton.bones)
-                {
-                    var boneObject = new GameObject(bone.name);
-
-                    boneObject.transform.SetParent(root.transform, false);
-
-                    boneObject.transform.localPosition = bone.translation;
-                    boneObject.transform.localRotation = bone.rotation;
-
-                    bones.Add(boneObject.transform);
-                }
-
-                for (int i = 0; i < npc.skeleton.bones.Count; i++)
-                {
-                    var parent = npc.skeleton.bones[i].parent;
-
-                    if (parent >= 0 && parent < bones.Count)
-                    {
-                        bones[i].SetParent(bones[parent], false);
-                    }
-
-                    else
-                    {
-                        bones[i].SetParent(root.transform, false);
-                    }
-                }
-
-                foreach (var dummy in npc.skeleton.dummies)
-                {
-                    var dummyObject = new GameObject(dummy.name);
-
-                    dummyObject.transform.localPosition = dummy.translation;
-                    dummyObject.transform.localRotation = dummy.rotation;
-
-                    dummyObject.transform.SetParent(root.transform, false);
-
-                    bones.Add(dummyObject.transform);
-                }
-            }
-
-            foreach (var part in npc.parts)
-            {
-                if (part == null)
-                {
-                    continue;
-                }
-
-                foreach (var model in part.models)
-                {
-                    if (model.mesh == null) continue;
-
-                    var obj = new GameObject("Model");
-
-                    obj.transform.SetParent(root.transform, false);
-
-                    if (npc.skeleton != null && model.boneIndex == -1) // skinned
-                    {
-                        var renderer = obj.AddComponent<SkinnedMeshRenderer>();
-
-                        model.mesh.bindposes = bones.Select(b => b.worldToLocalMatrix * root.transform.localToWorldMatrix).ToArray();
-
-                        renderer.sharedMesh = model.mesh;
-                        renderer.sharedMaterial = model.material;
-
-                        if (bones.Count > 0)
-                        {
-                            renderer.rootBone = bones[0];
-                            renderer.bones = bones.ToArray();
-                        }
-                    }
-                    else // rigid, attached to a single bone/dummy
-                    {
-                        var filter = obj.AddComponent<MeshFilter>();
-                        var renderer = obj.AddComponent<MeshRenderer>();
-                        filter.sharedMesh = model.mesh;
-                        renderer.sharedMaterial = model.material;
-
-                        if (model.boneIndex >= 0 && model.boneIndex < bones.Count)
-                        {
-                            obj.transform.SetParent(bones[model.boneIndex], false);
-                        }
-                    }
-                }
-            }
-
-            if (npc.animations != null && npc.animations.Count > 0)
-            {
-                var animator = root.AddComponent<Animator>();
-
-                var avatar = AvatarBuilder.BuildGenericAvatar(root, "b1_pelvis");
-
-                avatar.name = $"{npc.monsterData.displayName}_Avatar";
-
-                if (!avatar.isValid)
-                {
-                    Debug.LogError($"Failed to build a valid avatar for NPC {npc.monsterData.displayName} " + "(check that 'b1_pelvis' exists as a child Transform under root).");
-                }
-
-                else
-                {
-                    var avatarPath = $"{context.Avatars}/{npc.monsterData.displayName}_Avatar.asset";
-                    Directory.CreateDirectory(Path.GetDirectoryName(avatarPath));
-
-                    if (AssetDatabase.LoadAssetAtPath<Avatar>(avatarPath) != null)
-                        AssetDatabase.DeleteAsset(avatarPath);
-
-                    AssetDatabase.CreateAsset(avatar, avatarPath);
-                    EditorUtility.SetDirty(avatar);
-                    AssetDatabase.SaveAssets();
-
-                    animator.avatar = AssetDatabase.LoadAssetAtPath<Avatar>(avatarPath);
-                }
-
-                var controllerPath = $"{context.Controllers}/{npc.monsterData.displayName}.controller";
-                Directory.CreateDirectory(Path.GetDirectoryName(controllerPath));
-
-                var controller = BakeAnimatorController(npc, controllerPath);
-                var layers = controller.layers; layers[0].defaultWeight = 1f;
-
-                animator.runtimeAnimatorController = controller;
-            }
-
-            float scale = npc.monsterData.size / 100F;
-
-            root.transform.localScale = new Vector3(scale, scale, scale);
-
-            var entityComponent = root.AddComponent<EntityModelBehavior>();
-
-            entityComponent.data = npc;
-
-            return root;
+            return clip;
         }
 
         /// <summary>
-        /// Bake the NPC.
+        /// Create a skeleton from a ZMS file.
         /// </summary>
-        /// <param name="npcIdx">NPC Index.</param>
-        /// <returns>Baked NPC.</returns>
-        private static GameObject BakeEntity(int npcIdx)
+        /// <param name="rosePath">Rose Path.</param>
+        /// <returns></returns>
+        public static RoseSkeletonData CreateSkeleton(string rosePath)
         {
-            var chr = new CHR(Utils.CombinePath(DataPath, "3DDATA/NPC/LIST_NPC.CHR"));
+            var fullPath = Path.Combine(RoseImporter.DataPath, rosePath);
 
-            if (!chr.Characters[npcIdx].IsEnabled)
+            if (!File.Exists(fullPath))
             {
+                Debug.LogWarning("Could not find referenced skeleton: " + fullPath);
+
                 return null;
             }
 
-            var stbName = ResourceManager.Instance.npcSTB.Cells[npcIdx][1].ToString();
+            var zmd = new ZMD(fullPath);
+            var skel = ScriptableObject.CreateInstance<RoseSkeletonData>();
+            skel.name = Path.GetFileNameWithoutExtension(rosePath);
 
-            var context = new NPCImportContext(npcIdx, "Monsters", stbName);
-
-            var npcPath = Utils.CombinePath(context.Data, $"[{npcIdx}]{stbName}.asset");
-            var prefabPath = Utils.CombinePath(context.Prefab, $"[{npcIdx}]{stbName}.prefab");
-
-            var existingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-
-            if (existingPrefab != null)
+            foreach (var bone in zmd.bones)
             {
-                return existingPrefab;
-            }
-
-            Directory.CreateDirectory(Path.GetDirectoryName(npcPath));
-            Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
-
-            var chrObj = chr.Characters[npcIdx];
-
-            var npc = ScriptableObject.CreateInstance<EntitySO>();
-
-            EnemyData data = new EnemyData();
-
-            var stb = ResourceManager.Instance.npcSTB;
-
-            data.id = npcIdx;
-            data.displayName = stb.Cells[npcIdx][1];
-            data.moveSpeed = Utils.ParseSTBInt(stb.Cells[npcIdx][3]);
-            data.runSpeed = Utils.ParseSTBInt(stb.Cells[npcIdx][4]);
-            data.size = Utils.ParseSTBInt(stb.Cells[npcIdx][5]);
-            data.rightWeaponID = Utils.ParseSTBInt(stb.Cells[npcIdx][6]);
-            data.leftWeaponID = Utils.ParseSTBInt(stb.Cells[npcIdx][7]);
-            data.level = Utils.ParseSTBInt(stb.Cells[npcIdx][8]);
-            data.healthPoints = Utils.ParseSTBInt(stb.Cells[npcIdx][9]);
-            data.attack = Utils.ParseSTBInt(stb.Cells[npcIdx][10]);
-            data.accuracy = Utils.ParseSTBInt(stb.Cells[npcIdx][11]);
-            data.defense = Utils.ParseSTBInt(stb.Cells[npcIdx][12]);
-            data.magicDefense = Utils.ParseSTBInt(stb.Cells[npcIdx][13]);
-            data.flee = Utils.ParseSTBInt(stb.Cells[npcIdx][14]);
-            data.attackSpeed = Utils.ParseSTBInt(stb.Cells[npcIdx][15]);
-            data.attackType = Utils.ParseSTBInt(stb.Cells[npcIdx][16]) == 1 ? AttackType.Magic : AttackType.Normal;
-            data.AI = Utils.ParseSTBInt(stb.Cells[npcIdx][17]);
-            data.experience = Utils.ParseSTBInt(stb.Cells[npcIdx][18]);
-            data.dropTableID = Utils.ParseSTBInt(stb.Cells[npcIdx][19]);
-            data.moneyDrop = Utils.ParseSTBInt(stb.Cells[npcIdx][20]);
-            data.dropChance = Utils.ParseSTBInt(stb.Cells[npcIdx][21]); // TODO : Make some smart read, like this field should always be between 1 and 100
-            data.attackRange = Utils.ParseSTBInt(stb.Cells[npcIdx][27]);
-            data.characterType = Utils.ParseSTBInt(stb.Cells[npcIdx][28]);
-            data.faceIconID = Utils.ParseSTBInt(stb.Cells[npcIdx][30]);
-            data.generalSoundEffectID = Utils.ParseSTBInt(stb.Cells[npcIdx][31]);
-            data.attackedSoundEffectID = Utils.ParseSTBInt(stb.Cells[npcIdx][33]);
-            data.attackEffectID = Utils.ParseSTBInt(stb.Cells[npcIdx][34]);
-            data.dyingSoundID = Utils.ParseSTBInt(stb.Cells[npcIdx][36]);
-            data.isPartyQuestMonster = Utils.ParseSTBBool(stb.Cells[npcIdx][39]);
-            data.glowColor = Utils.ParseRoseColorInt(stb.Cells[npcIdx][40]);
-            data.localizationID = Utils.ParseSTBInt(stb.Cells[npcIdx][41]);
-            data.eventTriggerDeath = stb.Cells[npcIdx][42];
-
-            npc.monsterData = data;
-            npc.skeleton = BakeSkeleton(chr.SkeletonFiles[chrObj.ID], context);
-
-            var zsc = new ZscImporter(Path.Combine(DataPath, "3DDATA/NPC/PART_NPC.ZSC"), context);
-
-            foreach (var zscPart in chrObj.Objects)
-            {
-                var part = zsc.ImportPart(zscPart.Object);
-
-                if (part != null)
+                skel.bones.Add(new RoseSkeletonData.Bone
                 {
-                    npc.parts.Add(part);
-                }
+                    name = bone.Name,
+                    parent = bone.ParentID,
+                    translation = bone.Position,
+                    rotation = bone.Rotation
+                });
             }
 
-            foreach (var zscMotion in chrObj.Animations)
+            foreach (var dummy in zmd.dummies)
             {
-                if (zscMotion.Animation < 0)
+                skel.dummies.Add(new RoseSkeletonData.Bone
                 {
-                    continue;
-                }
-
-                var anim = BakeAnimation(chr.MotionFiles[zscMotion.Animation], npc.skeleton, context);
-
-                while (npc.animations.Count <= (int)zscMotion.Type)
-                {
-                    npc.animations.Add(null);
-                }
-
-                npc.animations[(int)zscMotion.Type] = anim;
+                    name = dummy.Name,
+                    parent = dummy.ParentID,
+                    translation = dummy.Position,
+                    rotation = dummy.Rotation
+                });
             }
 
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            AssetDatabase.CreateAsset(npc, npcPath);
-
-            EditorUtility.SetDirty(npc);
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            var npcAsset = AssetDatabase.LoadAssetAtPath<EntitySO>(npcPath);
-
-            var test = BuildEntityModelPrefab(npcAsset, context);
-
-            if (test == null)
-            {
-                Debug.LogError($"Failed to build prefab for NPC {npcIdx} - {stbName}");
-                return null;
-            }
-
-            var prefab = PrefabUtility.SaveAsPrefabAsset(test, prefabPath);
-
-            Debug.Log($"NPC prefab created: {prefabPath}");
-
-            GameObject.DestroyImmediate(test);
-
-            return prefab;
-        }
-
-        public class ZscImporter
-        {
-            public readonly ZSC zsc;
-            public readonly string sourcePath;
-            private readonly ImportContext context;
-
-            public ZscImporter(string rosePath, ImportContext context)
-            {
-                sourcePath = rosePath;
-                zsc = new ZSC(rosePath);
-                this.context = context;
-            }
-
-            public RoseCharPartData ImportPart(int partIdx)
-            {
-                var partPath = Utils.CombinePath(context.Root, "Parts", $"NPC_PART_{partIdx}.asset");
-
-                var existing = AssetDatabase.LoadAssetAtPath<RoseCharPartData>(partPath);
-
-                if (existing != null)
-                    return existing;
-
-                Directory.CreateDirectory(Path.GetDirectoryName(partPath));
-
-                var zscObj = zsc.Objects[partIdx];
-
-                var mdl = ScriptableObject.CreateInstance<RoseCharPartData>();
-
-                foreach (var part in zscObj.Models)
-                {
-                    var zmsPath = zsc.Models[part.ModelID];
-
-                    var fullZmsPath = Utils.CombinePath(DataPath, zmsPath);
-
-                    var zms = new ZMS(fullZmsPath);
-
-                    var model = new Model
-                    {
-                        mesh = BakeMesh(zmsPath, context),
-                        material = BakeMaterial(part.TextureID, zsc, sourcePath, context),
-                        boneIndex = zms.support.bones ? (short)-1 : (short)part.BoneIndex
-                    };
-
-                    mdl.models.Add(model);
-                }
-
-                AssetDatabase.CreateAsset(mdl, partPath);
-
-                EditorUtility.SetDirty(mdl);
-
-                AssetDatabase.SaveAssets();
-
-                return mdl;
-            }
-        }
-
-        public static void ImportIcons()
-        {
-            AssetDatabase.StartAssetEditing();
-
-            var iconsPath = Path.Combine(DataPath, "3DDATA", "CONTROL", "RES");
-            var destFolder = "Assets/Resources/Icons";
-            if (!AssetDatabase.IsValidFolder("Assets/Resources")) AssetDatabase.CreateFolder("Assets", "Resources");
-            if (!AssetDatabase.IsValidFolder(destFolder)) AssetDatabase.CreateFolder("Assets/Resources", "Icons");
-
-            var textures = new List<Texture2D>();
-            foreach (var file in Directory.GetFiles(iconsPath))
-            {
-                var fileName = Path.GetFileName(file);
-                if (!fileName.StartsWith("ICON") || Path.GetExtension(file).ToLower() != ".dds") continue;
-
-                var destPath = Path.Combine(destFolder, fileName).Replace("\\", "/");
-                File.Copy(file, destPath, true);
-                AssetDatabase.ImportAsset(destPath, ImportAssetOptions.ForceUpdate);
-
-                var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(destPath);
-                if (tex != null) textures.Add(tex);
-                else Debug.LogWarning($"Impossible to load {destPath} as Texture2D.");
-            }
-
-            AssetDatabase.StopAssetEditing();
-            AssetDatabase.Refresh();
-
-            var dbPath = "Assets/Resources/IconsDatabase.asset";
-            var db = AssetDatabase.LoadAssetAtPath<IconsDatabase>(dbPath);
-            if (db == null)
-            {
-                db = ScriptableObject.CreateInstance<IconsDatabase>();
-                AssetDatabase.CreateAsset(db, dbPath);
-            }
-            db.icons = textures;
-            EditorUtility.SetDirty(db);
-            AssetDatabase.SaveAssets();
-
-            Debug.Log($"Import finished : {textures.Count} icon imported.");
-        }
-
-        public static void CreatePlayerPrefabs()
-        {
-            var player = new RosePlayer();
-
-            var prefabPath = ImportPaths.Player.Prefabs + "/Player.prefab";
-
-            Utils.EnsureFolder(prefabPath);
-
-            PrefabUtility.SaveAsPrefabAsset(player.player, prefabPath);
-
-            GameObject.DestroyImmediate(player.player);
-        }
-
-        public static class AssetHelper
-        {
-            public delegate void ImportDone();
-
-            public static readonly List<ImportDone> lateImportList = new();
-
-            public static void StartAssetEditing() => AssetDatabase.StartAssetEditing();
-
-            public static void StopAssetEditing()
-            {
-                AssetDatabase.StopAssetEditing();
-
-                foreach (var lateImport in lateImportList)
-                    lateImport();
-
-                lateImportList.Clear();
-
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-            }
-
-            public static void ImportTexture(string path, ImportDone doneFn = null)
-            {
-                try
-                {
-                    AssetDatabase.ImportAsset(path);
-                    if (doneFn != null) lateImportList.Add(doneFn);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning("Failed to import texture: " + ex.Message);
-                }
-            }
-
-            public static void Delay(ImportDone doneFn = null)
-            {
-                if (doneFn != null) lateImportList.Add(doneFn);
-            }
+            return skel;
         }
     }
 }
-#endif

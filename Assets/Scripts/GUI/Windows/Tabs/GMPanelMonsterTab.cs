@@ -218,7 +218,7 @@ public class GMPanelMonsterTab : MonoBehaviour
     {
         Utils.DestroyChildren(dropListParent.gameObject);
 
-        var dropTable = dropTableDatabase.GetEntry(data.dropTableID);
+        var dropTable = dropTableDatabase?.GetEntry(data.dropTableID);
 
         if (dropTable != null)
         {

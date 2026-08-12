@@ -1,17 +1,12 @@
-﻿#if UNITY_EDITOR
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using UnityRose;
-using UnityRose.Formats;
 using UnityRose.Game;
-using Newtonsoft.Json.Linq;
 using UnityRose.ImportEditor;
-
 using UnityEditor;
 using RevolutionShared.Rose.Data;
+using UnityRose.Formats;
 
 namespace UnityRose.Import
 {
@@ -21,11 +16,26 @@ namespace UnityRose.Import
     public static class RoseMapImporter
     {
         /// <summary>
+        /// Import a map and register it in the internal database.
+        /// </summary>
+        /// <param name="mapID">Map ID.</param>
+        /// <param name="settings">Settings.</param>
+        /// <returns>Map.</returns>
+        public static GameObject ImportFullMap(int mapID, ImportationSettings settings)
+        {
+            var prefab = ImportMap(mapID, settings);
+
+            RegisterMapInInternalDB(mapID);
+
+            return prefab;
+        }
+
+        /// <summary>
         /// Import a map.
         /// </summary>
         /// <param name="mapID">Map ID.</param>
         /// <returns></returns>
-        public static GameObject ImportMap(int mapID, ImportationSettings settings)
+        private static GameObject ImportMap(int mapID, ImportationSettings settings)
         {
             Debug.Log("Importing map ID " + mapID + "...");
 
@@ -33,9 +43,9 @@ namespace UnityRose.Import
 
             var mapName = stb.Cells[mapID][1].ToString();
 
-            var zonPath = Utils.FixPath(stb.Cells[mapID][2].ToString());
+            var zonPath = EditorUtils.FixPath(stb.Cells[mapID][2].ToString());
             var mapDirectoryRelative = Path.GetDirectoryName(zonPath);
-            var mapDirectory = Path.Combine(RoseDataSource.DataPath, mapDirectoryRelative);
+            var mapDirectory = Path.Combine(RoseImporter.DataPath, mapDirectoryRelative);
 
             var dirs = new DirectoryInfo(mapDirectory);
 
@@ -110,27 +120,31 @@ namespace UnityRose.Import
             SpawnSpawnPoints(map, patches); // Could be removed but we keep this for debug
 
             var mapSpawns = BuildSpawnPoints(patches);
+            var mobSpawnData = BuildEnemySpawnData(mapID, patches);
+            var npcSpawns = BuildNpcSpawns(patches);
+
+            RegisterSpawnInInternalDB(mapID, patches);
 
             roseMap.mapID = mapID;
             roseMap.mapName = mapName;
 
-            roseMap.data = new MapData(mapID, mapName, mapSpawns);
-            roseMap.data.skyID = Utils.ParseSTBInt(stb.Cells[mapID][8]);
-            roseMap.data.planetID = Utils.ParseSTBInt(stb.Cells[mapID][20]);
+            roseMap.data = new MapData(mapID, mapName, mapSpawns, npcSpawns);
+            roseMap.data.skyID = EditorUtils.ParseSTBInt(stb.Cells[mapID][8]);
+            roseMap.data.planetID = EditorUtils.ParseSTBInt(stb.Cells[mapID][20]);
 
-            var dayPeriod = Utils.ParseSTBInt(stb.Cells[mapID][14]);
-            var morning = Utils.ParseSTBInt(stb.Cells[mapID][15]);
-            var day = Utils.ParseSTBInt(stb.Cells[mapID][16]);
-            var evening = Utils.ParseSTBInt(stb.Cells[mapID][17]);
-            var night = Utils.ParseSTBInt(stb.Cells[mapID][18]);
+            var dayPeriod = EditorUtils.ParseSTBInt(stb.Cells[mapID][14]);
+            var morning = EditorUtils.ParseSTBInt(stb.Cells[mapID][15]);
+            var day = EditorUtils.ParseSTBInt(stb.Cells[mapID][16]);
+            var evening = EditorUtils.ParseSTBInt(stb.Cells[mapID][17]);
+            var night = EditorUtils.ParseSTBInt(stb.Cells[mapID][18]);
 
             roseMap.data.time = new MapTime(dayPeriod, morning, day, evening, night);
 
             AssetDatabase.SaveAssets();
 
-            var prefabPath = $"{ImportPaths.Maps.Prefabs}/{mapName}.prefab";
+            var prefabPath = $"{GameDataPaths.Maps.Prefabs}/{mapName}.prefab";
 
-            Utils.EnsureFolder(prefabPath);
+            EditorUtils.EnsureFolder(prefabPath);
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(map, prefabPath);
 
@@ -143,12 +157,111 @@ namespace UnityRose.Import
             atlasTexHash.Clear();
             textures.Clear();
 
-            Resources.UnloadUnusedAssets();
+            Resources.UnloadUnusedAssets(); // Still useful ? 
             GC.Collect();
 
             Debug.Log("Import complete.");
 
             return prefab;
+        }
+
+        /// <summary>
+        /// Register a map in the internal database.
+        /// </summary>
+        /// <param name="id">ID.</param>
+        private static void RegisterMapInInternalDB(int id)
+        {
+            var mapData = ROSEMapListCache.Get();
+
+            string folder = GameDataPaths.Database.Root;
+
+            if (!AssetDatabase.IsValidFolder(folder))
+            {
+                AssetDatabase.CreateFolder(GameDataPaths.Root, "Databases");
+            }
+
+            string path = $"{folder}/MapDatabase.asset";
+
+            var database = AssetDatabase.LoadAssetAtPath<MapDatabase>(path);
+
+            if (database == null)
+            {
+                database = ScriptableObject.CreateInstance<MapDatabase>();
+
+                AssetDatabase.CreateAsset(database, path);
+            }
+
+            EditorUtils.EnsureAddressable(path, nameof(MapDatabase));
+
+            string displayName = mapData.stl.GetText(mapData.stb.Cells[id][27], STL.Language.English);
+
+            string prefabName = mapData.stb.Cells[id][1];
+
+            if (string.IsNullOrEmpty(displayName))
+            {
+                displayName = "Map_" + id;
+            }
+
+            string prefabPath = $"{GameDataPaths.Maps.Prefabs}/{prefabName}.prefab";
+
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Prefab not found for map {id} ({displayName})");
+
+                return;
+            }
+
+            var roseMap = prefab.GetComponent<RoseMap>();
+
+            var existing = database.maps.Find(x => x.id == id);
+
+            if (existing != null)
+            {
+                existing.prefab = prefab;
+                existing.data = roseMap.data;
+            }
+
+            else
+            {
+                database.maps.Add(new RoseMapEntry
+                {
+                    id = id,
+                    prefab = prefab,
+                    data = roseMap.data
+                });
+            }
+
+            EditorUtility.SetDirty(database);
+            AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>
+        /// Register a map spawn in the internal database.
+        /// </summary>
+        /// <param name="mapID"></param>
+        private static void RegisterSpawnInInternalDB(int mapID, List<RosePatch> patches)
+        {
+            var database = AssetDatabase.LoadAssetAtPath<MonsterSpawnDatabase>(ROSEExportWindow.MonsterSpawnDatabasePath);
+
+            if (database == null)
+            {
+                database = ScriptableObject.CreateInstance<MonsterSpawnDatabase>();
+
+                EditorUtils.EnsureFolder(Path.GetDirectoryName(ROSEExportWindow.MonsterSpawnDatabasePath));
+
+                AssetDatabase.CreateAsset(database, ROSEExportWindow.MonsterSpawnDatabasePath);
+            }
+
+            EditorUtils.EnsureAddressable(ROSEExportWindow.MonsterSpawnDatabasePath, nameof(MonsterSpawnDatabase)); // Shouldn't be useful but just in case
+
+            database.spawns.RemoveAll(m => m != null && m.spawnData != null && m.spawnData.ID == mapID);
+
+            database.spawns.Add(BuildEnemySpawnData(mapID, patches));
+
+            EditorUtility.SetDirty(database);
+            AssetDatabase.SaveAssets();
         }
 
         /// <summary>
@@ -159,7 +272,7 @@ namespace UnityRose.Import
         /// <returns>Atlas texture.</returns>
         private static Texture2D SaveAtlas(Texture2D atlas, string mapName)
         {
-            const string folder = ImportPaths.Maps.Atlas;
+            const string folder = GameDataPaths.Maps.Atlas;
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
@@ -270,48 +383,93 @@ namespace UnityRose.Import
                 var spawn = new GameObject(spawnPoint.Name);
 
                 spawn.transform.parent = spawns.transform;
-                spawn.transform.localPosition = Utils.r2uScale(spawnPoint.Position);
+                spawn.transform.localPosition = Utils.RoseToUnityScale(spawnPoint.Position);
 
                 spawn.transform.rotation = Quaternion.identity;
             }
         }
 
-        [Obsolete("This spawn the NPC on the client side, within the Map prefab, use BuildNpcSpawns instead.")]
         /// <summary>
-        /// Spawns the NPCs in the map.
+        /// Build enemies spawn data.
         /// </summary>
-        /// <param name="map"></param>
-        /// <param name="patches"></param>
-        /// <returns></returns>
-        private static RoseNpcImporter SpawnNpcs(GameObject map, List<RosePatch> patches)
+        /// <param name="mapID">Map ID.</param>
+        /// <returns>Enemy Spawn.</returns>
+        public static EnemySpawnSO BuildEnemySpawnData(int mapID, List<RosePatch> patches)
         {
-            var npcs = new GameObject("NPCs");
-            npcs.transform.SetParent(map.transform);
-            npcs.transform.localScale = new Vector3(1.0f, 1.0f, -1.0f);
-            npcs.transform.Rotate(0, -90F, 0);
-            npcs.transform.position = new Vector3(5200, 0, 5200);
+            var stbNPC = ResourceManager.Instance.npcSTB;
 
-            var npcImporter = new RoseNpcImporter();
+            var data = new SpawnData
+            {
+                ID = mapID,
+                MapName = ResourceManager.Instance.zoneSTB.Cells[mapID][1].ToString(),
+                Spawners = new List<EnemySpawner>()
+            };
 
             foreach (var patch in patches)
             {
-                foreach (var ifoNpc in patch.IFO.NPCs)
+                foreach (var monster in patch.IFO.Monsters)
                 {
-                    var npcData = npcImporter.ImportNpc(ifoNpc.ObjectID);
+                    var spawner = new EnemySpawner
+                    {
+                        Settings = new SpawnSettings
+                        {
+                            Name = monster.Name,
+                            MapX = monster.MapPosition.x,
+                            MapY = monster.MapPosition.y,
+                            ID = monster.ObjectID,
+                            WorldX = monster.Position.x,
+                            WorldY = monster.Position.z,
+                            WorldZ = monster.Position.y,
+                            Interval = monster.Interval,
+                            LimitCount = monster.Limit,
+                            Range = monster.Range,
+                            TacticPoints = monster.TacticPoints
+                        },
+                        Basic = new List<EnemySpawn>(),
+                        Tactic = new List<EnemySpawn>()
+                    };
 
-                    if (npcData == null) continue;
+                    foreach (var spawn in monster.Basic)
+                    {
+                        spawner.Basic.Add(new EnemySpawn
+                        {
+                            ID = spawn.ID,
+                            Count = spawn.Count,
+                            Description = stbNPC.Cells[spawn.ID][1].ToString()
+                        });
+                    }
 
-                    var npc = new GameObject("NPC_" + ifoNpc.ObjectID);
-                    npc.transform.parent = npcs.transform;
-                    npc.transform.localPosition = ifoNpc.Position / 100F;
-                    npc.transform.rotation = Quaternion.identity;
+                    foreach (var spawn in monster.Tactic)
+                    {
+                        spawner.Tactic.Add(new EnemySpawn
+                        {
+                            ID = spawn.ID,
+                            Count = spawn.Count,
+                            Description = stbNPC.Cells[spawn.ID][1].ToString()
+                        });
+                    }
 
-                    var roseNpc = npc.AddComponent<EntityModelBehavior>();
-                    roseNpc.data = npcData;
+                    data.Spawners.Add(spawner);
                 }
             }
 
-            return npcImporter;
+            string path = $"{GameDataPaths.Root}/Spawns/{mapID}.asset";
+
+            EditorUtils.EnsureFolder(path);
+
+            var entry = AssetDatabase.LoadAssetAtPath<EnemySpawnSO>(path);
+
+            if (entry == null)
+            {
+                entry = ScriptableObject.CreateInstance<EnemySpawnSO>();
+                AssetDatabase.CreateAsset(entry, path);
+            }
+
+            entry.spawnData = data;
+
+            EditorUtility.SetDirty(entry);
+
+            return entry;
         }
 
         /// <summary>
@@ -325,7 +483,7 @@ namespace UnityRose.Import
 
             foreach (var spawnPoint in patches[0].ZON.SpawnPoints)
             {
-                result.Add(new MapSpawn(spawnPoint.Name, Utils.r2uScale(spawnPoint.Position).ToWorldPosition()));
+                result.Add(new MapSpawn(spawnPoint.Name, Utils.RoseToUnityScale(spawnPoint.Position).ToWorldPosition()));
             }
 
             return result;
@@ -336,15 +494,15 @@ namespace UnityRose.Import
         /// </summary>
         /// <param name="patches">Patches.</param>
         /// <returns>NPC spawns.</returns>
-        public static List<MapSpawn> BuildNpcSpawns(List<RosePatch> patches)
+        public static List<NPCSpawn> BuildNpcSpawns(List<RosePatch> patches)
         {
-            var result = new List<MapSpawn>();
+            var result = new List<NPCSpawn>();
 
             foreach (var patch in patches)
             {
                 foreach (var npc in patch.IFO.NPCs)
                 {
-                    result.Add(new MapSpawn($"NPC_{npc.ObjectID}", npc.Position.ToWorldPosition()));
+                    result.Add(new NPCSpawn(npc.ObjectID, $"NPC_{npc.ObjectID}", npc.Position.ToWorldPosition()));
                 }
             }
 
@@ -366,6 +524,46 @@ namespace UnityRose.Import
             }
         }
     }
-}
 
-#endif
+    /// <summary>
+    /// ROSE Map list cache.
+    /// </summary>
+    public static class ROSEMapListCache
+    {
+        public class MapListData
+        {
+            public STB stb;
+            public STL stl;
+        }
+
+        private static MapListData _data;
+        private static string _lastPath = "";
+
+        public static MapListData Get() => _data;
+
+        public static void MaybeUpdate()
+        {
+            var current = ROSEEditorBaker.DataPath;
+            if (current == _lastPath) return;
+            _lastPath = current;
+
+            _data = new MapListData
+            {
+                stb = new STB(Path.Combine(current, "3DDATA/STB/LIST_ZONE.STB")),
+                stl = new STL(Path.Combine(current, "3DDATA/STB/LIST_ZONE_S.STL"))
+            };
+        }
+
+        public static bool MapPrefabExists(int mapID)
+        {
+            var mapData = ROSEMapListCache.Get();
+
+            string mapName = Path.GetFileNameWithoutExtension(EditorUtils.FixPath(mapData.stb.Cells[mapID][1].ToString()));
+
+            string prefabPath = $"{GameDataPaths.Maps.Prefabs}/{mapName}.prefab";
+
+            return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) != null;
+        }
+
+    }
+}

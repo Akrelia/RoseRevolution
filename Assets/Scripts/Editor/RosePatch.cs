@@ -130,12 +130,12 @@ namespace UnityRose.Game
 
             IFO = new IFO(assetDirectory.Parent.FullName + "/" + name + ".IFO");
 
-            string litPath = Utils.FixPath(assetDirectory.Parent.FullName + "\\" + name + "\\LIGHTMAP\\BUILDINGLIGHTMAPDATA.LIT");
+            string litPath = EditorUtils.FixPath(assetDirectory.Parent.FullName + "\\" + name + "\\LIGHTMAP\\BUILDINGLIGHTMAPDATA.LIT");
 
-            groundLight = Utils.FixPath(assetDirectory.Parent.FullName + "\\" + name + "\\" + name + "_PLANELIGHTINGMAP.DDS");
+            groundLight = EditorUtils.FixPath(assetDirectory.Parent.FullName + "\\" + name + "\\" + name + "_PLANELIGHTINGMAP.DDS");
 
-            string zscPathDeco = Utils.FixPath(RoseDataSource.DataPath + "/" + ResourceManager.Instance.zoneSTB.Cells[mapID][12]);
-            string zscPathCnst = Utils.FixPath(RoseDataSource.DataPath + "/" + ResourceManager.Instance.zoneSTB.Cells[mapID][13]);
+            string zscPathDeco = EditorUtils.FixPath(RoseImporter.DataPath + "/" + ResourceManager.Instance.zoneSTB.Cells[mapID][12]);
+            string zscPathCnst = EditorUtils.FixPath(RoseImporter.DataPath + "/" + ResourceManager.Instance.zoneSTB.Cells[mapID][13]);
 
             ZSCConst = new ZSC(zscPathCnst);
             ZSCDeco = new ZSC(zscPathDeco);
@@ -272,7 +272,7 @@ namespace UnityRose.Game
                 }
             }
 
-            Texture2D lightTex = SaveTexture(RoseTextureImporter.Import(groundLight), groundLight, shared: false);
+            Texture2D lightTex = SaveTexture(RoseDdsLoader.LoadFromFile(groundLight), groundLight, shared: false);
 
             foreach (Tile tile in tiles)
             {
@@ -291,6 +291,7 @@ namespace UnityRose.Game
             float w = HIM.Width - 1;
 
             int triangleID = 0;
+
             for (int x = 0; x < HIM.Length - 1; x++)
             {
                 for (int y = 0; y < HIM.Width - 1; y++)
@@ -312,23 +313,26 @@ namespace UnityRose.Game
 
                     if (y == 0)
                     {
-                        Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), a);
-                        Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), b);
+                        EditorUtils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), a);
+                        EditorUtils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), b);
                     }
+
                     if (y == HIM.Width - 1)
                     {
-                        Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), d);
-                        Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), c);
+                        EditorUtils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), d);
+                        EditorUtils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), c);
                     }
+
                     if (x == 0)
                     {
-                        Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), a);
-                        Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), d);
+                        EditorUtils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), a);
+                        EditorUtils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), d);
                     }
+
                     if (x == HIM.Length - 1)
                     {
-                        Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), b);
-                        Utils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), c);
+                        EditorUtils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), b);
+                        EditorUtils.addVertexToLookup(edgeVertexLookup, vertices[a].ToString(), c);
                     }
 
                     int tileX = x / 4;
@@ -337,6 +341,7 @@ namespace UnityRose.Game
 
                     ZON.RotationType rotation = ZON.Tiles[TIL.Tiles[tileX, tileY].TileID].Rotation;
                     Vector2[,] rotMatrix;
+
                     switch (rotation)
                     {
                         case ZON.RotationType.Normal:
@@ -395,7 +400,7 @@ namespace UnityRose.Game
                 Vector3[] normals = new Vector3[mesh.vertexCount];
                 Dictionary<String, List<int>> vertexLookup = new Dictionary<string, List<int>>();
                 for (int i = 0; i < mesh.vertexCount; i++)
-                    Utils.addVertexToLookup(vertexLookup, mesh.vertices[i].ToString(), i);
+                    EditorUtils.addVertexToLookup(vertexLookup, mesh.vertices[i].ToString(), i);
 
                 foreach (KeyValuePair<String, List<int>> entry in vertexLookup)
                 {
@@ -412,7 +417,7 @@ namespace UnityRose.Game
                 mesh.normals = normals;
             }
 
-            Utils.calculateMeshTangents(mesh);
+            EditorUtils.calculateMeshTangents(mesh);
             mesh.RecalculateBounds();
             mesh.Optimize();
 
@@ -485,7 +490,7 @@ namespace UnityRose.Game
                         string zmsPath = root3DDataDirectory.Parent.FullName + "/" + zsc.Models[model.ModelID].Replace("\\", "/");
                         string texPath = zsc.Textures[model.TextureID].Path;
 
-                        Texture2D mainTex = SaveTexture(RoseTextureImporter.Import(texPath), texPath);
+                        Texture2D mainTex = SaveTexture(RoseDdsLoader.LoadFromFile(Path.Combine(RoseImporter.DataPath, texPath)), texPath);
 
                         bool hasLitPart = hasLitEntry && part < lit.Objects[obj].Parts.Count;
 
@@ -496,7 +501,7 @@ namespace UnityRose.Game
                         if (hasLitPart)
                         {
                             LIT.Object.Part lmData = lit.Objects[obj].Parts[part];
-                            lightPath = Utils.FixPath(assetDirectory.Parent.FullName + "\\" + this.name + "\\LIGHTMAP\\" + lmData.DDSName);
+                            lightPath = EditorUtils.FixPath(assetDirectory.Parent.FullName + "\\" + this.name + "\\LIGHTMAP\\" + lmData.DDSName);
 
                             float objScale = 1.0f / lmData.ObjectsPerWidth;
                             float rowNum = (float)Math.Floor((double)lmData.MapPosition / lmData.ObjectsPerWidth);
@@ -515,7 +520,7 @@ namespace UnityRose.Game
 
                         if (hasLitPart)
                         {
-                            Texture2D lightTexture = SaveTexture(RoseTextureImporter.Import(lightPath), lightPath, shared: false);
+                            Texture2D lightTexture = SaveTexture(RoseDdsLoader.LoadFromFile(lightPath), lightPath, shared: false);
                             mat.SetTexture("_LightTex", lightTexture);
                         }
 
@@ -544,7 +549,7 @@ namespace UnityRose.Game
                         if (zmoPath != null && zmoPath.ToLower().Contains("zmo"))
                         {
                             isAnimated = true;
-                            var zmo = new ZMO(Path.Combine(RoseDataSource.DataPath, model.Motion), false, true);
+                            var zmo = new ZMO(Path.Combine(RoseImporter.DataPath, model.Motion), false, true);
                             clip = zmo.buildAnimationClip(modelObject.name, clip);
                         }
                         else
@@ -611,7 +616,7 @@ namespace UnityRose.Game
                 return cached;
             }
 
-            string folder = key.Contains("_Ground") ? MapMeshFolder : ImportPaths.Maps.SharedMeshes;
+            string folder = key.Contains("_Ground") ? MapMeshFolder : GameDataPaths.Maps.SharedMeshes;
             EnsureCachedFolder($"{folder}/dummy.asset");
 
             string safeName = SafeFileName(cacheKey);
@@ -652,7 +657,7 @@ namespace UnityRose.Game
                 return cached;
             }
 
-            string folder = key.Contains("Ground") || key.Contains("Lightmap") ? MapMaterialFolder : ImportPaths.Maps.SharedMaterials;
+            string folder = key.Contains("Ground") || key.Contains("Lightmap") ? MapMaterialFolder : GameDataPaths.Maps.SharedMaterials;
             EnsureCachedFolder($"{folder}/dummy.mat");
 
             string safeName = SafeFileName(key);
@@ -678,18 +683,25 @@ namespace UnityRose.Game
         private Texture2D SaveTexture(Texture2D tex, string rosePath, bool shared = true)
         {
             if (tex == null)
+            {
                 return null;
+            }
 
             string safeName = SafeFileName(rosePath);
-            var path = shared ? $"{ImportPaths.Maps.Shared}/Textures/{safeName}.asset" : $"{MapRoot}/Lightmaps/{safeName}.asset";
+
+            var path = shared ? $"{GameDataPaths.Maps.Shared}/Textures/{safeName}.asset" : $"{MapRoot}/Lightmaps/{safeName}.asset";
 
             if (TextureCache.TryGetValue(path, out var alreadySaved))
+            {
                 return alreadySaved;
+            }
 
             var existing = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+
             if (existing != null)
             {
                 TextureCache[path] = existing;
+
                 return existing;
             }
 
@@ -707,7 +719,7 @@ namespace UnityRose.Game
             if (AnimationCache.TryGetValue(key, out var cached))
                 return cached;
 
-            string folder = ImportPaths.Maps.Animations; ;
+            string folder = GameDataPaths.Maps.Animations; ;
             EnsureCachedFolder($"{folder}/dummy.anim");
 
             string safeName = SafeFileName(key);
@@ -759,13 +771,12 @@ namespace UnityRose.Game
             createdFolders.Add(folder);
         }
 
-        private string MapRoot => $"{ImportPaths.Maps.Root}/{mapName}";
+        private string MapRoot => $"{GameDataPaths.Maps.Root}/{mapName}";
 
         private string MapMeshFolder => $"{MapRoot}/Meshes"; // TODO : use ImportContext
 
         private string MapMaterialFolder => $"{MapRoot}/Materials";
     }
-
 
     /// <summary>
     /// Tile.

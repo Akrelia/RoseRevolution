@@ -148,6 +148,7 @@ namespace UnityRose.Formats
 		public Mesh getMesh()
 		{
 			Mesh mesh = new Mesh();
+
 			mesh.vertices = vertices;
 			mesh.triangles = triangles;
 			mesh.normals = normals;
@@ -155,6 +156,7 @@ namespace UnityRose.Formats
 			//mesh.uv1 = uv1;
 			mesh.uv2 = uv1;
 			mesh.boneWeights = boneWeights;
+
 			if (RecalcNormals)
 			{
 				mesh.RecalculateNormals();
@@ -186,9 +188,12 @@ namespace UnityRose.Formats
 				mesh.normals = normals2;
                  * */
 			}
-			Utils.calculateMeshTangents(mesh);
+
+			EditorUtils.calculateMeshTangents(mesh);
+
 			mesh.RecalculateBounds();
 			mesh.Optimize();
+
 			return mesh;
 		}
 
@@ -244,7 +249,7 @@ namespace UnityRose.Formats
 				{
 					if (version <= 6)
 						fh.Read<short>();
-					vertices[i] = Utils.r2uPosition(new Vector3()
+					vertices[i] = Utils.RoseToUnityPosition(new Vector3()
 					{
 						x = fh.Read<float>(),
 						y = fh.Read<float>(),
@@ -265,7 +270,7 @@ namespace UnityRose.Formats
 				{
 					if (version <= 6)
 						fh.Read<short>();
-					normals[i] = Utils.r2uVector(new Vector3()
+					normals[i] = Utils.RoseToUnityVector(new Vector3()
 					{
 						x = fh.Read<float>(),
 						y = fh.Read<float>(),

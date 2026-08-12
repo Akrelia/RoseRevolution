@@ -5,6 +5,7 @@ using System.IO;
 using Newtonsoft.Json;
 using UnityEngine.AddressableAssets;
 using Codice.Client.BaseCommands;
+using UnityRose.Import;
 
 namespace UnityRose.ImportEditor
 {
@@ -324,8 +325,8 @@ namespace UnityRose.ImportEditor
             Debug.Log($"Exported {npcDatabase.entries.Count} enemies to {folder}");
         }
 
-        public const string MapDatabasePath = ImportPaths.Database.Root + "/MapDatabase.asset";
-        public const string MonsterSpawnDatabasePath = ImportPaths.Database.Root + "/MonsterSpawnDatabase.asset";
-        public const string NPCDatabasePath = ImportPaths.Database.Root + "/NpcDatabase.asset";
+        public static readonly string MapDatabasePath = GameDataPaths.Database.Root + $"/{nameof(MapDatabase)}.asset";
+        public static readonly string MonsterSpawnDatabasePath = GameDataPaths.Database.Root + $"/{nameof(MonsterSpawnDatabase)}.asset";
+        public static readonly string NPCDatabasePath = GameDataPaths.Database.Root + $"/{nameof(NPCDatabase)}.asset";
     }
 }

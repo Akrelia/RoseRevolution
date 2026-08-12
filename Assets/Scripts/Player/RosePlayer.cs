@@ -6,77 +6,20 @@ using RevolutionShared.Rose.Data.Equipment;
 
 namespace UnityRose
 {
-    public static class RoseSkeletonLoader
-    {
-        public static GameObject LoadSkeleton(GenderType gender, WeaponType weapon)
-        {
-            string weaponName = Enum.GetName(typeof(WeaponType), weapon); // This was added because the old system used the WeaponType as a name when no value, but if there is a value, its using the ID. So explicity calling the name
-
-            if (string.IsNullOrEmpty(weaponName))
-            {
-                Debug.LogError($"Invalid WeaponType value: {(int)weapon}");
-
-                return null;
-            }
-
-            var prefab = Resources.Load($"Animation/{gender}/{weaponName}/skeleton");
-
-            if (prefab == null)
-            {
-                Debug.LogError($"No skeleton prefab at Animation/{gender}/{weaponName}/skeleton");
-                return null;
-            }
-
-            return GameObject.Instantiate(prefab) as GameObject;
-        }
-        public static GameObject LoadSkeleton(GenderType gender, RigType rig)
-        {
-            var prefab = Resources.Load($"Animation/{gender}/{rig}/skeleton");
-
-            if (prefab == null)
-            {
-                Debug.LogError($"No skeleton prefab at Animation/{gender}/{rig}/skeleton");
-
-                return null;
-            }
-
-            return GameObject.Instantiate(prefab) as GameObject;
-        }
-
-        public static BindPoses LoadBindPoses(GameObject skeleton, GenderType gender, WeaponType weapon)
-        {
-            var source = Resources.Load<BindPoses>($"Animation/{gender}/{weapon}/bindPoses");
-
-            if (source == null)
-            {
-                Debug.LogWarning($"No BindPoses at Animation/{gender}/{weapon}/bindPoses");
-
-                return null;
-            }
-
-            var poses = ScriptableObject.Instantiate(source);
-
-            for (int i = 0; i < poses.boneNames.Length; i++)
-            {
-                poses.boneTransforms[i] = Utils.findChild(skeleton, poses.boneNames[i]);
-            }
-
-            return poses;
-        }
-    }
-
     public class RosePlayer
     {
         public GameObject player;
         public CharModel charModel;
 
         private BindPoses bindPoses;
-        private GameObject skeleton;
+        public GameObject skeleton;
         private Bounds playerBounds;
 
         private readonly Dictionary<BodyPartType, List<Transform>> equipped = new();
 
         public static EquipmentDatabase EquipmentDatabase { get; set; }
+
+        public static CharacterDatabase CharacterDatabase { get; set; }
 
         public RosePlayer()
         {
@@ -100,29 +43,38 @@ namespace UnityRose
             charModel.pos = position;
         }
 
-        public void LoadPlayer(CharModel charModel, EquipmentDatabase database)
+        public void LoadPlayer(CharModel charModel, EquipmentDatabase equipmentDatabase, CharacterDatabase characterDatabase)
         {
-            EquipmentDatabase = database;
+            EquipmentDatabase = equipmentDatabase;
+            CharacterDatabase = characterDatabase;
 
-            if (EquipmentDatabase == null)
+            if (EquipmentDatabase == null || CharacterDatabase == null)
             {
-                Debug.LogError("RosePlayer.AvatarDatabase is not set - assign it before creating a RosePlayer.");
+                Debug.LogError("Databases for player are not set");
 
                 return;
             }
 
             player = new GameObject(charModel.name);
 
-            LoadPlayerSkeleton(charModel);
-
-            if (skeleton == null)
-                return;
-
-            player.layer = LayerMask.NameToLayer("Players");
+            var entry = characterDatabase.GetEntry(charModel.gender, charModel.weapon);
 
             PlayerController controller = player.AddComponent<PlayerController>();
             controller.rosePlayer = this;
             controller.playerInfo.tMovS = charModel.stats.movSpd;
+
+            LoadPlayerSkeleton(entry.prefab, entry.bindPoses, charModel);
+
+            if (skeleton == null)
+            {
+                Debug.LogError("Failed to load player skeleton");
+
+                return;
+            }
+
+            player.layer = LayerMask.NameToLayer("Players");
+
+
 
             Vector3 center = skeleton.transform.Find("b1_pelvis").localPosition;
             center.y = 0.95f;
@@ -152,12 +104,19 @@ namespace UnityRose
             if (player != null) GameObject.Destroy(player);
         }
 
-        private void LoadPlayerSkeleton(CharModel charModel)
+        private void RefreshPlayerSkeleton()
         {
-            LoadPlayerSkeleton(
+            var entry = CharacterDatabase.GetEntry(charModel.gender, charModel.weapon);
+
+            LoadPlayerSkeleton(entry.prefab, entry.bindPoses, charModel);
+        }
+
+        private void LoadPlayerSkeleton(GameObject skeleton, BindPoses bindPoses, CharModel charModel)
+        {
+            SetPlayerSkeleton(skeleton, bindPoses);
+
+            ApplyPlayerEquipment(
                 charModel.gender,
-                charModel.weapon,
-                charModel.rig,
                 charModel.equip.weaponID,
                 charModel.equip.chestID,
                 charModel.equip.handID,
@@ -170,32 +129,44 @@ namespace UnityRose
                 charModel.equip.maskID);
         }
 
-        private void LoadPlayerSkeleton(GenderType gender, WeaponType weapType, RigType rig, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield, int faceitem)
+        private bool SetPlayerSkeleton(GameObject skeletonPrefab, BindPoses bindPoses)
         {
+            if (this.skeleton != null)
+                GameObject.Destroy(this.skeleton);
+
             int childs = player.transform.childCount;
 
             for (int i = childs - 1; i > 0; i--)
-                Utils.Destroy(player.transform.GetChild(i).gameObject);
+                GameObject.Destroy(player.transform.GetChild(i).gameObject);
 
             equipped.Clear();
 
-            if (skeleton != null)
-                Utils.Destroy(skeleton);
+            this.skeleton = GameObject.Instantiate(skeletonPrefab, player.transform);
 
-            skeleton = rig == RigType.FOOT ? RoseSkeletonLoader.LoadSkeleton(gender, weapType) : RoseSkeletonLoader.LoadSkeleton(gender, rig);
+            var animation = this.skeleton.GetComponentInChildren<Animation>();
 
-            if (skeleton == null)
-                return;
+            this.bindPoses = bindPoses;
 
-            bindPoses = RoseSkeletonLoader.LoadBindPoses(skeleton, gender, weapType);
-            skeleton.transform.parent = player.transform;
-            skeleton.transform.localPosition = Vector3.zero;
-            skeleton.transform.localRotation = Quaternion.identity;
+            if (skeleton == null || this.bindPoses == null)
+                return false;
+
+            for (int i = 0; i < this.bindPoses.boneNames.Length; i++)
+                this.bindPoses.boneTransforms[i] = Utils.findChild(skeleton, this.bindPoses.boneNames[i]);
+
+            skeleton.transform.SetParent(player.transform, false);
 
             PlayerController controller = player.GetComponent<PlayerController>();
 
             if (controller != null)
                 controller.OnSkeletonChange();
+
+            return true;
+        }
+
+        private void ApplyPlayerEquipment(GenderType gender, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield, int faceitem)
+        {
+            if (skeleton == null)
+                return;
 
             playerBounds = new Bounds(player.transform.position, Vector3.zero);
 
@@ -207,8 +178,7 @@ namespace UnityRose
             LoadObject(BodyPartType.CAP, cap);
 
             var hat = EquipmentDatabase.GetItem<HeadgearData>(BodyPartType.CAP, cap, gender);
-
-            var hairOffset = hat != null  ? hat.item.hair : 0;
+            var hairOffset = hat != null ? hat.item.hair : 0;
 
             playerBounds.Encapsulate(LoadObject(BodyPartType.HAIR, hair - hair % 5 + hairOffset));
 
@@ -229,19 +199,19 @@ namespace UnityRose
                 if (changeId)
                     charModel.changeID(bodyPart, id);
 
-                if (!Utils.isOneHanded(weapType) && charModel.equip.shieldID > 0)
+                if (!Utils.IsOneHanded(weapType) && charModel.equip.shieldID > 0)
                     Equip(BodyPartType.SUBWEAPON, 0);
 
                 if (weapType != charModel.weapon)
                 {
                     charModel.weapon = weapType;
-                    LoadPlayerSkeleton(charModel);
+                    RefreshPlayerSkeleton();
 
                     return;
                 }
             }
 
-            if (bodyPart == BodyPartType.SUBWEAPON && id > 0 && !Utils.isOneHanded(charModel.weapon))
+            if (bodyPart == BodyPartType.SUBWEAPON && id > 0 && !Utils.IsOneHanded(charModel.weapon))
                 Equip(BodyPartType.WEAPON, 0);
 
             if (bodyPart == BodyPartType.CAP)
@@ -263,17 +233,11 @@ namespace UnityRose
             {
                 foreach (var part in previousParts)
                     if (part != null)
-                        Utils.Destroy(part.gameObject);
+                        GameObject.Destroy(part.gameObject);
             }
             equipped.Remove(bodyPart);
 
             LoadObject(bodyPart, id);
-        }
-
-        public void changeGender(GenderType gender)
-        {
-            charModel.gender = gender;
-            LoadPlayerSkeleton(charModel);
         }
 
         public void changeName(string name)
@@ -312,7 +276,7 @@ namespace UnityRose
             {
                 var attachment = part.GetComponent<RoseAttach>();
 
-                var anchor = attachment != null ? GetAnchorForDummy(bodyPart, attachment.dummy): GetDefaultAnchor(bodyPart);
+                var anchor = attachment != null ? GetAnchorForDummy(bodyPart, attachment.dummy) : GetDefaultAnchor(bodyPart);
 
                 part.SetParent(anchor, false);
                 part.localPosition = Vector3.zero;
@@ -355,9 +319,7 @@ namespace UnityRose
                 BodyPartType.FACE or BodyPartType.HAIR => Utils.findChild(skeleton, "b1_head"),
                 BodyPartType.CAP => Utils.findChild(skeleton, "p_06"),
                 BodyPartType.BACK => Utils.findChild(skeleton, "p_03"),
-                BodyPartType.WEAPON => charModel.weapon == WeaponType.BOW
-                    ? Utils.findChild(skeleton, "p_01")
-                    : Utils.findChild(skeleton, "p_00"),
+                BodyPartType.WEAPON => charModel.weapon == WeaponType.BOW ? Utils.findChild(skeleton, "p_01") : Utils.findChild(skeleton, "p_00"),
                 BodyPartType.SUBWEAPON => Utils.findChild(skeleton, "p_02"),
                 BodyPartType.FACEITEM => Utils.findChild(skeleton, "p_04"),
                 _ => skeleton.transform.parent

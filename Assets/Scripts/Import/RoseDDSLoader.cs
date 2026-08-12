@@ -24,16 +24,23 @@ namespace UnityRose.Import
             if (!File.Exists(path))
             {
                 Debug.LogWarning("RoseDdsLoader: File not found: " + path);
+
                 return null;
             }
 
             try
             {
-                return LoadFromBytes(File.ReadAllBytes(path));
+                var texture = LoadFromBytes(File.ReadAllBytes(path));
+
+                texture.name = Path.GetFileNameWithoutExtension(path);
+
+                return texture;
             }
+
             catch (Exception ex)
             {
                 Debug.LogWarning($"RoseDdsLoader: Failed to load '{path}': {ex.Message}");
+
                 return null;
             }
         }

@@ -271,17 +271,15 @@ namespace UnityRose.Formats
                                 Texture tex = new Texture();
                                 string path = fh.Read<BString>();
 
-                                // was: Utils.ResolvePathWithCorrectCase(ROSEImport.GetDataPath(), path)
-                                // ROSEImport.GetDataPath() is the old, unsynced static path -
-                                // RoseDataSource.DataPath is the one every importer now shares.
-                                string resolvedPath = Utils.ResolvePathWithCorrectCase(RoseDataSource.DataPath, path);
+                                string resolvedPath = EditorUtils.ResolvePathWithCorrectCase(RoseImporter.DataPath, path); // TODO : Avoid this ugly and useless dependency on both EditorUtils and RoseImporter.DataPath
 
-                                if (System.IO.File.Exists(resolvedPath))
+                                if (File.Exists(resolvedPath))
                                 {
-                                    string relativePath = Path.GetRelativePath(RoseDataSource.DataPath, resolvedPath);
-                                    // was: Utils.duplicateTexture(ROSEImport.ImportTexture(relativePath, false))
-                                    tex.Tex = Utils.duplicateTexture(RoseTextureImporter.Import(relativePath));
+                                    string relativePath = Path.GetRelativePath(RoseImporter.DataPath, resolvedPath);
+
+                                    tex.Tex = EditorUtils.duplicateTexture(RoseDdsLoader.LoadFromFile(Path.Combine(RoseImporter.DataPath, relativePath)));
                                 }
+
                                 else
                                 {
                                     if (path != "end")

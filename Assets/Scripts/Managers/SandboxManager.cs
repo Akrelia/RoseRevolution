@@ -23,6 +23,7 @@ public class SandboxManager : MonoBehaviour
     [Header("Data Override")]
     public MapDatabase mapDatabase;
     public EquipmentDatabase equipmentDatabase;
+    public CharacterDatabase characterDatabase;
     public NPCDatabase npcDatabase;
     public SkyboxDatabase skyboxDatabase;
     [Header("Server")]
@@ -81,6 +82,9 @@ public class SandboxManager : MonoBehaviour
 
             if (skyboxDatabase == null)
                 Addressables.LoadAssetAsync<SkyboxDatabase>(nameof(SkyboxDatabase)).Completed += OnDatabaseLoaded;
+
+            if (characterDatabase == null)
+                Addressables.LoadAssetAsync<CharacterDatabase>(nameof(CharacterDatabase)).Completed += OnDatabaseLoaded;
         }
 
         catch (Exception ex)
@@ -142,6 +146,20 @@ public class SandboxManager : MonoBehaviour
             skyboxDatabase = handle.Result;
 
             Debug.Log($"Loaded Skybox Database");
+        }
+    }
+
+    /// <summary>
+    /// When the Character database is loaded.
+    /// </summary>
+    /// <param name="handle">Handle.</param>
+    private void OnDatabaseLoaded(AsyncOperationHandle<CharacterDatabase> handle)
+    {
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+        {
+            characterDatabase = handle.Result;
+
+            Debug.Log($"Loaded Character Database");
 
             ConnectToServer();
         }

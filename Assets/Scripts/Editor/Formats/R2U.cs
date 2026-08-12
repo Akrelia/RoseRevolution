@@ -13,7 +13,7 @@ namespace UnityRose.Formats
             DirectoryInfo zmoDir = new DirectoryInfo(zmoPath);
             string unityPath = zmoDir.FullName.Replace(zmoDir.Name, name) + ".anim";
 
-            AnimationClip clip = (AnimationClip)Utils.LoadAsset(unityPath, ".anim");
+            AnimationClip clip = (AnimationClip)EditorUtils.LoadAsset(unityPath, ".anim");
 
             if (clip != null && clip.legacy)
             {
@@ -31,7 +31,7 @@ namespace UnityRose.Formats
 
                 Debug.Log($"Before save: {clip.name} legacy={clip.legacy}");
 
-                clip = (AnimationClip)Utils.SaveReloadAsset(clip, unityPath, ".anim");
+                clip = (AnimationClip)EditorUtils.SaveReloadAsset(clip, unityPath, ".anim");
             }
 
             return clip;
@@ -39,11 +39,11 @@ namespace UnityRose.Formats
 
         public static Mesh GetMesh(string zmsPath)
         {
-            Mesh mesh = (Mesh)Utils.LoadAsset(zmsPath);
+            Mesh mesh = (Mesh)EditorUtils.LoadAsset(zmsPath);
             if (mesh == null)
             {
                 mesh = new ZMS(zmsPath).getMesh();
-                mesh = (Mesh)Utils.SaveReloadAsset(mesh, zmsPath);
+                mesh = (Mesh)EditorUtils.SaveReloadAsset(mesh, zmsPath);
             }
 
             return mesh;
