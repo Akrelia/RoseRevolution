@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using UnityEngine.AddressableAssets;
 using Codice.Client.BaseCommands;
 using UnityRose.Import;
+using System;
 
 namespace UnityRose.ImportEditor
 {
@@ -14,11 +15,16 @@ namespace UnityRose.ImportEditor
     /// </summary>
     public class ROSEExportWindow : EditorWindow
     {
+        private int selectedTab;
         private Vector2 scroll;
         private NPCDatabase npcDatabase;
         private MapDatabase mapDatabase;
         private DropTableDatabase dropTableDatabase;
         private MonsterSpawnDatabase spawnDatabase;
+
+        private readonly string[] tabs = { "Maps", "NPC" };
+
+        private Action[] tabDrawers;
 
         /// <summary>
         /// Open the window.
@@ -38,6 +44,8 @@ namespace UnityRose.ImportEditor
         private void OnEnable()
         {
             LoadDatabases();
+
+            tabDrawers = new Action[] { DrawMapsTab, DrawNPCTab };
         }
 
         /// <summary>
@@ -45,10 +53,41 @@ namespace UnityRose.ImportEditor
         /// </summary>
         private void LoadDatabases()
         {
-            mapDatabase = Addressables.LoadAssetAsync<MapDatabase>(nameof(MapDatabase)).WaitForCompletion();
-            spawnDatabase = Addressables.LoadAssetAsync<MonsterSpawnDatabase>(nameof(MonsterSpawnDatabase)).WaitForCompletion();
-            npcDatabase = Addressables.LoadAssetAsync<NPCDatabase>(nameof(NPCDatabase)).WaitForCompletion();
-            dropTableDatabase = Addressables.LoadAssetAsync<DropTableDatabase>(nameof(DropTableDatabase)).WaitForCompletion();
+            mapDatabase = LoadDatabase<MapDatabase>();
+            spawnDatabase = LoadDatabase<MonsterSpawnDatabase>();
+            npcDatabase = LoadDatabase<NPCDatabase>();
+            dropTableDatabase = LoadDatabase<DropTableDatabase>();
+        }
+
+        /// <summary>
+        /// Load a database from the Addressables system.
+        /// </summary>
+        /// <typeparam name="T">Type of database.</typeparam>
+        /// <returns>Database.</returns>
+        private T LoadDatabase<T>() where T : UnityEngine.Object
+        {
+            string address = typeof(T).Name;
+
+            try
+            {
+                var database = Addressables.LoadAssetAsync<T>(address).WaitForCompletion();
+
+                if (database == null)
+                {
+                    Debug.LogWarning($"Failed to load database '{address}': Addressable returned null.");
+
+                    return null;
+                }
+
+                return database;
+            }
+
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Failed to load database '{address}': {e.Message}");
+
+                return null;
+            }
         }
 
         /// <summary>
@@ -72,20 +111,13 @@ namespace UnityRose.ImportEditor
 
             GUILayout.Space(5);
 
-            EditorGUILayout.LabelField("Maps", mapDatabase.maps.Count.ToString());
-
             GUILayout.Space(10);
 
-            DrawMapHeader();
+            selectedTab = GUILayout.Toolbar(selectedTab, tabs);
 
-            scroll = GUILayout.BeginScrollView(scroll);
+            tabDrawers[selectedTab]?.Invoke();
 
-            foreach (var map in mapDatabase.maps.OrderBy(x => x.id))
-            {
-                DrawMapRow(map);
-            }
-
-            GUILayout.EndScrollView();
+            EditorGUILayout.LabelField("Maps", mapDatabase.maps.Count.ToString());
 
             GUILayout.Space(10);
 
@@ -103,6 +135,40 @@ namespace UnityRose.ImportEditor
             {
                 ExportDrops();
             }
+        }
+
+        /// <summary>
+        /// Draw the Maps tab.
+        /// </summary>
+        private void DrawMapsTab()
+        {
+            DrawMapHeader();
+
+            scroll = GUILayout.BeginScrollView(scroll);
+
+            foreach (var map in mapDatabase.maps.OrderBy(x => x.id))
+            {
+                DrawMapRow(map);
+            }
+
+            GUILayout.EndScrollView();
+        }
+
+        /// <summary>
+        /// Draw the NPC tab.
+        /// </summary>
+        private void DrawNPCTab()
+        {
+            DrawNPCHeader();
+
+            scroll = GUILayout.BeginScrollView(scroll);
+
+            foreach (var npc in npcDatabase.entries.OrderBy(x => x.id))
+            {
+                DrawNPCRow(npc);
+            }
+
+            GUILayout.EndScrollView();
         }
 
         /// <summary>
@@ -160,6 +226,53 @@ namespace UnityRose.ImportEditor
             if (GUILayout.Button("Monster Spawns", GUILayout.Width(120)))
             {
                 ExportMonsterSpawns(map);
+            }
+
+            GUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// Draw the header for the NPC list.
+        /// </summary>
+        private void DrawNPCHeader()
+        {
+            GUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+            GUILayout.Label("ID", GUILayout.Width(50));
+            GUILayout.Label("Name", GUILayout.ExpandWidth(true));
+            GUILayout.Label("Prefab", GUILayout.ExpandWidth(true));
+            GUILayout.Label("Export", GUILayout.Width(200));
+
+            GUILayout.EndHorizontal();
+        }
+
+        /// <summary>
+        /// Draw a row for a map entry.
+        /// </summary>
+        /// <param name="NPC">NPC.</param>
+        private void DrawNPCRow(NPCDatabaseEntry npc)
+        {
+            GUILayout.BeginHorizontal();
+
+            GUILayout.Label(npc.id.ToString(), GUILayout.Width(50));
+
+            GUILayout.Label($"{npc.data.monsterData.displayName} (Lvl {npc.data.monsterData.level})", GUILayout.ExpandWidth(true));
+
+            GUILayout.Label(npc.prefab != null ? "Imported" : "(!) Missing", CenteredLabel, GUILayout.ExpandWidth(true));
+
+            if (GUILayout.Button("NPC Data", GUILayout.Width(80)))
+            {
+                SaveAsJSONFile($"[{npc.id}] {npc.data.monsterData.displayName}", npc.data);
+            }
+
+            var dropTable = dropTableDatabase?.GetEntry(npc.data.monsterData.dropTableID);
+
+            using (new EditorGUI.DisabledScope(dropTable == null))
+            {
+                if (GUILayout.Button("Drop table", GUILayout.Width(120)))
+                {
+                    SaveAsJSONFile($"[{dropTable.id}] Drop table", dropTable);
+                }
             }
 
             GUILayout.EndHorizontal();
@@ -328,5 +441,10 @@ namespace UnityRose.ImportEditor
         public static readonly string MapDatabasePath = GameDataPaths.Database.Root + $"/{nameof(MapDatabase)}.asset";
         public static readonly string MonsterSpawnDatabasePath = GameDataPaths.Database.Root + $"/{nameof(MonsterSpawnDatabase)}.asset";
         public static readonly string NPCDatabasePath = GameDataPaths.Database.Root + $"/{nameof(NPCDatabase)}.asset";
+
+        private static readonly GUIStyle CenteredLabel = new GUIStyle(EditorStyles.label)
+        {
+            alignment = TextAnchor.MiddleCenter
+        };
     }
 }
