@@ -95,7 +95,7 @@ namespace UnityRose.ImportEditor
             {
                 if (EditorUtility.DisplayDialog("Confirmation", "This will bake every body/armor/weapon/etc. ZSC into prefabs and rebuild the Avatar database.", "Yes", "No"))
                 {
-                    RoseEquipmentImporter.ImportAllEquipment(50);
+                    RoseEquipmentImporter.ImportAllEquipment(50, settings.playerShader);
                 }
             }
 
@@ -139,7 +139,7 @@ namespace UnityRose.ImportEditor
 
             if (GUILayout.Button("Import NPC"))
             {
-                RoseNPCImporter.ImportNPC(indexNPC);
+                RoseNPCImporter.ImportNPC(indexNPC, settings.entityShader);
             }
 
             GUILayout.EndHorizontal();

@@ -262,7 +262,7 @@ namespace UnityRose.ImportEditor
 
             if (GUILayout.Button("NPC Data", GUILayout.Width(80)))
             {
-                SaveAsJSONFile($"[{npc.id}] {npc.data.monsterData.displayName}", npc.data);
+                SaveAsJSONFile($"[{npc.id}] {npc.data.monsterData.displayName}", npc.data.monsterData);
             }
 
             var dropTable = dropTableDatabase?.GetEntry(npc.data.monsterData.dropTableID);
@@ -442,7 +442,7 @@ namespace UnityRose.ImportEditor
         public static readonly string MonsterSpawnDatabasePath = GameDataPaths.Database.Root + $"/{nameof(MonsterSpawnDatabase)}.asset";
         public static readonly string NPCDatabasePath = GameDataPaths.Database.Root + $"/{nameof(NPCDatabase)}.asset";
 
-        private static readonly GUIStyle CenteredLabel = new GUIStyle(EditorStyles.label)
+        private static GUIStyle CenteredLabel => new GUIStyle(EditorStyles.label)
         {
             alignment = TextAnchor.MiddleCenter
         };

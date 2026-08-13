@@ -41,7 +41,7 @@ namespace UnityRose.ImportEditor
         /// <summary>
         /// Import all equipment.
         /// </summary>
-        public static void ImportAllEquipment(int maxSlots)
+        public static void ImportAllEquipment(int maxSlots, Shader shader)
         {
             string dbFolder = "Assets/GameData/Databases";
 
@@ -106,31 +106,31 @@ namespace UnityRose.ImportEditor
 
             try
             {
-                CreateSlot<ArmorData, ArmorDataImporter>(baker, database.bodyDatabase, "Body_M", rm.maleBodyZSC, "3DDATA/AVATAR/BODY/BODY_M.ZSC", BodyPartType.BODY, GenderType.MALE, maxSlots, ResourceManager.Instance.armorSTB);
-                CreateSlot<ArmorData, ArmorDataImporter>(baker, database.bodyDatabase, "Body_F", rm.femaleBodyZSC, "3DDATA/AVATAR/BODY/BODY_F.ZSC", BodyPartType.BODY, GenderType.FEMALE, maxSlots, ResourceManager.Instance.armorSTB);
+                CreateSlot<ArmorData, ArmorDataImporter>(database.bodyDatabase, "Body_M", rm.maleBodyZSC, "3DDATA/AVATAR/BODY/BODY_M.ZSC", BodyPartType.BODY, GenderType.MALE, maxSlots, ResourceManager.Instance.armorSTB, shader);
+                CreateSlot<ArmorData, ArmorDataImporter>(database.bodyDatabase, "Body_F", rm.femaleBodyZSC, "3DDATA/AVATAR/BODY/BODY_F.ZSC", BodyPartType.BODY, GenderType.FEMALE, maxSlots, ResourceManager.Instance.armorSTB, shader);
 
-                CreateSlot<ArmorData, ArmorDataImporter>(baker, database.armDatabase, "Arms_M", rm.maleArmsZSC, "3DDATA/AVATAR/ARMS/ARMS_M.ZSC", BodyPartType.ARMS, GenderType.MALE, maxSlots, ResourceManager.Instance.armSTB);
-                CreateSlot<ArmorData, ArmorDataImporter>(baker, database.armDatabase, "Arms_F", rm.femaleArmsZSC, "3DDATA/AVATAR/ARMS/ARMS_F.ZSC", BodyPartType.ARMS, GenderType.FEMALE, maxSlots, ResourceManager.Instance.armSTB);
+                CreateSlot<ArmorData, ArmorDataImporter>(database.armDatabase, "Arms_M", rm.maleArmsZSC, "3DDATA/AVATAR/ARMS/ARMS_M.ZSC", BodyPartType.ARMS, GenderType.MALE, maxSlots, ResourceManager.Instance.armSTB, shader);
+                CreateSlot<ArmorData, ArmorDataImporter>(database.armDatabase, "Arms_F", rm.femaleArmsZSC, "3DDATA/AVATAR/ARMS/ARMS_F.ZSC", BodyPartType.ARMS, GenderType.FEMALE, maxSlots, ResourceManager.Instance.armSTB, shader);
 
-                CreateSlot<FootwearData, FootwearDataImporter>(baker, database.footwearDatabase, "Foot_M", rm.maleFootZSC, "3DDATA/AVATAR/FOOT/FOOT_M.ZSC", BodyPartType.FOOT, GenderType.MALE, maxSlots, ResourceManager.Instance.footSTB);
-                CreateSlot<FootwearData, FootwearDataImporter>(baker, database.footwearDatabase, "Foot_F", rm.femaleFootZSC, "3DDATA/AVATAR/FOOT/FOOT_F.ZSC", BodyPartType.FOOT, GenderType.FEMALE, maxSlots, ResourceManager.Instance.footSTB);
+                CreateSlot<FootwearData, FootwearDataImporter>(database.footwearDatabase, "Foot_M", rm.maleFootZSC, "3DDATA/AVATAR/FOOT/FOOT_M.ZSC", BodyPartType.FOOT, GenderType.MALE, maxSlots, ResourceManager.Instance.footSTB, shader);
+                CreateSlot<FootwearData, FootwearDataImporter>(database.footwearDatabase, "Foot_F", rm.femaleFootZSC, "3DDATA/AVATAR/FOOT/FOOT_F.ZSC", BodyPartType.FOOT, GenderType.FEMALE, maxSlots, ResourceManager.Instance.footSTB, shader);
 
-                CreateAppearenceSlot(baker, database.appearenceDatabase.faces, "Face_M", rm.maleFaceZSC, "3DDATA/AVATAR/FACE/FACE_M.ZSC", BodyPartType.FACE, GenderType.MALE, maxSlots);
-                CreateAppearenceSlot(baker, database.appearenceDatabase.faces, "Face_F", rm.femaleFaceZSC, "3DDATA/AVATAR/FACE/FACE_F.ZSC", BodyPartType.FACE, GenderType.FEMALE, maxSlots);
+                CreateAppearenceSlot(database.appearenceDatabase.faces, "Face_M", rm.maleFaceZSC, "3DDATA/AVATAR/FACE/FACE_M.ZSC", BodyPartType.FACE, GenderType.MALE, shader, maxSlots);
+                CreateAppearenceSlot(database.appearenceDatabase.faces, "Face_F", rm.femaleFaceZSC, "3DDATA/AVATAR/FACE/FACE_F.ZSC", BodyPartType.FACE, GenderType.FEMALE, shader, maxSlots);
 
-                CreateAppearenceSlot(baker, database.appearenceDatabase.hairs, "Hair_M", rm.maleHairZSC, "3DDATA/AVATAR/HAIR/HAIR_M.ZSC", BodyPartType.HAIR, GenderType.MALE, maxSlots);
-                CreateAppearenceSlot(baker, database.appearenceDatabase.hairs, "Hair_F", rm.femaleHairZSC, "3DDATA/AVATAR/HAIR/HAIR_F.ZSC", BodyPartType.HAIR, GenderType.FEMALE, maxSlots);
+                CreateAppearenceSlot(database.appearenceDatabase.hairs, "Hair_M", rm.maleHairZSC, "3DDATA/AVATAR/HAIR/HAIR_M.ZSC", BodyPartType.HAIR, GenderType.MALE, shader, maxSlots);
+                CreateAppearenceSlot(database.appearenceDatabase.hairs, "Hair_F", rm.femaleHairZSC, "3DDATA/AVATAR/HAIR/HAIR_F.ZSC", BodyPartType.HAIR, GenderType.FEMALE, shader, maxSlots);
 
-                CreateSlot<HeadgearData, HeadgearDataImporter>(baker, database.headgearDatabase, "Cap_M", rm.maleCapZSC, "3DDATA/AVATAR/CAP/CAP_M.ZSC", BodyPartType.CAP, GenderType.MALE, maxSlots, ResourceManager.Instance.capSTB);
-                CreateSlot<HeadgearData, HeadgearDataImporter>(baker, database.headgearDatabase, "Cap_F", rm.femaleCapZSC, "3DDATA/AVATAR/CAP/CAP_F.ZSC", BodyPartType.CAP, GenderType.FEMALE, maxSlots, ResourceManager.Instance.capSTB);
+                CreateSlot<HeadgearData, HeadgearDataImporter>(database.headgearDatabase, "Cap_M", rm.maleCapZSC, "3DDATA/AVATAR/CAP/CAP_M.ZSC", BodyPartType.CAP, GenderType.MALE, maxSlots, ResourceManager.Instance.capSTB, shader);
+                CreateSlot<HeadgearData, HeadgearDataImporter>(database.headgearDatabase, "Cap_F", rm.femaleCapZSC, "3DDATA/AVATAR/CAP/CAP_F.ZSC", BodyPartType.CAP, GenderType.FEMALE, maxSlots, ResourceManager.Instance.capSTB, shader);
 
-                CreateSlot<WeaponData, WeaponDataImporter>(baker, database.weaponDatabase, "Weapon", rm.weaponZSC, "3DDATA/WEAPON/LIST_WEAPON.ZSC", BodyPartType.WEAPON, GenderType.NONE, maxSlots, ResourceManager.Instance.weaponSTB);
+                CreateSlot<WeaponData, WeaponDataImporter>(database.weaponDatabase, "Weapon", rm.weaponZSC, "3DDATA/WEAPON/LIST_WEAPON.ZSC", BodyPartType.WEAPON, GenderType.NONE, maxSlots, ResourceManager.Instance.weaponSTB, shader);
 
-                CreateSlot<ArmorData, ArmorDataImporter>(baker, database.subWeaponDatabase, "Sub_Weapon", rm.subWeaponZSC, "3DDATA/WEAPON/LIST_SUBWPN.ZSC", BodyPartType.SUBWEAPON, GenderType.NONE, maxSlots, ResourceManager.Instance.subWeaponSTB);
+                CreateSlot<ArmorData, ArmorDataImporter>(database.subWeaponDatabase, "Sub_Weapon", rm.subWeaponZSC, "3DDATA/WEAPON/LIST_SUBWPN.ZSC", BodyPartType.SUBWEAPON, GenderType.NONE, maxSlots, ResourceManager.Instance.subWeaponSTB, shader);
 
-                CreateSlot<ArmorData, ArmorDataImporter>(baker, database.faceItemDatabase, "FaceItem", rm.faceItemZSC, "3DDATA/AVATAR/FACEITEM/FACEITEM.ZSC", BodyPartType.FACEITEM, GenderType.NONE, maxSlots, ResourceManager.Instance.faceItemSTB);
+                CreateSlot<ArmorData, ArmorDataImporter>(database.faceItemDatabase, "FaceItem", rm.faceItemZSC, "3DDATA/AVATAR/FACEITEM/FACEITEM.ZSC", BodyPartType.FACEITEM, GenderType.NONE, maxSlots, ResourceManager.Instance.faceItemSTB, shader);
 
-                CreateSlot<ArmorData, ArmorDataImporter>(baker, database.backDatabase, "Back", rm.backZSC, "3DDATA/AVATAR/BACK/BACK.ZSC", BodyPartType.BACK, GenderType.NONE, maxSlots, ResourceManager.Instance.backSTB);
+                CreateSlot<ArmorData, ArmorDataImporter>(database.backDatabase, "Back", rm.backZSC, "3DDATA/AVATAR/BACK/BACK.ZSC", BodyPartType.BACK, GenderType.NONE, maxSlots, ResourceManager.Instance.backSTB, shader);
 
                 //   BakeSlot<ArmorData, PATDataImporter>(baker, database.backDatabase, "PAT", rm.patZSC, "3DDATA/PAT/PAT.ZSC", BodyPartType.BODY, GenderType.NONE, maxIdsPerSlot, ResourceManager.Instance.patSTB);
 
@@ -183,7 +183,7 @@ namespace UnityRose.ImportEditor
         /// <param name="gender"></param>
         /// <param name="maxIds"></param>
         /// <param name="stb"></param>
-        private static void CreateSlot<T, U>(RoseEquipmentImporter baker, ItemDatabase<T> database, string namePrefix, ZSC zsc, string zscPath, BodyPartType bodyPart, GenderType gender, int maxIds, STB stb) where T : EquipmentData where U : EquipmentDataImporter<T>, new()
+        private static void CreateSlot<T, U>(ItemDatabase<T> database, string namePrefix, ZSC zsc, string zscPath, BodyPartType bodyPart, GenderType gender, int maxIds, STB stb, Shader shader) where T : EquipmentData where U : EquipmentDataImporter<T>, new()
         {
             if (zsc == null)
             {
@@ -211,7 +211,7 @@ namespace UnityRose.ImportEditor
 
                 try
                 {
-                    prefab = CreateEquipment($"{namePrefix}_{id}", bodyPart, zsc, zscPath, id);
+                    prefab = CreateEquipment($"{namePrefix}_{id}", bodyPart, zsc, zscPath, id, shader);
                 }
 
                 catch (Exception ex)
@@ -254,7 +254,7 @@ namespace UnityRose.ImportEditor
         /// <param name="bodyPart"></param>
         /// <param name="gender"></param>
         /// <param name="maxIds"></param>
-        private static void CreateAppearenceSlot(RoseEquipmentImporter baker, List<AppearenceEntry> target, string namePrefix, ZSC zsc, string zscPath, BodyPartType bodyPart, GenderType gender, int maxIds)
+        private static void CreateAppearenceSlot(List<AppearenceEntry> target, string namePrefix, ZSC zsc, string zscPath, BodyPartType bodyPart, GenderType gender, Shader shader, int maxIds)
         {
             if (zsc == null)
             {
@@ -270,7 +270,7 @@ namespace UnityRose.ImportEditor
 
                 try
                 {
-                    prefab = CreateEquipment($"{namePrefix}_{id}", bodyPart, zsc, zscPath, id);
+                    prefab = CreateEquipment($"{namePrefix}_{id}", bodyPart, zsc, zscPath, id, shader);
                 }
 
                 catch (Exception ex)
@@ -340,7 +340,7 @@ namespace UnityRose.ImportEditor
         /// <param name="zscPath"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static GameObject CreateEquipment(string name, BodyPartType bodyPart, ZSC zsc, string zscPath, int id)
+        public static GameObject CreateEquipment(string name, BodyPartType bodyPart, ZSC zsc, string zscPath, int id, Shader shader)
         {
             if (id < 0 || id >= zsc.Objects.Count)
                 return null;
@@ -359,7 +359,7 @@ namespace UnityRose.ImportEditor
 
                 foreach (var model in zscObject.Models)
                 {
-                    if (BuildPart(root.transform, bodyPart, model.DummyIndex, model.ModelID, model.TextureID, zsc, zscPath))
+                    if (BuildPart(root.transform, bodyPart, model.DummyIndex, model.ModelID, model.TextureID, zsc, zscPath, shader))
                         builtParts++;
                 }
 
@@ -401,7 +401,7 @@ namespace UnityRose.ImportEditor
         /// <param name="zsc"></param>
         /// <param name="zscPath"></param>
         /// <returns></returns>
-        private static bool BuildPart(Transform parent, BodyPartType bodyPart, ZSC.DummyType dummy, int modelID, int textureID, ZSC zsc, string zscPath)
+        private static bool BuildPart(Transform parent, BodyPartType bodyPart, ZSC.DummyType dummy, int modelID, int textureID, ZSC zsc, string zscPath, Shader shader)
         {
             if (modelID < 0 || modelID >= zsc.Models.Count)
                 return false;
@@ -413,7 +413,7 @@ namespace UnityRose.ImportEditor
             if (mesh == null || mesh.vertexCount == 0)
                 return false;
 
-            var material = ROSEEditorBaker.ImportEquipmentMaterial(textureID, zsc, zscPath, context);
+            var material = ROSEEditorBaker.ImportEquipmentMaterial(textureID, zsc, zscPath, shader, context);
 
             if (material == null)
                 return false;

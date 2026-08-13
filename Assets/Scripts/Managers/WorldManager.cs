@@ -33,6 +33,11 @@ public class WorldManager : MonoBehaviour
         Debug.Log("Metabel");
     }
 
+    /// <summary>
+    /// Spawn a map.
+    /// </summary>
+    /// <param name="id">ID of the map.</param>
+    /// <returns>Spawn map.</returns>
     public RoseMap SpawnMap(int id)
     {
         var mapEntry = sandboxManager.mapDatabase.GetMapById(id); // Move the databases here now
@@ -149,28 +154,35 @@ public class WorldManager : MonoBehaviour
     /// <returns>Entity spawned.</returns>
     public EntityBehavior SpawnEntity(EntityInfos infos, EntitySubInfos subInfos, NPCDatabaseEntry entityData, Vector3 position)
     {
-        var prefab = entityPrefabs[infos.type];
-        var data = entityData.data.monsterData;
+        if (entityData != null)
+        {
+            var prefab = entityPrefabs[infos.type];
+            var data = entityData.data.monsterData;
 
-        var entity = Instantiate(prefab, monstersParent.transform).GetComponent<EntityBehavior>();
+            var entity = Instantiate(prefab, monstersParent.transform).GetComponent<EntityBehavior>();
 
-        entity.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+            entity.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
 
-        var entityModel = Instantiate(entityData.prefab);
+            var entityModel = Instantiate(entityData.prefab);
 
-        entityModel.transform.SetParent(entity.transform, false);
+            entityModel.transform.SetParent(entity.transform, false);
 
-        var mod = entity.GetComponent<IEntityMod>();
+            var mod = entity.GetComponent<IEntityMod>();
 
-        mod?.LoadMod(subInfos);
+            mod?.LoadMod(subInfos);
 
-        entity.name = $"{data.ID}{data.displayName}";
-        entity.mod = mod;
-        entity.model = entityModel.GetComponent<EntityModelBehavior>();
+            entity.name = $"{data.ID}{data.displayName}";
+            entity.mod = mod;
+            entity.model = entityModel.GetComponent<EntityModelBehavior>();
 
-        worldGUIController.SpawnEntityGUI(infos.id, entity.gameObject, entityData.data.monsterData);
+            worldGUIController.SpawnEntityGUI(infos.id, entity.gameObject, entityData.data.monsterData);
 
-        return entity;
+            return entity;
+        }
+
+        RoseDebug.LogError($"Can't find the entity prefab for ID : {infos.id}");
+
+        return null;
     }
 
     /// <summary>

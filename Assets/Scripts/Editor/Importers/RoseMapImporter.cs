@@ -418,8 +418,8 @@ namespace UnityRose.Import
                             MapY = monster.MapPosition.y,
                             ID = monster.ObjectID,
                             WorldX = monster.Position.x,
-                            WorldY = monster.Position.z,
-                            WorldZ = monster.Position.y,
+                            WorldY = monster.Position.y,
+                            WorldZ = monster.Position.z,
                             Interval = monster.Interval,
                             LimitCount = monster.Limit,
                             Range = monster.Range,
@@ -502,7 +502,7 @@ namespace UnityRose.Import
             {
                 foreach (var npc in patch.IFO.NPCs)
                 {
-                    result.Add(new NPCSpawn(npc.ObjectID, $"NPC_{npc.ObjectID}", npc.Position.ToWorldPosition()));
+                    result.Add(new NPCSpawn(npc.ObjectID, ResourceManager.Instance.npcSTB.Cells[npc.ObjectID][1], npc.Position.ToWorldPosition()));
                 }
             }
 

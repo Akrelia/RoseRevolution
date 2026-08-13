@@ -3463,6 +3463,9 @@ MonoBehaviour:
     - key: 2
       value: {fileID: 6689016579524132431, guid: 91af7f9fe25b6244493aaac1837e8b6e,
         type: 3}
+    - key: 4
+      value: {fileID: 6689016579524132431, guid: 6634af8f4d4398b459a049127fe6036a,
+        type: 3}
   cameraController: {fileID: 330585548}
   clanData: {fileID: 11400000, guid: 4601234f19a4ff24b9998704ece842f9, type: 2}
 --- !u!1 &1907922084

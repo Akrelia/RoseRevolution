@@ -336,7 +336,7 @@ namespace UnityRose.ImportEditor
         /// <param name="pathZ"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static Material ImportEquipmentMaterial(int materialIdx, ZSC zsc, string pathZ, ImportContext context)
+        public static Material ImportEquipmentMaterial(int materialIdx, ZSC zsc, string pathZ, Shader shader, ImportContext context)
         {
             var zscName = Path.GetFileNameWithoutExtension(pathZ);
 
@@ -360,8 +360,6 @@ namespace UnityRose.ImportEditor
             }
 
             Directory.CreateDirectory(matFolder);
-
-            var shader = Shader.Find("Universal Render Pipeline/Unlit"); // Use settings
 
             var mat = new Material(shader);
 

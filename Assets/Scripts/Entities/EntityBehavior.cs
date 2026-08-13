@@ -11,7 +11,7 @@ public class EntityBehavior : MonoBehaviour
     public EntityModelBehavior model;
     public Vector3 destinationPosition;
 
-    bool isWalking;
+    public bool isWalking;
     Animator animator;
 
     private void Start()

@@ -22,6 +22,8 @@ Shader "Custom/ObjectShader"
 
         Pass
         {
+            Cull Off
+
             HLSLPROGRAM
 
             #pragma vertex vert
@@ -84,7 +86,7 @@ Shader "Custom/ObjectShader"
                 return output;
             }
 
-            half4 frag(Varyings input) : SV_Target
+            half4 frag(Varyings input, bool isFrontFace : SV_IsFrontFace) : SV_Target
             {
                 half4 mainTex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
                 half4 lightTex = SAMPLE_TEXTURE2D(_LightTex, sampler_LightTex, input.lightmapUV);
@@ -97,13 +99,20 @@ Shader "Custom/ObjectShader"
                 color *= _GlobalTintColor.rgb;
 
                 half3 normalWS = normalize(input.normalWS);
+
+                if (!isFrontFace)
+                    normalWS = -normalWS;
+
                 half3 lighting = 0;
 
                 Light mainLight = GetMainLight();
 
                 half NdotL = saturate(dot(normalWS, mainLight.direction));
 
-                lighting += mainLight.color * NdotL * mainLight.distanceAttenuation * mainLight.shadowAttenuation;
+                lighting += mainLight.color
+                    * NdotL
+                    * mainLight.distanceAttenuation
+                    * mainLight.shadowAttenuation;
 
                 #if defined(_ADDITIONAL_LIGHTS)
 
@@ -115,7 +124,10 @@ Shader "Custom/ObjectShader"
 
                         half lightNdotL = saturate(dot(normalWS, light.direction));
 
-                        lighting += light.color * lightNdotL * light.distanceAttenuation * light.shadowAttenuation;
+                        lighting += light.color
+                            * lightNdotL
+                            * light.distanceAttenuation
+                            * light.shadowAttenuation;
                     }
 
                 #endif

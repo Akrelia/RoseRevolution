@@ -22,9 +22,9 @@ public static class RoseNPCImporter
     /// Import a NPC.
     /// </summary>
     /// <param name="id">ID.</param>
-    public static void ImportNPC(int id)
+    public static void ImportNPC(int id, Shader shader)
     {
-        var npc = CreateNPC(id);
+        var npc = CreateNPC(id, shader);
 
         if (npc)
         {
@@ -42,11 +42,11 @@ public static class RoseNPCImporter
     /// </summary>
     /// <param name="id">ID.</param>
     /// <returns>Imported NPC.</returns>
-    public static GameObject CreateNPC(int id)
+    public static GameObject CreateNPC(int id, Shader shader)
     {
         try
         {
-            var npc = BakeEntity(id);
+            var npc = BakeEntity(id, shader);
 
             return npc;
         }
@@ -64,7 +64,7 @@ public static class RoseNPCImporter
     /// </summary>
     /// <param name="npcIdx">NPC Index.</param>
     /// <returns>Baked NPC.</returns>
-    private static GameObject BakeEntity(int npcIdx)
+    private static GameObject BakeEntity(int npcIdx, Shader shader)
     {
         var chr = new CHR(Path.Combine(DataPath, "3DDATA/NPC/LIST_NPC.CHR"));
 
@@ -138,7 +138,7 @@ public static class RoseNPCImporter
 
         foreach (var zscPart in chrObj.Objects)
         {
-            var part = zsc.ImportPart(zscPart.Object);
+            var part = zsc.ImportPart(zscPart.Object,shader);
 
             if (part != null)
             {
@@ -467,7 +467,7 @@ public static class RoseNPCImporter
             this.context = context;
         }
 
-        public RoseCharPartData ImportPart(int partIdx)
+        public RoseCharPartData ImportPart(int partIdx, Shader shader)
         {
             var partPath = Path.Combine(context.Root, "Parts", $"NPC_PART_{partIdx}.asset");
 
@@ -493,7 +493,7 @@ public static class RoseNPCImporter
                 var model = new Model
                 {
                     mesh = ImportMesh(zmsPath, context),
-                    material = ImportEquipmentMaterial(part.TextureID, zsc, sourcePath, context),
+                    material = ImportEquipmentMaterial(part.TextureID, zsc, sourcePath, shader, context),
                     boneIndex = zms.support.bones ? (short)-1 : (short)part.BoneIndex
                 };
 

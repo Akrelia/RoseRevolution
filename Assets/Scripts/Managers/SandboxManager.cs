@@ -187,27 +187,33 @@ public class SandboxManager : MonoBehaviour
     {
         try
         {
-            var id = packet.GetLong();
+            var playerOwnID = packet.GetLong();
             var name = packet.GetString();
             var mapID = packet.GetInt();
 
+            var npcCount = packet.GetInt();
+
+            for (int i = 0; i < npcCount; i++)
+            {
+                var entityInfos = packet.GetNew<EntityInfos>();
+                var subInfos = packet.GetNew<EntitySubInfos>();
+
+                worldManager.SpawnEntity(entityInfos, subInfos, npcDatabase.GetEntry(entityInfos.dataID), WorldManager.RoseToUnity(entityInfos.position.ToVector3()));
+            }
+
             var motd = packet.GetString();
 
-            var x = packet.GetFloat();
-            var y = packet.GetFloat();
-            var z = packet.GetFloat();
-
-            var mapSpawn = new Vector3(x, y, z);
+            var mapSpawn = packet.GetReadable<WorldPosition>();
 
             var map = worldManager.SpawnMap(mapID);
 
-            var mainPlayer = worldManager.SpawnPlayer(true, playerName, clanName, clanGrade, clanSprite, appearance, WorldManager.RoseToUnity(mapSpawn));
+            var mainPlayer = worldManager.SpawnPlayer(true, playerName, clanName, clanGrade, clanSprite, appearance, WorldManager.RoseToUnity(mapSpawn.ToVector3()));
 
             guiController.characterPreview.SetCharacterInformations(playerName, 856, 950, 350, 350, 15, "Visitor");
 
             mainPlayer.charModel.name = name;
 
-            players.Add(id, mainPlayer);
+            players.Add(playerOwnID, mainPlayer);
 
             EntitiesReceived(client, packet);
 
@@ -271,11 +277,7 @@ public class SandboxManager : MonoBehaviour
             {
                 var appearence = packet.GetNew<CharacterAppearance>();
 
-                var x = packet.GetFloat();
-                var y = packet.GetFloat();
-                var z = packet.GetFloat();
-
-                var position = new Vector3(x, y, z);
+                var position = packet.GetReadable<WorldPosition>().ToVector3();
 
                 var player = worldManager.SpawnPlayer(false, playerName, appearence, position);
 
@@ -372,7 +374,7 @@ public class SandboxManager : MonoBehaviour
             var entry = npcDatabase.GetEntry(entityInfos.dataID);
             var position = entityInfos.position.ToVector3();
 
-            var entity = worldManager.SpawnEntity(entityInfos, subInfos, entry, position);
+            var entity = worldManager.SpawnEntity(entityInfos, subInfos, entry, WorldManager.RoseToUnity(position));
 
             entities.Add(entityInfos.id, entity);
         }
