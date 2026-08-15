@@ -180,6 +180,27 @@ namespace UnityRose.Import
         }
 
         /// <summary>
+        /// Gets or creates a database of type T. If the database does not exist, it will be created and saved as an asset in the specified path.
+        /// </summary>
+        /// <typeparam name="T">Type of database.</typeparam>
+        public static T GetOrCreateDatabase<T>() where T : ScriptableObject
+        {
+            string name = typeof(T).Name;
+            string databasePath = $"{GameDataPaths.Database.Root}/{name}.asset"; 
+
+            var database = AssetDatabase.LoadAssetAtPath<T>(databasePath);
+
+            if (database == null)
+            {
+                database = ScriptableObject.CreateInstance<T>();
+
+                CreateAddressableAsset(database, databasePath);
+            }
+
+            return database;
+        }
+
+        /// <summary>
         /// Creates an addressable asset at the specified path.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -285,6 +306,7 @@ namespace UnityRose.Import
             public const string Prefabs = Effects.Root + "/Prefabs";
             public const string Materials = Effects.Root + "/Materials";
             public const string Textures = Effects.Root + "/Textures";
+            public const string Meshes = Effects.Root + "/Meshes";
         }
 
         /// <summary>
@@ -384,6 +406,8 @@ namespace UnityRose.Import
                 Root = GameDataPaths.Effects.Root;
                 Textures = GameDataPaths.Effects.Textures;
                 Materials = GameDataPaths.Effects.Materials;
+                Meshes = GameDataPaths.Effects.Meshes;
+                Prefab = GameDataPaths.Effects.Prefabs;
             }
         }
     }

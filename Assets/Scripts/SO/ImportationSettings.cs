@@ -14,4 +14,5 @@ public class ImportationSettings : ScriptableObject
     public Shader objectShader; 
     public Shader entityShader;
     public Shader playerShader;
+    public Shader effectShader;
 }

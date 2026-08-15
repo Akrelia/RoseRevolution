@@ -441,7 +441,8 @@ namespace UnityRose.Formats
             return clip;
         }
 
-
+        public Vector3 GetContinuousEulerRotationAt(int channelIndex, int frameIndex)
+    => GetContinuousEulerRotation(channelIndex, frameIndex);
 
         /// <summary>
         /// Loads the specified file.

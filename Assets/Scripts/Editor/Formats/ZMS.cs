@@ -41,7 +41,7 @@ namespace UnityRose.Formats
 	/// <summary>
 	/// ZMS class.
 	/// </summary>
-	public class ZMS
+	public class ZMS : IRoseFileFormat
 	{
 		public class Support
 		{
@@ -437,5 +437,6 @@ namespace UnityRose.Formats
 				Resources.UnloadAsset(asset);
 		}
 
-	}
+        public string FormatName => ".ZMS";
+    }
 }

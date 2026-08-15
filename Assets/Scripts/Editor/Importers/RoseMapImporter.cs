@@ -180,18 +180,7 @@ namespace UnityRose.Import
                 AssetDatabase.CreateFolder(GameDataPaths.Root, "Databases");
             }
 
-            string path = $"{folder}/MapDatabase.asset";
-
-            var database = AssetDatabase.LoadAssetAtPath<MapDatabase>(path);
-
-            if (database == null)
-            {
-                database = ScriptableObject.CreateInstance<MapDatabase>();
-
-                AssetDatabase.CreateAsset(database, path);
-            }
-
-            EditorUtils.EnsureAddressable(path, nameof(MapDatabase));
+            var database = RoseImporter.GetOrCreateDatabase<MapDatabase>();
 
             string displayName = mapData.stl.GetText(mapData.stb.Cells[id][27], STL.Language.English);
 
@@ -556,7 +545,7 @@ namespace UnityRose.Import
 
         public static bool MapPrefabExists(int mapID)
         {
-            var mapData = ROSEMapListCache.Get();
+            var mapData = Get();
 
             string mapName = Path.GetFileNameWithoutExtension(EditorUtils.FixPath(mapData.stb.Cells[mapID][1].ToString()));
 
@@ -564,6 +553,5 @@ namespace UnityRose.Import
 
             return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) != null;
         }
-
     }
 }

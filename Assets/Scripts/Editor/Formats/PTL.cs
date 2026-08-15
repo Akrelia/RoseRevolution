@@ -48,8 +48,6 @@ public class PTL
 
                 info.Fade = r.ReadByte();
 
-                UnityEngine.Debug.Log($"Info {j} pos={pos} type={info.Type}");
-
                 switch (info.Type)
                 {
                     case AnimType.NONE:

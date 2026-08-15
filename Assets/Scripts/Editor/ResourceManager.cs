@@ -64,6 +64,7 @@ namespace UnityRose
         public STB skySTB;
         public STB zoneSTB;
         public STB patSTB;
+        public STB fileEffectSTB;
 
         public STL zoneSTL;
 
@@ -111,6 +112,8 @@ namespace UnityRose
             zoneSTB = LoadFile<STB>("3DData/STB/LIST_ZONE");
             skySTB = LoadFile<STB>("3DData/STB/LIST_SKY");
 
+            fileEffectSTB = LoadFile<STB>("3DData/STB/FILE_EFFECT");
+            
             patSTB = LoadFile<STB>("3DData/STB/LIST_PAT");
 
             zoneSTL = LoadFile<STL>("3DData/STB/LIST_ZONE_S");

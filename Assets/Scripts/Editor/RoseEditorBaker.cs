@@ -124,7 +124,7 @@ namespace UnityRose.ImportEditor
         {
             var name = Path.GetFileNameWithoutExtension(rosePath);
 
-            var assetPath =  $"{context.Meshes}/{name}.mesh.asset";
+            var assetPath = $"{context.Meshes}/{name}.mesh.asset";
 
             assetPath = assetPath.Replace(".mesh.asset", ".skel.asset");
 
@@ -402,7 +402,6 @@ namespace UnityRose.ImportEditor
                     mat.SetInt("_ZWrite", 1);
                 }
 
-                // Backface culling
                 mat.SetInt("_Cull", zscMat.TwoSided ? (int)UnityEngine.Rendering.CullMode.Off : (int)UnityEngine.Rendering.CullMode.Back);
 
                 // ZTest
@@ -512,6 +511,31 @@ namespace UnityRose.ImportEditor
             var clip = new ZMO(fullPath).BuildSkeletonAnimationClip(skeleton);
 
             clip.name = Path.GetFileNameWithoutExtension(rosePath);
+
+            return clip;
+        }
+
+        /// <summary>
+        /// Import an animation clip from a ZMO file, without skeleton..
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="rosePath"></param>
+        /// <param name="zmoPath"></param>
+        /// <returns></returns>
+        public static AnimationClip ImportClip(string name, string zmoPath)
+        {
+            if (!File.Exists(zmoPath))
+            {
+                Debug.LogWarning("Could not find referenced animation: " + zmoPath);
+
+                return null;
+            }
+
+            var dummyClip = new AnimationClip();
+
+            var clip = new ZMO(zmoPath).buildAnimationClip(name, dummyClip);
+
+            clip.name = name;
 
             return clip;
         }

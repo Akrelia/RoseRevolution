@@ -42,6 +42,7 @@ public class EFT
         }
 
         uint animationCount = r.ReadUInt32();
+
         for (int i = 0; i < animationCount; i++)
         {
             AnimationEntry a = new()

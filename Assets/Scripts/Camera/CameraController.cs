@@ -5,23 +5,30 @@ using UnityEngine;
 /// </summary>
 public class CameraController : MonoBehaviour
 {
-    public GameObject target;                           // Target to follow
-    public float targetHeight = 1.7f;                         // Vertical offset adjustment
-    public float distance = 12.0f;                            // Default Distance
-    public float offsetFromWall = 2.0f;                       // Bring camera away from any colliding objects
-    public float maxDistance = 30f;                       // Maximum zoom Distance
-    public float minDistance = 2.0f;                      // Minimum zoom Distance
-    public float xSpeed = 200.0f;                             // Orbit speed (Left/Right)
-    public float ySpeed = 200.0f;                             // Orbit speed (Up/Down)
-    public float yMinLimit = -80f;                            // Looking up limit
-    public float yMaxLimit = 80f;                             // Looking down limit
-    public float zoomRate = 40f;                          // Zoom Speed
-    public float rotationDampening = 3.0f;                // Auto Rotation speed (higher = faster)
-    public float zoomDampening = 3.0f;                    // Auto Zoom speed (Higher = faster)
-    public LayerMask collisionLayers = -1;     // What the camera will collide with
-    public bool lockToRearOfTarget = false;             // Lock camera to rear of target
-    public bool allowMouseInputX = true;                // Allow player to control camera angle on the X axis (Left/Right)
-    public bool allowMouseInputY = true;                // Allow player to control camera angle on the Y axis (Up/Down)
+    public GameObject target;
+    public float targetHeight = 1.7f;
+    public float distance = 12.0f;
+    public float offsetFromWall = 2.0f;
+    public float maxDistance = 30f;
+    public float minDistance = 2.0f;
+    public float xSpeed = 200.0f;
+    public float ySpeed = 200.0f;
+    public float yMinLimit = -80f;
+    public float yMaxLimit = 80f;
+    public float zoomRate = 40f;
+    public float rotationDampening = 3.0f;
+    public float zoomDampening = 3.0f;
+    public LayerMask collisionLayers = -1;
+    public bool lockToRearOfTarget = false;
+    public bool allowMouseInputX = true;
+    public bool allowMouseInputY = true;
+
+    [Header("Free Look")]
+    public KeyCode freeLookKey = KeyCode.F5;
+    public float freeLookSpeed = 10f;
+    public float freeLookMinSpeed = 1f;
+    public float freeLookMaxSpeed = 100f;
+    public float freeLookScrollSpeed = 5f;
 
     public float settleTimeMs = 200f;
 
@@ -38,8 +45,11 @@ public class CameraController : MonoBehaviour
     private float correctedDistance;
     private bool rotateBehind = false;
     private bool cameraDirty = true;
-    private float pbuffer = 0.0f;       //Cooldownpuffer for SideButtons
+    private float pbuffer = 0.0f;
     private Vector2 lastMousePosition;
+
+    private bool freeLook;
+    private Vector3 freeLookPosition;
 
     void Start()
     {
@@ -51,8 +61,8 @@ public class CameraController : MonoBehaviour
         desiredDistance = distance;
         correctedDistance = distance;
 
-        // Make the rigid body not change rotation
         Rigidbody rigidbody = GetComponent<Rigidbody>();
+
         if (rigidbody)
             rigidbody.freezeRotation = true;
 
@@ -62,24 +72,42 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(freeLookKey))
+        {
+            freeLook = !freeLook;
+
+            if (freeLook)
+            {
+                freeLookPosition = transform.position;
+            }
+            else
+            {
+                cameraDirty = true;
+            }
+        }
+
         if (target == null)
         {
             target = GameObject.FindGameObjectWithTag("Player") as GameObject;
-            // Debug.Log("Looking for Player");
         }
-
     }
 
-    //Only Move camera after everything else has been updated
     void LateUpdate()
     {
-        // Don't do anything if target is not defined
+        if (freeLook)
+        {
+            HandleFreeLook();
+            return;
+        }
+
         if (target == null)
             return;
-        //pushbuffer
+
         if (pbuffer > 0)
             pbuffer -= Time.deltaTime;
-        if (pbuffer < 0) pbuffer = 0;
+
+        if (pbuffer < 0)
+            pbuffer = 0;
 
         HandleOrbitInput();
 
@@ -90,6 +118,7 @@ public class CameraController : MonoBehaviour
 
         Quaternion rotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
         Vector3 targetOffset = new Vector3(0f, -targetHeight, 0f);
+
         Vector3 trueTargetPosition = new Vector3(
             target.transform.position.x,
             target.transform.position.y + targetHeight,
@@ -114,7 +143,6 @@ public class CameraController : MonoBehaviour
             currentYaw = Mathf.LerpAngle(currentYaw, targetYaw, timeWeight);
             currentPitch = Mathf.Lerp(currentPitch, targetPitch, timeWeight);
 
-            // snap distance on collision; otherwise eases like yaw/pitch
             if (isCorrected)
                 currentDistance = correctedDistance;
             else
@@ -123,9 +151,7 @@ public class CameraController : MonoBehaviour
             currentDistance = Mathf.Clamp(currentDistance, minDistance, maxDistance);
 
             if (IsSettled(isCorrected))
-            {
                 cameraDirty = false;
-            }
         }
         else if (isCorrected)
         {
@@ -140,6 +166,72 @@ public class CameraController : MonoBehaviour
 
         if (rotateBehind)
             RotateBehindTarget();
+    }
+
+    private void HandleFreeLook()
+    {
+        HandleFreeLookRotation();
+        HandleFreeLookMovement();
+    }
+
+    private void HandleFreeLookRotation()
+    {
+        if (GUIUtility.hotControl == 0 && Input.GetMouseButtonDown(1))
+            lastMousePosition = Input.mousePosition;
+
+        if (GUIUtility.hotControl == 0 && Input.GetMouseButton(1))
+        {
+            Vector2 mousePos = Input.mousePosition;
+            Vector2 delta = mousePos - lastMousePosition;
+            lastMousePosition = mousePos;
+
+            if (allowMouseInputX)
+                currentYaw += 480f * delta.x / Mathf.Max(Screen.width, 1f);
+
+            if (allowMouseInputY)
+                currentPitch += (-delta.y / Mathf.Max(Screen.height, 1f)) * ySpeed;
+
+            currentPitch = ClampAngle(currentPitch, yMinLimit, yMaxLimit);
+        }
+
+        transform.rotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
+    }
+
+    private void HandleFreeLookMovement()
+    {
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+
+        if (Mathf.Abs(scroll) > 0.0001f)
+        {
+            freeLookSpeed += scroll * freeLookScrollSpeed;
+            freeLookSpeed = Mathf.Clamp(freeLookSpeed, freeLookMinSpeed, freeLookMaxSpeed);
+        }
+
+        float horizontal = 0f;
+        float vertical = 0f;
+
+        if (Input.GetKey(KeyCode.Q))
+            horizontal -= 1f;
+
+        if (Input.GetKey(KeyCode.D))
+            horizontal += 1f;
+
+        if (Input.GetKey(KeyCode.Z))
+            vertical += 1f;
+
+        if (Input.GetKey(KeyCode.S))
+            vertical -= 1f;
+
+        Vector3 movement =
+            transform.right * horizontal +
+            transform.forward * vertical;
+
+        if (movement.sqrMagnitude > 1f)
+            movement.Normalize();
+
+        freeLookPosition += movement * freeLookSpeed * Time.deltaTime;
+
+        transform.position = freeLookPosition;
     }
 
     void HandleOrbitInput()
@@ -194,16 +286,20 @@ public class CameraController : MonoBehaviour
     {
         if (Mathf.Abs(Mathf.DeltaAngle(currentYaw, targetYaw)) > EpsilonYaw)
             return false;
+
         if (Mathf.Abs(currentPitch - targetPitch) > EpsilonPitch)
             return false;
+
         if (!isCorrected && Mathf.Abs(currentDistance - correctedDistance) > EpsilonDistance)
             return false;
+
         return true;
     }
 
     private void RotateBehindTarget()
     {
         float targetRotationAngle = target.transform.eulerAngles.y;
+
         targetYaw = Mathf.LerpAngle(currentYaw, targetRotationAngle, rotationDampening * Time.deltaTime);
         cameraDirty = true;
 
@@ -222,6 +318,7 @@ public class CameraController : MonoBehaviour
     {
         if (angle > 180f)
             angle -= 360f;
+
         return angle;
     }
 
@@ -229,8 +326,10 @@ public class CameraController : MonoBehaviour
     {
         if (angle < -360f)
             angle += 360f;
+
         if (angle > 360f)
             angle -= 360f;
+
         return Mathf.Clamp(angle, min, max);
     }
 }

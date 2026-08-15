@@ -25,6 +25,11 @@ namespace UnityRose.ImportEditor
         private bool mapListShowUnnamed = false;
         private ImportationSettings settings;
 
+        private MapDatabase mapDatabase;
+        private MonsterSpawnDatabase spawnDatabase;
+
+        private GUIStyle centeredStyle;
+
         [MenuItem("ROSE Online/Data Importer")]
         private static void Init()
         {
@@ -45,7 +50,10 @@ namespace UnityRose.ImportEditor
                 Debug.LogError("Default import settings is missing, please set one or create one");
             }
 
-            SyncDataPath(); // Remove asap
+            mapDatabase = AssetDatabase.LoadAssetAtPath<MapDatabase>(ROSEExportWindow.MapDatabasePath);
+            spawnDatabase = AssetDatabase.LoadAssetAtPath<MonsterSpawnDatabase>(ROSEExportWindow.MonsterSpawnDatabasePath);
+
+            SyncDataPath();
         }
 
         /// <summary>
@@ -53,11 +61,10 @@ namespace UnityRose.ImportEditor
         /// </summary>
         private void OnGUI()
         {
-            var centeredStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter };
-
-            var mapDatabase = AssetDatabase.LoadAssetAtPath<MapDatabase>(ROSEExportWindow.MapDatabasePath);
-
-            var spawnDatabase = AssetDatabase.LoadAssetAtPath<MonsterSpawnDatabase>(ROSEExportWindow.MonsterSpawnDatabasePath);
+            if (centeredStyle == null)
+            {
+                centeredStyle = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleCenter };
+            }
 
             GUILayout.Label("Settings", EditorStyles.boldLabel);
             settings = (ImportationSettings)EditorGUILayout.ObjectField("Settings", settings, typeof(ImportationSettings), false);
@@ -95,7 +102,7 @@ namespace UnityRose.ImportEditor
             {
                 if (EditorUtility.DisplayDialog("Confirmation", "This will bake every body/armor/weapon/etc. ZSC into prefabs and rebuild the Avatar database.", "Yes", "No"))
                 {
-                    RoseEquipmentImporter.ImportAllEquipment(50, settings.playerShader);
+                    RoseEquipmentImporter.ImportAllEquipment(170, settings.playerShader);
                 }
             }
 
@@ -129,7 +136,7 @@ namespace UnityRose.ImportEditor
             {
                 if (EditorUtility.DisplayDialog("Confirmation", "This will import every particles / effects", "Yes", "No"))
                 {
-                    RoseEffectImporter.ImportEffects(dataPath);
+                    RoseEffectImporter.ImportEffects(dataPath, settings.effectShader);
                 }
             }
 
