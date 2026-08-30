@@ -56,9 +56,9 @@ namespace UnityRose.ImportEditor
         /// <param name="rosePath">Rose Path.</param>
         /// <param name="context">Context.</param>
         /// <returns>Mesh.</returns>
-        public static Mesh ImportMesh(string rosePath, ImportContext context)
+        public static Mesh ImportMesh(string rosePath, ImportContext context,int partIndex = 0)
         {
-            return ImportMesh(rosePath, context.Meshes);
+            return ImportMesh(rosePath, context.Meshes, partIndex);
         }
 
         /// <summary>
@@ -67,9 +67,9 @@ namespace UnityRose.ImportEditor
         /// <param name="rosePath">Rose Path.</param>
         /// <param name="context">Context.</param>
         /// <returns>Mesh.</returns>
-        public static Mesh ImportMesh(string rosePath, string saveDirectory)
+        public static Mesh ImportMesh(string rosePath, string saveDirectory, int partIndex)
         {
-            var name = Path.GetFileNameWithoutExtension(rosePath);
+            var name = Path.GetFileNameWithoutExtension(rosePath) + (partIndex == 0 ? "" : "_" + partIndex.ToString());
 
             var assetPath = $"{saveDirectory}/{name}.mesh.asset";
 
@@ -248,6 +248,7 @@ namespace UnityRose.ImportEditor
                 Debug.LogWarning($"Failed loading imported texture: {assetPath}");
 
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
+
                 importedTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
             }
             return importedTexture;
@@ -321,7 +322,6 @@ namespace UnityRose.ImportEditor
             material.name = Path.GetFileNameWithoutExtension(rosePath);
 
             AssetDatabase.CreateAsset(material, assetPath);
-
             EditorUtility.SetDirty(material);
             AssetDatabase.SaveAssets();
 
@@ -336,23 +336,19 @@ namespace UnityRose.ImportEditor
         /// <param name="pathZ"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static Material ImportEquipmentMaterial(int materialIdx, ZSC zsc, string pathZ, Shader shader, ImportContext context)
+        public static Material ImportEquipmentMaterial(int materialIdx, ZSC zsc, Shader shader, ImportContext context)
         {
-            var zscName = Path.GetFileNameWithoutExtension(pathZ);
-
-            var matFolder = Path.Combine(context.Materials, zscName);
+            var matFolder = Path.Combine(context.Materials, zsc.fileName);
             var matPath = Path.Combine(matFolder, "Mat_" + materialIdx + ".mat").Replace("\\", "/");
 
             var existing = AssetDatabase.LoadAssetAtPath<Material>(matPath);
 
             if (existing != null)
             {
-                var tex = existing.GetTexture("_BaseMap");
+                var tex = existing.GetTexture("_MainTex");
 
                 if (tex != null)
-                {
                     return existing;
-                }
 
                 Debug.LogWarning($"Material exists but missing texture: {matPath}");
 
@@ -362,63 +358,32 @@ namespace UnityRose.ImportEditor
             Directory.CreateDirectory(matFolder);
 
             var mat = new Material(shader);
-
             var zscMat = zsc.Textures[materialIdx];
-
             var texture = ImportTexture(zscMat.Path, context);
 
             if (texture == null)
             {
                 Debug.LogWarning($"Missing texture for material {matPath}: {zscMat.Path}");
             }
+
             else
             {
-                mat.SetTexture("_BaseMap", texture);
+                mat.SetTexture("_MainTex", texture);
                 mat.mainTexture = texture;
 
-                // Transparency
-                if (zscMat.AlphaEnabled || zscMat.Alpha < 1f)
-                {
-                    mat.SetFloat("_Surface", 1); // Transparent
-                    mat.SetFloat("_Blend", 0);   // Alpha
-
-                    mat.SetOverrideTag("RenderType", "Transparent");
-
-                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                    mat.SetInt("_ZWrite", zscMat.ZWriteEnabled ? 1 : 0);
-
-                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-
-                    var color = mat.color;
-                    color.a = Mathf.Clamp01(zscMat.Alpha);
-                    mat.color = color;
-                }
-
-                else
-                {
-                    mat.SetFloat("_Surface", 0);
-                    mat.SetInt("_ZWrite", 1);
-                }
+                mat.SetFloat("_Transparent", zscMat.AlphaEnabled ? 1f : 0f);
+                mat.SetFloat("_AlphaTest", zscMat.AlphaTestEnabled ? 1f : 0f);
+                mat.SetFloat("_AlphaRef", zscMat.AlphaReference / 255f);
 
                 mat.SetInt("_Cull", zscMat.TwoSided ? (int)UnityEngine.Rendering.CullMode.Off : (int)UnityEngine.Rendering.CullMode.Back);
 
-                // ZTest
                 mat.SetInt("_ZTest", zscMat.ZTestEnabled ? (int)UnityEngine.Rendering.CompareFunction.LessEqual : (int)UnityEngine.Rendering.CompareFunction.Always);
 
-                // Alpha test
-                if (zscMat.AlphaTestEnabled)
-                {
-                    mat.EnableKeyword("_ALPHATEST_ON");
-                    mat.SetFloat("_Cutoff", zscMat.AlphaReference / 255f);
-                }
+                mat.SetFloat("_ZWrite", zscMat.ZWriteEnabled ? 1f : 0f);
             }
 
             AssetDatabase.CreateAsset(mat, matPath);
-
             EditorUtility.SetDirty(mat);
-
             AssetDatabase.SaveAssets();
 
             return mat;
@@ -432,11 +397,18 @@ namespace UnityRose.ImportEditor
         /// <param name="name">Name.</param>
         /// <param name="context">Context.</param>
         /// <returns>Skybox material.</returns>
-        public static Material ImportSkyxboxMaterial(string textureDayPath, string textureNightPath, string name, SkyboxImportContext context)
+        public static Material ImportSkyboxMaterial(string textureDayPath, string textureNightPath, string name, SkyboxImportContext context)
         {
-            var savePath = context.Materials + "/" + name;
+            return ImportSkyboxMaterial(textureDayPath, textureNightPath, name, context.CurrentFolder);
+        }
 
-            var existing = AssetDatabase.LoadAssetAtPath<Material>(savePath);
+        public static Material ImportSkyboxMaterial(string textureDayPath, string textureNightPath, string name, string savePath)
+        {
+            var fullSavePath = savePath + "/" + name;
+
+            EditorUtils.EnsureFolder(fullSavePath);
+
+            var existing = AssetDatabase.LoadAssetAtPath<Material>(fullSavePath);
 
             if (existing != null)
             {
@@ -448,14 +420,7 @@ namespace UnityRose.ImportEditor
                     return existing;
                 }
 
-                AssetDatabase.DeleteAsset(savePath);
-            }
-
-            var folder = Path.GetDirectoryName(savePath);
-
-            if (!string.IsNullOrEmpty(folder))
-            {
-                Directory.CreateDirectory(folder);
+                AssetDatabase.DeleteAsset(fullSavePath);
             }
 
             var shader = Shader.Find("Rose Revolution/Skybox");
@@ -463,12 +428,13 @@ namespace UnityRose.ImportEditor
             if (shader == null)
             {
                 Debug.LogError("Rose Revolution/Skybox shader not found");
+
                 return null;
             }
 
-            var dayTexture = ImportTexture(textureDayPath, context);
+            var dayTexture = ImportTexture(textureDayPath, savePath, true);
 
-            var nightTexture = ImportTexture(textureNightPath, context);
+            var nightTexture = ImportTexture(textureNightPath, savePath, true);
 
             if (dayTexture == null || nightTexture == null)
             {
@@ -478,12 +444,12 @@ namespace UnityRose.ImportEditor
             }
 
             var material = new Material(shader);
-            material.name = Path.GetFileNameWithoutExtension(savePath);
+            material.name = Path.GetFileNameWithoutExtension(fullSavePath);
 
             material.SetTexture("_DayTex", dayTexture);
             material.SetTexture("_NightTex", nightTexture);
 
-            AssetDatabase.CreateAsset(material, savePath);
+            AssetDatabase.CreateAsset(material, fullSavePath);
 
             EditorUtility.SetDirty(material);
             AssetDatabase.SaveAssets();

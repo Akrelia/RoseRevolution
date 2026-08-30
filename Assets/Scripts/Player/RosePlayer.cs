@@ -2,7 +2,9 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using RevolutionShared.Rose.Data;
-using RevolutionShared.Rose.Data.Equipment;
+using RevolutionShared.Data;
+using System.Linq;
+using RevolutionShared.Rose.Data.Items.Equipment;
 
 namespace UnityRose
 {
@@ -18,8 +20,8 @@ namespace UnityRose
         private readonly Dictionary<BodyPartType, List<Transform>> equipped = new();
 
         public static EquipmentDatabase EquipmentDatabase { get; set; }
-
         public static CharacterDatabase CharacterDatabase { get; set; }
+        public static EffectDatabase EffectDatabase { get; set; }
 
         public RosePlayer()
         {
@@ -43,10 +45,11 @@ namespace UnityRose
             charModel.pos = position;
         }
 
-        public void LoadPlayer(CharModel charModel, EquipmentDatabase equipmentDatabase, CharacterDatabase characterDatabase)
+        public void LoadPlayer(CharModel charModel, EquipmentDatabase equipmentDatabase, CharacterDatabase characterDatabase, EffectDatabase effectDatabase) // TODO : Remove those database ref
         {
             EquipmentDatabase = equipmentDatabase;
             CharacterDatabase = characterDatabase;
+            EffectDatabase = effectDatabase;
 
             if (EquipmentDatabase == null || CharacterDatabase == null)
             {
@@ -73,8 +76,6 @@ namespace UnityRose
             }
 
             player.layer = LayerMask.NameToLayer("Players");
-
-
 
             Vector3 center = skeleton.transform.Find("b1_pelvis").localPosition;
             center.y = 0.95f;
@@ -104,9 +105,30 @@ namespace UnityRose
             if (player != null) GameObject.Destroy(player);
         }
 
-        private void RefreshPlayerSkeleton()
+        public void RefreshPlayerSkeleton()
         {
             var entry = CharacterDatabase.GetEntry(charModel.gender, charModel.weapon);
+
+            LoadPlayerSkeleton(entry.prefab, entry.bindPoses, charModel);
+        }
+
+        public void SetGender(GenderType gender)
+        {
+            if (charModel.gender == gender)
+            {
+                return;
+            }
+
+            charModel.gender = gender;
+
+            var entry = CharacterDatabase.GetEntry(charModel.gender, charModel.weapon);
+
+            if (entry == null)
+            {
+                Debug.LogError($"No character entry for gender {gender} and weapon {charModel.weapon}");
+
+                return;
+            }
 
             LoadPlayerSkeleton(entry.prefab, entry.bindPoses, charModel);
         }
@@ -163,7 +185,12 @@ namespace UnityRose
             return true;
         }
 
-        private void ApplyPlayerEquipment(GenderType gender, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield, int faceitem)
+        public void ApplyPlayerEquipment(CharacterAppearance  appearance)
+        {
+            ApplyPlayerEquipment(appearance.Gender, appearance.Weapon, appearance.Body, appearance.Gloves, appearance.Shoes, appearance.Hair, appearance.Face, appearance.Back, appearance.Hat, appearance.SubWeapon, appearance.Mask);
+        }
+
+        public void ApplyPlayerEquipment(GenderType gender, int weapon, int body, int arms, int foot, int hair, int face, int back, int cap, int shield, int faceitem)
         {
             if (skeleton == null)
                 return;
@@ -259,18 +286,17 @@ namespace UnityRose
                 return fallbackBounds;
             }
 
-
             var instance = GameObject.Instantiate(prefab);
 
             instance.name = bodyPart.ToString();
             instance.transform.SetParent(player.transform, false);
 
-
             var parts = new List<Transform>();
 
             foreach (Transform child in instance.transform)
+            {
                 parts.Add(child);
-
+            }
 
             foreach (var part in parts)
             {
@@ -279,18 +305,33 @@ namespace UnityRose
                 var anchor = attachment != null ? GetAnchorForDummy(bodyPart, attachment.dummy) : GetDefaultAnchor(bodyPart);
 
                 part.SetParent(anchor, false);
-                part.localPosition = Vector3.zero;
+         //       part.localPosition = Vector3.zero;
                 part.localRotation = Quaternion.identity;
                 part.localScale = Vector3.one;
+            }
+
+            if (bodyPart == BodyPartType.WEAPON || bodyPart == BodyPartType.SUBWEAPON)
+            {
+                var slot = parts.FirstOrDefault(p => p.name == "Effect 1");
+
+                if (slot)
+                {
+                    var effect = EffectDatabase.Get(1177);
+
+                    if (effect != null && effect.prefab)
+                    {
+                        var spawn = GameObject.Instantiate(effect.prefab, slot.transform);
+
+//                        spawn.transform.localPosition = slot.transform.localPosition;
+                    }
+                }
             }
 
             BindSkinnedRenderers(parts);
 
             GameObject.Destroy(instance);
 
-
             equipped[bodyPart] = parts;
-
 
             return GetBounds(parts, fallbackBounds);
         }
@@ -305,9 +346,7 @@ namespace UnityRose
                 RoseAttachPoint.Back => Utils.findChild(skeleton, "p_03"),
                 RoseAttachPoint.Face => Utils.findChild(skeleton, "p_04"),
                 RoseAttachPoint.Head => Utils.findChild(skeleton, "p_06"),
-                RoseAttachPoint.Feet => Utils.findChild(skeleton, "b1_foot") != null
-                    ? Utils.findChild(skeleton, "b1_foot")
-                    : GetDefaultAnchor(bodyPart),
+                RoseAttachPoint.Feet => Utils.findChild(skeleton, "b1_foot") != null ? Utils.findChild(skeleton, "b1_foot") : GetDefaultAnchor(bodyPart),
                 _ => GetDefaultAnchor(bodyPart)
             };
         }

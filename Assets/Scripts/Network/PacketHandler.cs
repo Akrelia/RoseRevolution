@@ -3,6 +3,7 @@ using RevolutionShared.Networking.Packets;
 using RevolutionShared.Packets;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -34,42 +35,42 @@ public partial class PacketHandler
     /// </summary>
     /// <param name="context">Context.</param>
     /// <returns>Packet.</returns>
-    public async Task<PacketIn> GetPacketAsync(TcpClient client, CancellationToken token)
+    public async Task<List<PacketIn>> GetPacketsAsync(TcpClient client, CancellationToken token)
     {
-        var header = new byte[6];
+        var packets = new List<PacketIn>();
         var stream = client.GetStream();
 
-        if (stream.DataAvailable)
+        while (stream.DataAvailable)
         {
-            int bytesRead = await stream.ReadAsync(header, 0, PacketIn.HeaderLength, token);
+            var header = new byte[6];
 
-            if (bytesRead != 0)
+            int bytesRead = await stream.ReadAsync(header, 0, PacketIn.HeaderLength, token).ConfigureAwait(false);
+
+            if (bytesRead == 0)
             {
-                var size = BitConverter.ToInt32(header, 0);
-
-                byte[] buffer = new byte[size + PacketIn.HeaderLength];
-
-                buffer[0] = header[0];
-                buffer[1] = header[1];
-                buffer[2] = header[2];
-                buffer[3] = header[3];
-                buffer[4] = header[4];
-                buffer[5] = header[5];
-
-                if (size != 0)
-                {
-                    await stream.ReadAsync(buffer, PacketIn.HeaderLength, size, token);
-                }
-
-                PacketIn packet = new PacketIn(buffer);
-
-                RoseDebug.LogPacket($"[IN] {((ServerCommands)packet.Command).GetName()} (Size : {packet.Size})");
-
-                return packet;
+                break;
             }
+
+            var size = BitConverter.ToInt32(header, 0);
+
+            byte[] buffer = new byte[size + PacketIn.HeaderLength];
+
+            buffer[0] = header[0];
+            buffer[1] = header[1];
+            buffer[2] = header[2];
+            buffer[3] = header[3];
+            buffer[4] = header[4];
+            buffer[5] = header[5];
+
+            if (size != 0)
+            {
+                int payloadRead = await stream.ReadAsync(buffer, PacketIn.HeaderLength, size, token).ConfigureAwait(false);
+            }
+
+            packets.Add(new PacketIn(buffer));
         }
 
-        return null;
+        return packets;
     }
 
     /// <summary>
@@ -222,7 +223,7 @@ public partial class PacketHandler
 
         else
         {
-          //  RoseDebug.LogWarning($"There is no packet action for the following command : {((ServerCommands)packet.Command).GetName()}"); // Not every packet got action, so just don't log that
+            //  RoseDebug.LogWarning($"There is no packet action for the following command : {((ServerCommands)packet.Command).GetName()}"); // Not every packet got action, so just don't log that
         }
 
         if (NetworkEvents.events.ContainsKey((ServerCommands)packet.Command))

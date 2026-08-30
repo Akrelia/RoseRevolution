@@ -1,6 +1,7 @@
 using RevolutionShared.Data;
 using RevolutionShared.Rose.Data;
 using RevolutionShared.Rose.Data.NPC;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityRose;
@@ -15,22 +16,20 @@ public class WorldManager : MonoBehaviour
     public WorldGUIController worldGUIController;
     [Header("Prefabs")]
     public GameObject mainPlayer;
+    public GameObject weather;
     public GameObject monstersParent;
     public GameObject entityGUI;
     public FakeDictionary<EntityType, GameObject> entityPrefabs;
     [Header("Components")]
     public CameraController cameraController;
     [Header("Data")]
-    public ClanDisplayData clanData;
+    public GameData gameData;
 
     /// <summary>
     /// Awake.
     /// </summary>
     private void Awake()
     {
-        //   Screen.SetResolution(1600, 800, FullScreenMode.Windowed);
-
-        Debug.Log("Metabel");
     }
 
     /// <summary>
@@ -40,11 +39,13 @@ public class WorldManager : MonoBehaviour
     /// <returns>Spawn map.</returns>
     public RoseMap SpawnMap(int id)
     {
+        Debug.Log(id);
+
         var mapEntry = sandboxManager.mapDatabase.GetMapById(id); // Move the databases here now
 
         if (mapEntry != null)
         {
-            var skyboxEntry = sandboxManager.skyboxDatabase.Get(mapEntry.data.skyID);
+            var skyboxEntry = sandboxManager.skyboxDatabase?.Get(mapEntry.data.skyID);
 
             var map = Instantiate(mapEntry.prefab).GetComponent<RoseMap>();
 
@@ -84,65 +85,93 @@ public class WorldManager : MonoBehaviour
     /// Spawn a character player.
     /// </summary>
     /// <param name="position">Position.</param>
-    public RosePlayer SpawnPlayer(bool mainPlayer, string playerName, string clanName, int clanGrade, Sprite clanSprite, CharacterAppearance appearence, Vector3 position)
+    public RosePlayer SpawnPlayer(bool mainPlayer, CharacterInfos infos,Sprite clanIcon, CharacterAppearance appearence, Vector3 position)
     {
         CharModel model = new CharModel();
 
+        position.y = -10;
+
         model.rig = RigType.FOOT;
         model.state = States.STANDING;
-        model.pos = position;
+        model.pos = GetNearestSurface(position);
 
         model.ApplyAppearence(appearence);
 
         var rosePlayer = new RosePlayer(model);
 
-        rosePlayer.LoadPlayer(model, sandboxManager.equipmentDatabase, sandboxManager.characterDatabase);
+        rosePlayer.LoadPlayer(model, sandboxManager.equipmentDatabase, sandboxManager.characterDatabase, sandboxManager.effectDatabase);
 
-        rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = mainPlayer;
-
-        rosePlayer.Equip(BodyPartType.FACEITEM, appearence.Mask); // Hair adjustment ?
-        rosePlayer.Equip(BodyPartType.WEAPON, appearence.Weapon); // TODOD : This is redundant a bit with LoadObject, but this load the right stance etc ... so maybe remove LoadObject from this
-        rosePlayer.Equip(BodyPartType.SUBWEAPON, appearence.SubWeapon);
-
-        if (mainPlayer)
+        if (rosePlayer.player != null)
         {
-            cameraController.target = rosePlayer.player;
-        }
+            rosePlayer.player.GetComponent<PlayerController>().isMainPlayer = mainPlayer;
 
-        var gui = Instantiate(entityGUI, rosePlayer.player.transform).GetComponentInChildren<PlayerGUIController>();
+            rosePlayer.Equip(BodyPartType.FACEITEM, appearence.Mask); // Hair adjustment ?
+            rosePlayer.Equip(BodyPartType.WEAPON, appearence.Weapon); // TODO : This is redundant a bit with LoadObject, but this load the right stance etc ... so rework this later
+            rosePlayer.Equip(BodyPartType.SUBWEAPON, appearence.SubWeapon);
 
-        var bubble = gui.gameObject.GetComponentInChildren<SpeechBubble>(true);
+            if (mainPlayer)
+            {
+                cameraController.target = rosePlayer.player;
+                weather.GetComponent<Follow>().target = rosePlayer.player;
+            }
 
-        bubble.gameObject.transform.localScale = new Vector3(bubble.transform.localScale.x, bubble.transform.localScale.y, 0.1F); // Hackish trick (still needed ?)
+            var gui = Instantiate(entityGUI, rosePlayer.player.transform).GetComponentInChildren<PlayerGUIController>();
 
-        rosePlayer.changeName(playerName);
+            var bubble = gui.gameObject.GetComponentInChildren<SpeechBubble>(true);
 
-        gui.SetName(playerName);
+            bubble.gameObject.transform.localScale = new Vector3(bubble.transform.localScale.x, bubble.transform.localScale.y, 0.1F); // Hackish trick (still needed ?)
 
-        if (!string.IsNullOrEmpty(clanName))
-        {
-            gui.SetClan(clanName, clanData.Get(clanGrade).color, clanSprite);
+            rosePlayer.changeName(infos.name);
+
+            gui.SetName(infos.name, gameData.GetPrefixNameColor(infos.name));
+
+            if (!string.IsNullOrEmpty(infos.clanName))
+            {
+                gui.SetClan(infos.clanName, gameData.GetNameColor(gameData.clanGrades[infos.clanGrade].nameColor), clanIcon);
+            }
+
+            else
+            {
+                gui.DisableClan();
+            }
         }
 
         else
         {
-            gui.DisableClan();
+            RoseDebug.LogError("Can't load the character model for the player");
         }
 
         return rosePlayer;
     }
 
     /// <summary>
-    /// Spawn a player without clan.
+    /// Spawn a NPC.
     /// </summary>
-    /// <param name="mainPlayer"></param>
-    /// <param name="playerName"></param>
-    /// <param name="appearence"></param>
-    /// <param name="position"></param>
-    /// <returns></returns>
-    public RosePlayer SpawnPlayer(bool mainPlayer, string playerName, CharacterAppearance appearence, Vector3 position)
+    /// <param name="infos">Infos.</param>
+    /// <param name="npcInfos">NPC Infos.</param>
+    /// <param name="position">Position.</param>
+    /// <returns>Spawned NPC.</returns>
+    public EntityBehavior SpawnNPC(EntityInfos infos, NPCInfos npcInfos, Vector3 position)
     {
-        return SpawnPlayer(mainPlayer, playerName, "", 0, null, appearence, position);
+        var npc = SpawnEntity(infos, npcInfos, position);
+
+        var npcSpawnData = sandboxManager.CurrentMap.data.npcSpawns.FirstOrDefault(n => n.npcID == npcInfos.dataID);
+
+        if (npcSpawnData != null)
+        {
+            var rotation = npcSpawnData.rotation.ToQuaternion();
+
+            var quaternion = Quaternion.Euler(0f, -rotation.eulerAngles.z + 180f, 0f); // Maybe there is a formula that I'm missing but that's working
+
+            npc.transform.rotation = quaternion;
+        }
+
+        else
+        {
+            RoseDebug.LogWarning("Missing NPC Spawn Data infos for : " + npcInfos.dataID);
+        }
+
+        return npc;
     }
 
     /// <summary>
@@ -152,56 +181,62 @@ public class WorldManager : MonoBehaviour
     /// <param name="dataId">Data id.</param>
     /// <param name="position">Position.</param>
     /// <returns>Entity spawned.</returns>
-    public EntityBehavior SpawnEntity(EntityInfos infos, EntitySubInfos subInfos, NPCDatabaseEntry entityData, Vector3 position)
+    public EntityBehavior SpawnEntity(EntityInfos infos, ServerEntityInfos subInfos, Vector3 position, bool spawnGUI = true)
     {
-        if (entityData != null)
+        if (sandboxManager.npcDatabase != null)
         {
-            var prefab = entityPrefabs[infos.type];
-            var data = entityData.data.monsterData;
+            var entityData = sandboxManager.npcDatabase.GetEntry(subInfos.dataID);
 
-            var entity = Instantiate(prefab, monstersParent.transform).GetComponent<EntityBehavior>();
+            if (entityData != null)
+            {
+                var prefab = entityPrefabs[infos.type];
+                var data = entityData.data.monsterData;
 
-            entity.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+                var entity = Instantiate(prefab, monstersParent.transform).GetComponent<EntityBehavior>();
 
-            var entityModel = Instantiate(entityData.prefab);
+                entity.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
 
-            entityModel.transform.SetParent(entity.transform, false);
+                var entityModel = Instantiate(entityData.prefab);
 
-            var mod = entity.GetComponent<IEntityMod>();
+                entityModel.transform.SetParent(entity.transform, false);
 
-            mod?.LoadMod(subInfos);
+                var mod = entity.GetComponent<IEntityMod>();
 
-            entity.name = $"{data.ID}{data.displayName}";
-            entity.mod = mod;
-            entity.model = entityModel.GetComponent<EntityModelBehavior>();
+                mod?.LoadMod(subInfos);
 
-            worldGUIController.SpawnEntityGUI(infos.id, entity.gameObject, entityData.data.monsterData);
+                entity.name = $"{data.ID}{data.displayName}";
+                entity.mod = mod;
+                entity.model = entityModel.GetComponent<EntityModelBehavior>();
 
-            return entity;
+                if (spawnGUI)
+                {
+                    worldGUIController.SpawnEntityGUI(infos.id, entity.gameObject, entityData.data.monsterData);
+                }
+
+                return entity;
+            }
+
+            RoseDebug.LogError($"Can't find the entity prefab for ID : {infos.id}");
         }
 
-        RoseDebug.LogError($"Can't find the entity prefab for ID : {infos.id}");
+        RoseDebug.LogError("Can't spawn entity, NPC Database does not exist");
 
         return null;
     }
 
-    /// <summary>
-    /// Rose to Unity position.
-    /// </summary>
-    /// <param name="rose"></param>
-    /// <returns></returns>
-    public static Vector3 RoseToUnity(Vector3 rose)
+    public static Vector3 GetNearestSurface(Vector3 position, float maxDistance = 1000f)
     {
-        return new Vector3(10400 - rose.z, rose.y, rose.x);
-    }
+        int layerMask = LayerMask.GetMask("Floor", "MapObjects");
 
-    /// <summary>
-    /// Unity to rose posiition.
-    /// </summary>
-    /// <param name="unity"></param>
-    /// <returns></returns>
-    public static Vector3 UnityToRose(Vector3 unity)
-    {
-        return new Vector3(unity.z, unity.y, 10400 - unity.x);
+        Vector3 topOrigin = position + Vector3.up * maxDistance;
+
+        if (Physics.Raycast(topOrigin, Vector3.down, out RaycastHit hit, maxDistance * 2f, layerMask, QueryTriggerInteraction.Ignore))
+        {
+            return hit.point;
+        }
+
+        Debug.LogWarning($"No surface found at {position} with mask {layerMask}");
+
+        return position;
     }
 }

@@ -1,6 +1,6 @@
-using RevolutionShared.Rose.Data.Equipment;
+using RevolutionShared.Rose.Data.Items.Equipment;
 
 /// <summary>
 /// Weapon database.
 /// </summary>
-public class HeadgearDatabase : ItemDatabase<HeadgearData> { }
+public class HeadgearDatabase : PartDatabase<HeadgearData> { }

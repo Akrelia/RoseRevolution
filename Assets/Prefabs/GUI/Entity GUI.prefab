@@ -65,11 +65,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ENTITYNAME
+  m_text: ENTITY_NAME
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a7c3ff95db2cf704280e8b2085379307, type: 2}
-  m_sharedMaterial: {fileID: -1682639658863014199, guid: a7c3ff95db2cf704280e8b2085379307,
-    type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: bcdc0775f4a750b4a9509388ecde071d, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -147,6 +146,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7614863331137530222}
   - component: {fileID: 5636629430646572992}
+  - component: {fileID: 9056744950771991395}
   m_Layer: 5
   m_Name: Entity GUI
   m_TagString: Untagged
@@ -190,6 +190,18 @@ MonoBehaviour:
   nameLabel: {fileID: 2082427430706053247}
   effect: {fileID: 5441422808657112077}
   entity: {fileID: 0}
+--- !u!225 &9056744950771991395
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7335714787563570686}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &8289313866868227744
 GameObject:
   m_ObjectHideFlags: 0
@@ -242,4 +254,4 @@ MonoBehaviour:
   targetCamera: {fileID: 0}
   referenceDistance: 20
   baseScale: {x: 1, y: 1, z: 1}
-  baseOffset: {x: 0, y: 3, z: 0}
+  baseOffset: {x: 0, y: 1, z: 0}

@@ -493,7 +493,7 @@ public static class RoseNPCImporter
                 var model = new Model
                 {
                     mesh = ImportMesh(zmsPath, context),
-                    material = ImportEquipmentMaterial(part.TextureID, zsc, sourcePath, shader, context),
+                    material = ImportEquipmentMaterial(part.TextureID, zsc, shader, context),
                     boneIndex = zms.support.bones ? (short)-1 : (short)part.BoneIndex
                 };
 

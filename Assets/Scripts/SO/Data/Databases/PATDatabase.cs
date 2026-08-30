@@ -1,4 +1,4 @@
-using RevolutionShared.Rose.Data.Equipment;
+using RevolutionShared.Rose.Data.Items.Equipment;
 using UnityEngine;
 
-public class PATDatabase : ItemDatabase<ArmorData> { }
+public class PATDatabase : PartDatabase<ArmorData> { }

@@ -37,4 +37,24 @@ public static class Extensions
     {
         return new WorldPosition(position.x, position.y, position.z);
     }
+
+    /// <summary>
+    /// To World rotation.
+    /// </summary>
+    /// <param name="rotation">Rotation.</param>
+    /// <returns>World rotation.</returns>
+    public static WorldRotation ToWorldRotation(this Quaternion rotation)
+    {
+        return new WorldRotation(rotation.w, rotation.x, rotation.y, rotation.z);
+    }
+
+    /// <summary>
+    /// To Quaternion.
+    /// </summary>
+    /// <param name="rotation">Rotation.</param>
+    /// <returns>Quarternion.</returns>
+    public static Quaternion ToQuaternion(this WorldRotation rotation)
+    {
+        return new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W);
+    }
 }

@@ -5,6 +5,7 @@
 /// </summary>
 public class EntityModelBehavior : MonoBehaviour
 {
+    public bool alignToTerrain = true;
     public float heightOffset = 0f;
     public EntitySO data;
     public LayerMask groundMask;
@@ -34,18 +35,21 @@ public class EntityModelBehavior : MonoBehaviour
     /// </summary>
     private void FixedUpdate()
     {
-        if (!Physics.Raycast(transform.position + Vector3.up * 100f, Vector3.down, out var hit, 200f, groundMask))
+        if (alignToTerrain)
         {
-            return;
+            if (!Physics.Raycast(transform.position + Vector3.up * 100f, Vector3.down, out var hit, 200f, groundMask))
+            {
+                return;
+            }
+
+            float targetY = hit.point.y + heightOffset;
+
+            if (Mathf.Abs(transform.position.y - targetY) < 0.001f)
+            {
+                return;
+            }
+
+            transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
         }
-
-        float targetY = hit.point.y + heightOffset;
-
-        if (Mathf.Abs(transform.position.y - targetY) < 0.001f)
-        {
-            return;
-        }
-
-        transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
     }
 }

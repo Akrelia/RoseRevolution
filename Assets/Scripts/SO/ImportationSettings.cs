@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Importation settings.
 /// </summary>
-[CreateAssetMenu(menuName = "SO/Importation Settings")]
+[CreateAssetMenu(menuName = "ROSE Data/Configurations/Importation Settings")]
 public class ImportationSettings : ScriptableObject
 {
     [Header("Values")]

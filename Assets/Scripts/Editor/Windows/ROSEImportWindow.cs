@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using UnityRose.Game;
 using System.Linq;
 using RevolutionShared.Rose.Data;
-using RevolutionShared.Rose.Data.Equipment;
 using UnityEngine.AddressableAssets;
 
 namespace UnityRose.ImportEditor
@@ -20,6 +19,9 @@ namespace UnityRose.ImportEditor
     {
         private bool wasEditing = false;
         private int indexNPC = 0;
+        private int indexEquipment = 0;
+        private int indexEffect = 0;
+        private BodyPartType partType = BodyPartType.WEAPON;
         private string dataPath = "";
         private Vector2 mapListScrollPosition;
         private bool mapListShowUnnamed = false;
@@ -98,11 +100,24 @@ namespace UnityRose.ImportEditor
                 }
             }
 
+            if (GUILayout.Button("Import ALL Appearences"))
+            {
+                RoseEquipmentImporter.ImportAllAppearences(settings.entityShader);
+            }
+
             if (GUILayout.Button("Import ALL Equipments"))
             {
                 if (EditorUtility.DisplayDialog("Confirmation", "This will bake every body/armor/weapon/etc. ZSC into prefabs and rebuild the Avatar database.", "Yes", "No"))
                 {
-                    RoseEquipmentImporter.ImportAllEquipment(170, settings.playerShader);
+                    RoseEquipmentImporter.ImportAllEquipment(220, settings.playerShader);
+                }
+            }
+
+            if (GUILayout.Button("Import ALL Items"))
+            {
+                if (EditorUtility.DisplayDialog("Confirmation", "This will import all Items Data.", "Yes", "No"))
+                {
+                    RoseImporter.ImportAllItems();
                 }
             }
 
@@ -110,7 +125,7 @@ namespace UnityRose.ImportEditor
             {
                 if (EditorUtility.DisplayDialog("Confirmation", "This will import every ROSE map and rebuild the map database.", "Yes", "No"))
                 {
-
+                    RoseImporter.ImportRoseData();
                 }
             }
 
@@ -127,9 +142,19 @@ namespace UnityRose.ImportEditor
                 RoseImporter.ImportSkyboxes();
             }
 
+            if (GUILayout.Button("Import Loadings"))
+            {
+                RoseImporter.ImportLoadings(dataPath);
+            }
+
             if (GUILayout.Button("Import Icons"))
             {
                 RoseImporter.ImportIcons();
+            }
+
+            if (GUILayout.Button("Import ROSE Misc Data"))
+            {
+                RoseImporter.ImportRoseData();
             }
 
             if (GUILayout.Button("Import Effects"))
@@ -151,11 +176,37 @@ namespace UnityRose.ImportEditor
 
             GUILayout.EndHorizontal();
 
+            GUILayout.BeginHorizontal();
+
+            indexEquipment = EditorGUILayout.IntField("Equipment ID", indexEquipment);
+            partType = (BodyPartType)EditorGUILayout.EnumPopup("Type", partType);
+
+            if (GUILayout.Button("Import Equipment"))
+            {
+                RoseEquipmentImporter.ImportEquipment(indexEquipment,partType, settings.entityShader);
+            }
+
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+
+            indexEffect = EditorGUILayout.IntField("Effect ID", indexEffect);
+
+            if (GUILayout.Button("Import Effect"))
+            {
+               RoseEffectImporter.ImportEffectByID(indexEffect, dataPath, settings.entityShader);
+            }
+
+            GUILayout.EndHorizontal();
+
             if (GUILayout.Button("Clear ROSE Data"))
             {
                 if (EditorUtility.DisplayDialog("Confirmation", "This will delete ALL imported data and you'll have to reimport everything", "Yes", "No"))
                 {
-                    ROSEEditorBaker.ClearData();
+                    if (EditorUtility.DisplayDialog("Confirmation", "Are you sure ?", "Yes", "No"))
+                    {
+                        ROSEEditorBaker.ClearData();
+                    }
                 }
             }
 

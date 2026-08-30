@@ -114,7 +114,7 @@ namespace UnityRose.Import
             terrainObjects.transform.SetParent(map.transform);
 
             terrainObjects.transform.localScale = new Vector3(1, 1, -1);
-            terrainObjects.transform.Rotate(0, -90, 0);
+            terrainObjects.transform.Rotate(0, 0, 0);
             terrainObjects.transform.position = new Vector3(5200, 0, 5200);
 
             SpawnSpawnPoints(map, patches); // Could be removed but we keep this for debug
@@ -232,18 +232,7 @@ namespace UnityRose.Import
         /// <param name="mapID"></param>
         private static void RegisterSpawnInInternalDB(int mapID, List<RosePatch> patches)
         {
-            var database = AssetDatabase.LoadAssetAtPath<MonsterSpawnDatabase>(ROSEExportWindow.MonsterSpawnDatabasePath);
-
-            if (database == null)
-            {
-                database = ScriptableObject.CreateInstance<MonsterSpawnDatabase>();
-
-                EditorUtils.EnsureFolder(Path.GetDirectoryName(ROSEExportWindow.MonsterSpawnDatabasePath));
-
-                AssetDatabase.CreateAsset(database, ROSEExportWindow.MonsterSpawnDatabasePath);
-            }
-
-            EditorUtils.EnsureAddressable(ROSEExportWindow.MonsterSpawnDatabasePath, nameof(MonsterSpawnDatabase)); // Shouldn't be useful but just in case
+            var database = RoseImporter.GetOrCreateDatabase<MonsterSpawnDatabase>();
 
             database.spawns.RemoveAll(m => m != null && m.spawnData != null && m.spawnData.ID == mapID);
 
@@ -273,10 +262,12 @@ namespace UnityRose.Import
             if (existing != null)
             {
                 UnityEngine.Object.DestroyImmediate(atlas);
+
                 return existing;
             }
 
             AssetDatabase.CreateAsset(atlas, path);
+
             return atlas;
         }
 
@@ -491,7 +482,11 @@ namespace UnityRose.Import
             {
                 foreach (var npc in patch.IFO.NPCs)
                 {
-                    result.Add(new NPCSpawn(npc.ObjectID, ResourceManager.Instance.npcSTB.Cells[npc.ObjectID][1], npc.Position.ToWorldPosition()));
+                    var spawn = new NPCSpawn(npc.ObjectID, ResourceManager.Instance.npcSTB.Cells[npc.ObjectID][1], npc.Position.ToWorldPosition());
+
+                    spawn.rotation = npc.Rotation.ToWorldRotation();
+
+                    result.Add(spawn);
                 }
             }
 

@@ -10,26 +10,45 @@ public class ModelPreview : MonoBehaviour
     public Transform root;
     public RenderTexture renderTexture;
 
+    public float rotationY = 0;
     private GameObject currentModel;
 
     /// <summary>
     /// Shows the specified prefab in the model preview.
     /// </summary>
     /// <param name="prefab">Prefab.</param>
-    public void Show(GameObject prefab)
+    public void Show(GameObject prefab, bool instantiate = true, bool frame = true)
     {
-        if (currentModel != null)
+        if (currentModel != null && instantiate)
         {
             Destroy(currentModel);
         }
 
-        currentModel = Instantiate(prefab, root);
+        if (instantiate)
+        {
+            currentModel = Instantiate(prefab, root);
+        }
 
-        currentModel.transform.localRotation = Quaternion.Euler(0, 180, 0);
+        else
+        {
+            currentModel = prefab;
+        }
 
         SetLayerRecursively(currentModel, root.gameObject.layer);
 
-        Frame(currentModel);
+        ChangeRotation(0);
+
+        if (frame)
+        {
+            Frame(currentModel);
+        }
+    }
+
+    public void ChangeRotation(float delta)
+    {
+        rotationY += delta;
+
+        currentModel.transform.localRotation = Quaternion.Euler(0, 180 + rotationY, 0);
     }
 
     /// <summary>

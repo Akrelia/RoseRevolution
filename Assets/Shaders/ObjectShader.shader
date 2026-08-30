@@ -4,8 +4,15 @@ Shader "Custom/ObjectShader"
     {
         _MainTex("Base (RGB) Trans (A)", 2D) = "white" {}
         _LightTex("Light (RGB)", 2D) = "white" {}
+        _HasLightmap("Has Lightmap", Float) = 0
         _Cutoff("Alpha cutoff", Range(0,1)) = 0.5
         _Color("Main Color", Color) = (1,1,1,1)
+        _Cull("Cull", Int) = 2
+        _ZTest("ZTest", Int) = 4
+        _ZWrite("ZWrite", Float) = 1
+        _RefineLevel("Refine Level", Range(0,9)) = 0
+        _RefineColor("Refine Color", Color) = (1,1,1,1)
+        _RefineIntensity("Refine Intensity", Float) = 1
     }
 
     SubShader
@@ -22,7 +29,9 @@ Shader "Custom/ObjectShader"
 
         Pass
         {
-            Cull Off
+            Cull [_Cull]
+            ZTest [_ZTest]
+            ZWrite [_ZWrite]
 
             HLSLPROGRAM
 
@@ -65,7 +74,11 @@ Shader "Custom/ObjectShader"
                 float4 _MainTex_ST;
                 float4 _LightTex_ST;
                 float4 _Color;
+                float _HasLightmap;
                 float _Cutoff;
+                float _RefineLevel;
+                float4 _RefineColor;
+                float _RefineIntensity;
             CBUFFER_END
 
             float4 _GlobalTintColor;
@@ -94,49 +107,70 @@ Shader "Custom/ObjectShader"
                 clip(mainTex.a - _Cutoff);
 
                 half3 albedo = mainTex.rgb;
-                half3 color = albedo * lightTex.rgb * _Color.rgb * 2.0;
+
+                // Lightmap
+                half3 color;
+
+                if (_HasLightmap > 0.5)
+                {
+                    color = albedo
+                        * lightTex.rgb
+                        * _Color.rgb
+                        * 5.0;
+                }
+                else
+                {
+                    color = albedo * _Color.rgb;
+                }
 
                 color *= _GlobalTintColor.rgb;
+
+                // Refine
+                half refineAmount = saturate(_RefineLevel / 9.0) * _RefineIntensity;
+
+                color += albedo
+                    * _RefineColor.rgb
+                    * refineAmount;
 
                 half3 normalWS = normalize(input.normalWS);
 
                 if (!isFrontFace)
+                {
                     normalWS = -normalWS;
+                }
 
-                half3 lighting = 0;
-
+                // Main directional light
                 Light mainLight = GetMainLight();
 
                 half NdotL = saturate(dot(normalWS, mainLight.direction));
 
-                lighting += mainLight.color
+                half3 lighting = mainLight.color
                     * NdotL
                     * mainLight.distanceAttenuation
                     * mainLight.shadowAttenuation;
 
-                #if defined(_ADDITIONAL_LIGHTS)
-
-                    uint additionalLightsCount = GetAdditionalLightsCount();
-
-                    for (uint i = 0; i < additionalLightsCount; i++)
-                    {
-                        Light light = GetAdditionalLight(i, input.positionWS);
-
-                        half lightNdotL = saturate(dot(normalWS, light.direction));
-
-                        lighting += light.color
-                            * lightNdotL
-                            * light.distanceAttenuation
-                            * light.shadowAttenuation;
-                    }
-
-                #endif
-
                 color += albedo * lighting;
+
+                // Additional lights
+                uint additionalLightsCount = GetAdditionalLightsCount();
+
+                for (uint i = 0; i < additionalLightsCount; i++)
+                {
+                    Light light = GetAdditionalLight(i, input.positionWS);
+
+                    half NdotLAdditional = saturate(dot(normalWS, light.direction));
+
+                    half3 additionalLighting = light.color
+                        * NdotLAdditional
+                        * light.distanceAttenuation
+                        * light.shadowAttenuation;
+
+                    color += albedo * additionalLighting;
+                }
 
                 color = MixFog(color, input.fogFactor);
 
-                return half4(color, mainTex.a);
+                return half4(color, 1.0);
             }
 
             ENDHLSL

@@ -97,11 +97,14 @@ public static class Packets
     /// </summary>
     /// <param name="username">Username.</param>
     /// <returns>Packet.</returns>
-    public static PacketOut ConnectSandbox(string username, CharacterAppearance appearence)
+    public static PacketOut ConnectSandbox(string username, string clanName, byte[] clanIcon,byte clanGrade, CharacterAppearance appearence)
     {
         PacketOut packet = new PacketOut(ClientCommands.ConnectSandbox);
 
         packet.Add(username);
+        packet.Add(clanName);
+        packet.Add(clanIcon);
+        packet.Add(clanGrade);
 
         packet.AddNew(appearence);
 
@@ -172,6 +175,22 @@ public static class Packets
 
         packet.Add(enemyID);
         packet.Add(amount);
+
+        return packet;
+    }
+
+    /// <summary>
+    /// Packet - GM Command Kill All
+    /// </summary>
+    /// <param name="damage">Damage.</param>
+    /// <param name="range">Range.</param>
+    /// <returns>Packet.</returns>
+    public static PacketOut GMCommandKillAll(int damage, int range)
+    {
+        PacketOut packet = new PacketOut(ClientCommands.GMCommandDamage);
+
+        packet.Add(damage);
+        packet.Add(range);
 
         return packet;
     }

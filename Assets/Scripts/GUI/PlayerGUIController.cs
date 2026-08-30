@@ -18,9 +18,11 @@ public class PlayerGUIController : MonoBehaviour
     /// Set the name of the player.
     /// </summary>
     /// <param name="name">Name.</param>
-    public void SetName(string name)
+    /// <param name="color">Color.</param>
+    public void SetName(string name, Color color)
     {
         nameLabel.text = name;
+        nameLabel.color = color;
     }
 
     /// <summary>

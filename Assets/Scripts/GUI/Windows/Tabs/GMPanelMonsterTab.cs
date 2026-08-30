@@ -1,14 +1,12 @@
 using RevolutionShared.Rose.Data;
-using RevolutionShared.Rose.Data.Equipment;
+using RevolutionShared.Rose.Data.Items;
 using RevolutionShared.Rose.Data.NPC;
-using RevolutionShared.Utils;
 using System;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.UIElements;
 
 public class GMPanelMonsterTab : MonoBehaviour
 {
@@ -47,7 +45,7 @@ public class GMPanelMonsterTab : MonoBehaviour
     private NPCDatabase npcDatabase;
     private IconDatabase iconDatabase; // Put this somewhere to be accessible
     private DropTableDatabase dropTableDatabase;
-    private EquipmentDatabase equipmentDatabase;
+    private ItemDatabase itemDatabase;
 
     /// <summary>
     /// Start.
@@ -57,7 +55,7 @@ public class GMPanelMonsterTab : MonoBehaviour
         Addressables.LoadAssetAsync<NPCDatabase>(nameof(NPCDatabase)).Completed += OnDatabaseLoaded;
         Addressables.LoadAssetAsync<IconDatabase>(nameof(IconDatabase)).Completed += OnDatabaseLoaded;
         Addressables.LoadAssetAsync<DropTableDatabase>(nameof(DropTableDatabase)).Completed += OnDatabaseLoaded;
-        Addressables.LoadAssetAsync<EquipmentDatabase>(nameof(EquipmentDatabase)).Completed += OnDatabaseLoaded;
+        Addressables.LoadAssetAsync<ItemDatabase>(nameof(ItemDatabase)).Completed += OnDatabaseLoaded;
 
         monsterPreviewZone.SetActive(false);
     }
@@ -107,11 +105,11 @@ public class GMPanelMonsterTab : MonoBehaviour
     /// When the database is loaded.
     /// </summary>
     /// <param name="handle">Handle.</param>
-    private void OnDatabaseLoaded(AsyncOperationHandle<EquipmentDatabase> handle)
+    private void OnDatabaseLoaded(AsyncOperationHandle<ItemDatabase> handle)
     {
         if (handle.Status == AsyncOperationStatus.Succeeded)
         {
-            equipmentDatabase = handle.Result;
+            itemDatabase = handle.Result;
         }
     }
 
@@ -214,6 +212,10 @@ public class GMPanelMonsterTab : MonoBehaviour
         DisplayDropList(data);
     }
 
+    /// <summary>
+    /// Display drop list.
+    /// </summary>
+    /// <param name="data">Data.</param>
     public void DisplayDropList(EnemyData data)
     {
         Utils.DestroyChildren(dropListParent.gameObject);
@@ -226,23 +228,13 @@ public class GMPanelMonsterTab : MonoBehaviour
             {
                 var drop = dropTable.table.drops[i];
 
-                var type = GetBodyPartType(drop.Type);
-
                 var preview = Instantiate(itemPreviewPrefab, dropListParent).GetComponent<ItemPreview>();
 
-                if (type != 0)
+                var itemDB = itemDatabase.Get<ItemData>(drop.ID, drop.Type);
+
+                if (itemDB != null)
                 {
-                    var itemDB = equipmentDatabase.GetItem(type, drop.ID, type == BodyPartType.WEAPON || type == BodyPartType.BACK ? GenderType.NONE : GenderType.MALE); // Akima : the whole system will be better
-
-                    if (itemDB != null)
-                    {
-                        preview.SetIcon(null, drop.dropChance, iconDatabase.GetIcon(itemDB.iconID));
-                    }
-
-                    else
-                    {
-                        preview.SetIcon(drop.dropChance);
-                    }
+                    preview.SetIcon(null, drop.dropChance, iconDatabase.GetIcon(itemDB.iconID));
                 }
 
                 else
@@ -309,6 +301,14 @@ public class GMPanelMonsterTab : MonoBehaviour
     public void SpawnMonsterClick()
     {
         Client.Instance.SendPacket(Packets.GMCommandSpawn(Convert.ToInt32(monsterIDInput.text), Convert.ToInt32(monsterAmountInput.text)));
+    }
+
+    /// <summary>
+    /// Kill all.
+    /// </summary>
+    public void KillAllClick()
+    {
+        Client.Instance.SendPacket(Packets.GMCommandKillAll(500000, 50));
     }
 
     public static BodyPartType GetBodyPartType(ItemType itemType) // Debug method, remove ASAP

@@ -6,9 +6,6 @@ using UnityEngine.AddressableAssets;
 /// </summary>
 public class BootstrapManager : MonoBehaviour
 {
-    [Header("Shortcuts")]
-    public KeyCode toggleConsoleKey = KeyCode.F1;
-
     /// <summary>
     /// Singleton.
     /// </summary>
@@ -17,7 +14,12 @@ public class BootstrapManager : MonoBehaviour
 
     public GUIBootstrap gui;
     public DebugConsole debugConsole;
+    public LoadingManager loadingManager;
+    public ObjectViewerWindow effectViewer;
 
+    /// <summary>
+    /// Awake.
+    /// </summary>
     void Awake()
     {
         Application.targetFrameRate = 60;
@@ -53,14 +55,6 @@ public class BootstrapManager : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(toggleConsoleKey))
-        {
-
-        }
-    }
-
     /// <summary>
     /// Spawn the systems.
     /// </summary>
@@ -69,8 +63,11 @@ public class BootstrapManager : MonoBehaviour
     {
         gui = SpawnSystem<GUIBootstrap>(configuration.guiPrefab);
         debugConsole = SpawnSystem<DebugConsole>(configuration.debugConsolePrefab, gui.transform);
-
+        loadingManager = SpawnSystem<LoadingManager>(configuration.loadingManagerPrefab);
         gui.debugConsole = debugConsole;
+        gui.effectWindow = SpawnSystem<ObjectViewerWindow>(configuration.effectViewerPrefab, gui.transform);
+
+        loadingManager.Initialize();
     }
 
     /// <summary>

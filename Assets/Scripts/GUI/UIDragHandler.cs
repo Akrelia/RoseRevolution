@@ -9,17 +9,21 @@ public class UIDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            windowToMove, eventData.position, eventData.pressEventCamera, out offset);
+        RectTransform parent = windowToMove.parent as RectTransform;
+
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, eventData.position, eventData.pressEventCamera, out Vector2 localPoint))
+        {
+            offset = (Vector2)windowToMove.localPosition - localPoint;
+        }
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        Vector2 localPoint;
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            windowToMove.parent as RectTransform, eventData.position, eventData.pressEventCamera, out localPoint))
+        RectTransform parent = windowToMove.parent as RectTransform;
+
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, eventData.position, eventData.pressEventCamera, out Vector2 localPoint))
         {
-            windowToMove.localPosition = localPoint - offset;
+            windowToMove.localPosition = localPoint + offset;
         }
     }
 }

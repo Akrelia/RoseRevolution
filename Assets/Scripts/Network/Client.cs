@@ -1,4 +1,5 @@
 using RevolutionShared.Networking.Packets;
+using RevolutionShared.Packets;
 using System;
 using System.Net.Sockets;
 using System.Threading;
@@ -21,6 +22,8 @@ public class Client
     public Client()
     {
         tcpClient = new TcpClient();
+
+        tcpClient.NoDelay = true;
 
         packetHandler = new PacketHandler();
     }
@@ -55,14 +58,14 @@ public class Client
         {
             while (!cancelToken.IsCancellationRequested)
             {
-                var packet = await packetHandler.GetPacketAsync(tcpClient, cancelToken);
+                var packets = await packetHandler.GetPacketsAsync(tcpClient, cancelToken);
 
-                if (packet != null)
+                foreach (var packet in packets)
                 {
                     await packetHandler.HandlePacket(packet, this);
                 }
 
-                await Task.Delay(20);
+                await Task.Delay(1);
             }
         }
 

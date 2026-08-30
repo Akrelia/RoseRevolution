@@ -4,6 +4,7 @@ using UnityEngine;
 using RevolutionShared.Rose.Data;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using System.Linq;
 
 /// <summary>
 /// Utils.
@@ -15,13 +16,7 @@ public class Utils
         return email.Contains("@") && email.Contains(".");
     }
 
-    public static Quaternion r2uRotation(Quaternion q)
-    {
-        return new Quaternion(q.x, q.z, -q.y, q.w);
-
-    }
-
-    public static Quaternion R2URotation2(Quaternion q)
+    public static Quaternion RoseToUnityRotation(Quaternion q)
     {
         return new Quaternion(q.x, q.z, -q.y, q.w);
     }
@@ -78,7 +73,7 @@ public class Utils
     /// <param name="value">Value.</param>
     /// <param name="modulo">Modulo.</param>
     /// <returns>Int.</returns>
-    public static int Mod(int value, int modulo)
+    public static int Modulo(int value, int modulo)
     {
         return ((value % modulo) + modulo) % modulo;
     }
@@ -117,6 +112,31 @@ public class Utils
         return handle;
     }
 
+    public static T LoadDatabase<T>() where T : UnityEngine.Object
+    {
+        string address = typeof(T).Name;
+
+        foreach (var locator in Addressables.ResourceLocators)
+        {
+            if (!locator.Keys.Contains(address))
+                continue;
+
+            var handle = Addressables.LoadAssetAsync<T>(address);
+
+            if (!handle.IsValid())
+                return null;
+
+            handle.WaitForCompletion();
+
+            if (handle.Status != AsyncOperationStatus.Succeeded)
+                return null;
+
+            return handle.Result;
+        }
+
+        return null;
+    }
+
     public static bool IsMac()
     {
         return Application.platform == RuntimePlatform.OSXEditor;
@@ -145,6 +165,25 @@ public class Utils
     public static string Colorize<T>(T value, Color color) where T : Enum
     {
         return Colorize(value.ToString(), color);
+    }
+
+    public static Sprite BytesToSprite(byte[] data)
+    {
+        if (data == null || data.Length == 0)
+        {
+            return null;
+        }
+
+        Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+
+        if (!texture.LoadImage(data))
+        {
+            UnityEngine.Object.Destroy(texture);
+
+            return null;
+        }
+
+        return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
 
     /// Destroy every children of a game object.

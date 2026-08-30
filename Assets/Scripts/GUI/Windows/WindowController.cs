@@ -23,10 +23,7 @@ public class WindowController : MonoBehaviour
     /// </summary>
     public void Awake()
     {
-        if (hideOnStartup)
-        {
-            gameObject.SetActive(false);
-        }
+
     }
 
     /// <summary>

@@ -54,8 +54,8 @@ public class PTL
                         break;
 
                     case AnimType.SIZE:
-                        info.SizeMinimum = new(r.ReadSingle(), r.ReadSingle());
-                        info.SizeMaximum = new(r.ReadSingle(), r.ReadSingle());
+                        info.SizeMinimum = new(r.ReadSingle() / 100F, r.ReadSingle() / 100F);
+                        info.SizeMaximum = new(r.ReadSingle() / 100F, r.ReadSingle() / 100F);
                         break;
                     case AnimType.ROTATION:
                         UnityEngine.Debug.Log("Rotation event found");
@@ -65,11 +65,14 @@ public class PTL
                     case AnimType.GREEN:
                     case AnimType.BLUE:
                     case AnimType.ALPHA:
+                        info.ValueMinimum = r.ReadSingle();
+                        info.ValueMaximum = r.ReadSingle();
+                        break;
                     case AnimType.VELOCITYX:
                     case AnimType.VELOCITYY:
                     case AnimType.VELOCITYZ:
-                        info.ValueMinimum = r.ReadSingle();
-                        info.ValueMaximum = r.ReadSingle();
+                        info.ValueMinimum = r.ReadSingle() / 100F;
+                        info.ValueMaximum = r.ReadSingle() / 100F;
                         break;
 
                     case AnimType.COLOR:
@@ -78,8 +81,8 @@ public class PTL
                         break;
 
                     case AnimType.VELOCITY:
-                        info.VelocityMinimum = ReadVector3(r);
-                        info.VelocityMaximum = ReadVector3(r);
+                        info.VelocityMinimum = ReadVector3(r) / 100F;
+                        info.VelocityMaximum = ReadVector3(r) / 100F;
                         break;
 
                     case AnimType.TEXTUREINDEX:

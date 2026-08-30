@@ -91,9 +91,8 @@
                 half4 lightTex = tex2D(_LightTex, IN.lightUV);
 
                 half3 albedo = lerp(bottom.rgb, top.rgb, top.a);
-                half3 emission = albedo * lightTex.rgb * 5.0;
 
-                half3 baseColor = (albedo + emission) * _GlobalTintColor.rgb;
+                half3 baseColor = albedo * lightTex.rgb * _GlobalTintColor.rgb * 5.0;
 
                 half3 lighting = 0;
 
@@ -101,7 +100,7 @@
 
                 half NdotL = saturate(dot(normalize(IN.normalWS), mainLight.direction));
 
-                lighting += mainLight.color * NdotL * mainLight.distanceAttenuation* mainLight.shadowAttenuation;
+                lighting += mainLight.color * NdotL * mainLight.distanceAttenuation * mainLight.shadowAttenuation;
 
                 #if defined(_ADDITIONAL_LIGHTS)
 

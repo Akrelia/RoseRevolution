@@ -15,5 +15,10 @@ public class BaseWindow : MonoBehaviour
     public void Awake()
     {
         window = GetComponent<WindowController>();
+
+        if (window.hideOnStartup)
+        {
+            window.Hide();
+        }
     }
 }

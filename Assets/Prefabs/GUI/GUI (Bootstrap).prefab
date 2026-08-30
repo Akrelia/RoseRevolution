@@ -115,4 +115,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugConsole: {fileID: 0}
+  effectWindow: {fileID: 0}
   toggleConsoleKey: 282
+  effectViewerKey: 284

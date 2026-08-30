@@ -6,7 +6,6 @@ using UnityEngine;
 public class InputManager : MonoBehaviour
 {
     [Header("Shortcuts")]
-    public KeyCode toggleConsoleKey;
     public KeyCode toggleDebug;
     [Header("Components")]
     public GUIController guiController;

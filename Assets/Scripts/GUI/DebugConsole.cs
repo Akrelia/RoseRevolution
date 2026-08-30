@@ -53,7 +53,7 @@ public class DebugConsole : BaseWindow
         PushButton(defaultButton);
         ShowPanel(defaultPanel);
 
-    //    display.SetActive(false);
+        display.SetActive(false);
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class DebugConsole : BaseWindow
     /// </summary>
     public void ToggleDisplay()
     {
-        display.SetActive(!display.activeSelf);
+        display.SetActive(!display.activeSelf); // Since the Console need to be active to receive logs, we never hide the GameObject itself but a sub parent (TODO : create a Debug Manager living its own)
     }
 
     /// <summary>

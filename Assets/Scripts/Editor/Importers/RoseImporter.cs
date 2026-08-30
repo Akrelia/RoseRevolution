@@ -1,13 +1,17 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
-using UnityRose.Formats;
-using static UnityRose.ImportEditor.ROSEImportWindow;
 using UnityRose.ImportEditor;
-using UnityEditor.AddressableAssets;
 using System;
 using static UnityRose.Import.GameDataPaths;
+using RevolutionShared.Rose.Data.Game;
+using System.IO;
+using RevolutionShared.Rose.Data;
+using RevolutionShared.Rose.Data.Items.Equipment.Armor;
+using RevolutionShared.Rose.Data.Items.Equipment;
+using UnityRose.Formats;
+using RevolutionShared.Rose.Data.Items;
+using UnityEditor.VersionControl;
 
 namespace UnityRose.Import
 {
@@ -37,6 +41,8 @@ namespace UnityRose.Import
 
                 skybox.Id = i;
 
+                context.index = i;
+
                 var zmsPath = stb.Cells[i][1];
                 var textureDayPath = stb.Cells[i][2];
                 var textureNightPath = stb.Cells[i][3];
@@ -58,8 +64,8 @@ namespace UnityRose.Import
                 skybox.AmbientCharacter4 = EditorUtils.ParseSTBColor(stb.Cells[i][17]);
                 skybox.DiffuseCharacter4 = EditorUtils.ParseSTBColor(stb.Cells[i][18]);
 
-                skybox.Mesh = ROSEEditorBaker.ImportMesh(zmsPath, context); // Akima : I think every mesh is the same, even if they are multiple files
-                skybox.Material = ROSEEditorBaker.ImportSkyxboxMaterial(textureDayPath, textureNightPath, $"Skybox_{i}.mat", context);
+                skybox.Mesh = ROSEEditorBaker.ImportMesh(zmsPath, context); // Akima : I think every mesh are the same, even if they are multiple files
+                skybox.Material = ROSEEditorBaker.ImportSkyboxMaterial(textureDayPath, textureNightPath, $"SkyMaterial{i}.mat.asset", context);
 
                 var assetPath = $"{context.Root}/Skybox_{i}.asset";
 
@@ -112,6 +118,75 @@ namespace UnityRose.Import
             var databasePath = $"{GameDataPaths.Database.Root}/IconDatabase.asset";
 
             CreateAddressableAsset(database, databasePath);
+        }
+
+        /// <summary>
+        /// Import loadings.
+        /// </summary>
+        public static void ImportLoadings(string dataPath)
+        {
+            var database = GetOrCreateDatabase<LoadingDatabase>();
+
+            database.mapLoadings = new FakeDictionary<int, Sprite>();
+            database.planetloadings = new FakeDictionary<int, List<Sprite>>();
+
+            var stb = ResourceManager.Instance.loadingSTB;
+
+            for (int i = 0; i < stb.Cells.Count; i++)
+            {
+                var path = stb.Cells[i][1];
+                var id = EditorUtils.ParseSTBInt(stb.Cells[i][2]);
+
+                var sprite = EditorUtils.ImportImageAsJPG(Path.Combine(dataPath, path), GameDataPaths.Loadings.Root);
+
+                if (id < 500) // Map Loading
+                {
+                    database.mapLoadings.Add(id, sprite);
+                }
+
+                else // Planet loading
+                {
+                    var planetID = id - 500;
+
+                    if (!database.planetloadings.ContainsKey(planetID))
+                    {
+                        database.planetloadings.Add(planetID, new List<Sprite>());
+                    }
+
+                    database.planetloadings[planetID].Add(sprite);
+                }
+            }
+
+            EditorUtility.SetDirty(database);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        /// <summary>
+        /// Import the Rose Data.
+        /// </summary>
+        public static void ImportRoseData()
+        {
+            var database = GetOrCreateDatabase<RoseDataDatabase>();
+
+            database.itemGrades = new FakeDictionary<int, ItemGradeData>();
+
+            var gradeSTB = ResourceManager.Instance.gradeSTB;
+
+            for (int i = 1; i < gradeSTB.Cells.Count; i++)
+            {
+                var gradeLevel = EditorUtils.ParseSTBInt(gradeSTB.Cells[i][0]);
+                var attackBonus = EditorUtils.ParseSTBInt(gradeSTB.Cells[i][1]);
+                var accuracyBonus = EditorUtils.ParseSTBInt(gradeSTB.Cells[i][2]);
+                var defenseBonus = EditorUtils.ParseSTBInt(gradeSTB.Cells[i][3]);
+                var magicDefenseBonus = EditorUtils.ParseSTBInt(gradeSTB.Cells[i][4]);
+                var dodgeRateBonus = EditorUtils.ParseSTBInt(gradeSTB.Cells[i][5]);
+                var glowColor = EditorUtils.ParseRoseColorInt(gradeSTB.Cells[i][6]);
+
+                var grade = new ItemGradeData(gradeLevel, attackBonus, accuracyBonus, defenseBonus, magicDefenseBonus, dodgeRateBonus, glowColor);
+
+                database.itemGrades.Add(gradeLevel, grade);
+            }
         }
 
         /// <summary>
@@ -180,13 +255,63 @@ namespace UnityRose.Import
         }
 
         /// <summary>
+        /// Import all items.
+        /// </summary>
+        /// <param name="amount">Amount.</param>
+        public static void ImportAllItems()
+        {
+            var database = GetOrCreateDatabase<ItemDatabase>();
+
+            database.Initialize();
+
+            var stbList = ResourceManager.Instance.stbItems;
+
+            database.faceItems = ImportItemsData<FaceItemData>(stbList[ItemType.FACEITEM]);
+            database.caps = ImportItemsData<HeadgearData>(stbList[ItemType.HAT]);
+            database.bodies = ImportItemsData<BodyArmorData>(stbList[ItemType.BODY]);
+            database.arms = ImportItemsData<HandwearData>(stbList[ItemType.GLOVES]);
+            database.boots = ImportItemsData<FootwearData>(stbList[ItemType.BOOTS]);
+            database.backs = ImportItemsData<BackData>(stbList[ItemType.BACK]);
+            database.jewels = ImportItemsData<JewelData>(stbList[ItemType.JEWEL]);
+            database.weapons = ImportItemsData<WeaponData>(stbList[ItemType.WEAPON]);
+            database.subweapons = ImportItemsData<SubWeaponData>(stbList[ItemType.SUBWEAPON]);
+            database.consumables = ImportItemsData<ConsumableData>(stbList[ItemType.USEITEM]);
+            database.gems = ImportItemsData<GemData>(stbList[ItemType.GEMS]);
+            database.materials = ImportItemsData<MaterialData>(stbList[ItemType.MATERIAL]);
+
+            EditorUtility.SetDirty(database);
+
+            Debug.Log("Imported all items data");
+        }
+
+        /// <summary>
+        /// Import items data.
+        /// </summary>
+        /// <typeparam name="T">Type.</typeparam>
+        /// <param name="stb">STB.</param>
+        /// <returns>Items data.</returns>
+        private static FakeDictionary<int, T> ImportItemsData<T>(STB stb) where T : ItemData, new()
+        {
+            FakeDictionary<int, T> datas = new FakeDictionary<int, T>();
+
+            for (int i = 0; i < stb.Cells.Count; i++)
+            {
+                var data = STBImporter.Read<T>(stb, i);
+
+                datas.Add(i, data);
+            }
+
+            return datas;
+        }
+
+        /// <summary>
         /// Gets or creates a database of type T. If the database does not exist, it will be created and saved as an asset in the specified path.
         /// </summary>
         /// <typeparam name="T">Type of database.</typeparam>
         public static T GetOrCreateDatabase<T>() where T : ScriptableObject
         {
             string name = typeof(T).Name;
-            string databasePath = $"{GameDataPaths.Database.Root}/{name}.asset"; 
+            string databasePath = $"{GameDataPaths.Database.Root}/{name}.asset";
 
             var database = AssetDatabase.LoadAssetAtPath<T>(databasePath);
 
@@ -300,6 +425,11 @@ namespace UnityRose.Import
             public const string Root = GameDataPaths.Root + "/Drops";
         }
 
+        public static class Loadings
+        {
+            public const string Root = GameDataPaths.Root + "/Loadings";
+        }
+
         public static class Effects
         {
             public const string Root = GameDataPaths.Root + "/Effects";
@@ -375,12 +505,19 @@ namespace UnityRose.Import
         /// </summary>
         public class SkyboxImportContext : ImportContext
         {
+            public int index = 0;
+
             public SkyboxImportContext()
             {
                 Root = GameDataPaths.Skyboxes.Root;
                 Meshes = Root;
                 Materials = Root;
                 Textures = Root;
+            }
+
+            public string CurrentFolder
+            {
+                get { return Path.Combine(Root, index.ToString()); }
             }
         }
 

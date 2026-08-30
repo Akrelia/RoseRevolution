@@ -68,7 +68,6 @@ namespace UnityRose
 			hairID = hair;
 			backID = back;
 			maskID = mask;
-
 		}
 	}
 

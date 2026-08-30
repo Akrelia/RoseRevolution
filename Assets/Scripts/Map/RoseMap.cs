@@ -78,7 +78,10 @@ namespace UnityRose.Game
 
             var colors = GetTimeOfDayColors(time);
 
-            skyboxRenderer.sharedMaterial.SetFloat("_Blend", GetSkyboxBlend(time));
+            if (skyboxRenderer)
+            {
+                skyboxRenderer.sharedMaterial.SetFloat("_Blend", GetSkyboxBlend(time));
+            }
 
             Shader.SetGlobalColor("_GlobalTintColor", colors.background);
             Shader.SetGlobalColor("_CharacterAmbientColor", colors.ambient);

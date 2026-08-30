@@ -1,4 +1,5 @@
 using RevolutionShared.Data;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -14,6 +15,9 @@ public class EntityBehavior : MonoBehaviour
     public bool isWalking;
     Animator animator;
 
+    /// <summary>
+    /// Start.
+    /// </summary>
     private void Start()
     {
         destinationPosition = transform.position;
@@ -41,6 +45,31 @@ public class EntityBehavior : MonoBehaviour
         }
     }
 
+    public void Die()
+    {
+        var waitTime = 0f;
+
+        isWalking = false;
+
+        if (model.data.animations[4] != null)
+        {
+            var animation = model.data.animations[4];
+
+            animator.Play("Base Layer.Animation_4", 0);
+
+            waitTime = animation.length;
+        }
+
+        StartCoroutine(DestroyAfterDeath(waitTime));
+    }
+
+    private IEnumerator DestroyAfterDeath(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+
+        Destroy(gameObject);
+    }
+
     /// <summary>
     /// Set the destination position.
     /// </summary>
@@ -50,11 +79,19 @@ public class EntityBehavior : MonoBehaviour
         destinationPosition = position.ToVector3();
 
         if (model.data.animations[1] != null)
-            animator.Play("Base Layer.Animation_1", 0);
+        {
+            if (animator)
+            {
+                animator.Play("Base Layer.Animation_1", 0); // TODO : whole animation system
+            }
+        }
 
         isWalking = true;
     }
 
+    /// <summary>
+    /// Move to position.
+    /// </summary>
     public void MoveToPosition()
     {
         if (Vector3.Distance(transform.position, destinationPosition) > 0.2f)
@@ -74,8 +111,10 @@ public class EntityBehavior : MonoBehaviour
         {
             isWalking = false;
 
-        if (model.data.animations[0] != null)
-            animator.Play("Base Layer.Animation_0", 0);
+            if (model.data.animations[0] != null)
+            {
+                animator.Play("Base Layer.Animation_0", 0);
+            }
         }
     }
 }

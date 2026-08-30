@@ -18,6 +18,8 @@ public class GUIController : MonoBehaviour
     public ChatController chatController;
     public CharacterPreview characterPreview;
     public Transform windowsParent;
+    [Header("Misc")]
+    public TextMeshProUGUI versionLabel;
 
     Dictionary<Type, BaseWindow> windows;
 
@@ -27,6 +29,13 @@ public class GUIController : MonoBehaviour
     public void Awake()
     {
         windows = new Dictionary<Type, BaseWindow>();
+
+        versionLabel.text = $"Rose Revolution v{Application.version}";
+    }
+
+    public void HelpClick()
+    {
+        CreateWindow<HelpWindow>();
     }
 
     /// <summary>

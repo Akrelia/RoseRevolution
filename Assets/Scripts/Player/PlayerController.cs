@@ -50,13 +50,9 @@ namespace UnityRose
 
         public void OnSkeletonChange()
         {
-            Debug.Log($"OnSkeletonChange - OLD MACHINE: {animationStateMachine}");
-
             animationStateMachine = null;
 
             SetAnimationStateMachine(rosePlayer.charModel.rig, state);
-
-            Debug.Log($"OnSkeletonChange - NEW MACHINE: {animationStateMachine}");
         }
 
         public void OnChangeEquip(BodyPartType bodyPart, int id)

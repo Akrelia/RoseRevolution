@@ -140,6 +140,7 @@ public static class RoseCharacterImporter
             if (string.IsNullOrWhiteSpace(zmoRelativePath))
             {
                 Debug.LogWarning($"Skipping {gender}/{weapon}/{action}: no ZMO path found.");
+
                 continue;
             }
 
@@ -148,10 +149,12 @@ public static class RoseCharacterImporter
             if (!File.Exists(zmoPath))
             {
                 Debug.LogWarning($"Skipping missing ZMO for {gender}/{weapon}/{action}: {zmoPath}");
+
                 continue;
             }
 
             string unityPath = "Assets/GameData/Player/Animations/" + gender.ToString() + "/" + weapon.ToString() + "/clips/" + action.ToString() + ".anim";
+
             EditorUtils.EnsureFolder(unityPath);
 
             var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(unityPath);

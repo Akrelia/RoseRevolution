@@ -37,7 +37,7 @@ public class EntityGUIController : MonoBehaviour
         for (int i = 1; i < renderers.Length; i++)
             bounds.Encapsulate(renderers[i].bounds);
 
-        effect.SetHeightOffset(bounds.max.y - entity.transform.position.y);
+        effect.SetHeightOffset((bounds.max.y / entity.transform.localScale.x) - entity.transform.position.y);
     }
 
     /// <summary>

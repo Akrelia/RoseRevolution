@@ -206,17 +206,7 @@ namespace UnityRose.Game
             return false;
         }
 
-        /// <summary>
-        /// Imports the patch into Unity (internal implementation).
-        /// </summary>
-        /// <param name="terrainParent"></param>
-        /// <param name="objectsParent"></param>
-        /// <param name="atlas"></param>
-        /// <param name="atlas_normal"></param>
-        /// <param name="atlasRectHash"></param>
-        /// <param name="blendNormals"></param>
-        /// <returns></returns>
-        private bool ImportInternal(Transform terrainParent, Transform objectsParent, Texture2D atlas, Texture2D atlas_normal, Dictionary<string, Rect> atlasRectHash, Shader terrainShader, Shader objectShader, bool blendNormals = false)
+        private bool ImportInternal(Transform terrainParent, Transform objectsParent, Texture2D atlas, Texture2D atlas_normal, Dictionary<string, Rect> atlasRectHash, Shader terrainShader, Shader objectShader, bool blendNormals = true)
         {
             int nVertices = 64 * 64 * 4;
             Vector3[] vertices = new Vector3[nVertices];
@@ -234,14 +224,16 @@ namespace UnityRose.Game
             float y_offset = col * m_yStride * 64.0f;
             center = new Vector2(x_offset + m_xStride * 32.0f, y_offset + m_yStride * 32.0f);
 
+            Vector3 meshOrigin = new Vector3(5200.0f, 0.0f, 5200.0f);
+
             mesh = new Mesh();
 
             Vector2[,] uvMatrix = new Vector2[5, 5];
             Vector2[,] uvMatrixLR = new Vector2[5, 5];
             Vector2[,] uvMatrixTB = new Vector2[5, 5];
             Vector2[,] uvMatrixLRTB = new Vector2[5, 5];
-            Vector2[,] uvMatrixRotCW = new Vector2[5, 5];  // rotated 90 deg clockwise
-            Vector2[,] uvMatrixRotCCW = new Vector2[5, 5];  // rotated 90 counter clockwise
+            Vector2[,] uvMatrixRotCW = new Vector2[5, 5];
+            Vector2[,] uvMatrixRotCCW = new Vector2[5, 5];
 
             for (int uv_x = 0; uv_x < 5; uv_x++)
             {
@@ -306,10 +298,10 @@ namespace UnityRose.Game
                     uvsLight[c] = new Color((float)(y + 1) / w, 1.0f - (float)(x + 1) / l, 0.0f);
                     uvsLight[d] = new Color((float)(y + 1) / w, 1.0f - (float)(x) / l, 0.0f);
 
-                    vertices[a] = new Vector3(x * m_xStride + x_offset, HIM.Heights[x, y] / heightScaler, y * m_yStride + y_offset);
-                    vertices[b] = new Vector3((x + 1) * m_xStride + x_offset, HIM.Heights[x + 1, y] / heightScaler, y * m_yStride + y_offset);
-                    vertices[c] = new Vector3((x + 1) * m_xStride + x_offset, HIM.Heights[x + 1, y + 1] / heightScaler, (y + 1) * m_yStride + y_offset);
-                    vertices[d] = new Vector3(x * m_xStride + x_offset, HIM.Heights[x, y + 1] / heightScaler, (y + 1) * m_yStride + y_offset);
+                    vertices[a] = new Vector3(x * m_xStride + x_offset, HIM.Heights[x, y] / heightScaler, y * m_yStride + y_offset) - meshOrigin;
+                    vertices[b] = new Vector3((x + 1) * m_xStride + x_offset, HIM.Heights[x + 1, y] / heightScaler, y * m_yStride + y_offset) - meshOrigin;
+                    vertices[c] = new Vector3((x + 1) * m_xStride + x_offset, HIM.Heights[x + 1, y + 1] / heightScaler, (y + 1) * m_yStride + y_offset) - meshOrigin;
+                    vertices[d] = new Vector3(x * m_xStride + x_offset, HIM.Heights[x, y + 1] / heightScaler, (y + 1) * m_yStride + y_offset) - meshOrigin;
 
                     if (y == 0)
                     {
@@ -399,19 +391,27 @@ namespace UnityRose.Game
             {
                 Vector3[] normals = new Vector3[mesh.vertexCount];
                 Dictionary<String, List<int>> vertexLookup = new Dictionary<string, List<int>>();
+
                 for (int i = 0; i < mesh.vertexCount; i++)
+                {
                     EditorUtils.addVertexToLookup(vertexLookup, mesh.vertices[i].ToString(), i);
+                }
 
                 foreach (KeyValuePair<String, List<int>> entry in vertexLookup)
                 {
                     Vector3 avg = Vector3.zero;
+
                     foreach (int id in entry.Value)
+                    {
                         avg += mesh.normals[id];
+                    }
 
                     avg.Normalize();
 
                     foreach (int id in entry.Value)
+                    {
                         normals[id] = avg;
+                    }
                 }
 
                 mesh.normals = normals;
@@ -425,6 +425,7 @@ namespace UnityRose.Game
 
             GameObject patchObject = new GameObject();
             patchObject.name = "patch_" + this.name;
+            patchObject.transform.SetPositionAndRotation(meshOrigin, Quaternion.Euler(0f, 90f, 0f));
 
             patchObject.AddComponent<MeshFilter>().mesh = mesh;
             patchObject.AddComponent<MeshRenderer>();
@@ -442,16 +443,25 @@ namespace UnityRose.Game
 
             ImportObjectGroup(IFO.Decoration, ZSCDeco, LITDeco, deco.transform, "Deco", objectShader);
 
+            if (deco.transform.childCount == 0)
+            {
+                GameObject.DestroyImmediate(deco);
+            }
+
             GameObject cnst = new GameObject();
             cnst.name = "cnst_" + this.name;
             cnst.transform.parent = objectsParent;
             cnst.layer = LayerMask.NameToLayer("MapObjects");
 
-            ImportObjectGroup(IFO.Construction, ZSCConst, LITConst, deco.transform, "Const", objectShader);
+            ImportObjectGroup(IFO.Construction, ZSCConst, LITConst, cnst.transform, "Const", objectShader);
+
+            if (cnst.transform.childCount == 0)
+            {
+                GameObject.DestroyImmediate(cnst);
+            }
 
             return true;
-        }  // Import()
-
+        }
         /// <summary>
         /// Shared body for the old Decoration and Construction loops.
         /// </summary>
@@ -468,7 +478,6 @@ namespace UnityRose.Game
                 terrainObject.transform.SetParent(parent, false);
                 terrainObject.transform.localPosition = (ifo.Position / 100.0f);
 
-                //   Debug.Log($"IFO local={terrainObject.transform.localPosition} world={terrainObject.transform.position}");
                 bool isAnimated = false;
                 AnimationClip clip = new AnimationClip();
                 clip.legacy = true;
@@ -522,6 +531,12 @@ namespace UnityRose.Game
                         {
                             Texture2D lightTexture = SaveTexture(RoseDdsLoader.LoadFromFile(lightPath), lightPath, shared: false);
                             mat.SetTexture("_LightTex", lightTexture);
+                            mat.SetFloat("_HasLightmap", 1f);
+                        }
+
+                        else
+                        {
+                            mat.SetFloat("_HasLightmap", 0f);
                         }
 
                         mat = SaveMaterial(mat, $"{texPath}_{(hasLitPart ? lightPath : "nolit")}_{objectShader.name}");

@@ -16,21 +16,80 @@ using System.Collections.Generic;
 /// </summary>
 public class RoseEffectImporter : MonoBehaviour
 {
-    /// <summary>
-    /// Import all effects.
-    /// </summary>
-    /// <param name="dataPath">Data path.</param>
+    private static void ImportEffect(EffectDatabase database, int id, string dataPath, Shader shader)
+    {
+
+        var stb = ResourceManager.Instance.fileEffectSTB;
+
+        string file = Path.Combine(dataPath, stb.Cells[id][2]);
+
+        try
+        {
+            EFT eft = LoadEFT(file);
+
+            if (eft == null)
+            {
+                return;
+            }
+
+            GameObject prefab = BuildEffect(eft, dataPath, shader);
+
+            string path = $"{GameDataPaths.Effects.Prefabs}/{Path.GetFileName(file)}.prefab";
+
+            PrefabUtility.SaveAsPrefabAsset(prefab, path);
+
+            GameObject.DestroyImmediate(prefab);
+
+            prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Failed to load effect prefab: {path}");
+                return;
+            }
+
+            var entry = new EffectDatabaseEntry()
+            {
+                id = id,
+                prefab = prefab
+            };
+
+            int index = database.entries.FindIndex(x => x.id == id);
+
+            if (index >= 0)
+            {
+                database.entries[index] = entry;
+            }
+            else
+            {
+                database.entries.Add(entry);
+            }
+
+            EditorUtility.SetDirty(database);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Failed to import effect {file}: {ex.Message}\n{ex.StackTrace}");
+        }
+    }
+
+    public static void ImportEffectByID(int id, string dataPath, Shader shader)
+    {
+        CheckEffectFolders();
+
+        var database = RoseImporter.GetOrCreateDatabase<EffectDatabase>();
+
+        ImportEffect(database, id, dataPath, shader);
+    }
+
     public static void ImportEffects(string dataPath, Shader shader)
     {
         var database = RoseImporter.GetOrCreateDatabase<EffectDatabase>();
         var stb = ResourceManager.Instance.fileEffectSTB;
 
-        EditorUtils.EnsureFolder(Path.Combine(GameDataPaths.Effects.Prefabs, "dummy.asset"));
-        EditorUtils.EnsureFolder(Path.Combine(GameDataPaths.Effects.Materials, "dummy.asset"));
-        EditorUtils.EnsureFolder(Path.Combine(GameDataPaths.Effects.Textures, "dummy.asset"));
-        EditorUtils.EnsureFolder(Path.Combine(GameDataPaths.Effects.Meshes, "dummy.asset"));
+        CheckEffectFolders();
 
-        AssetDatabase.StartAssetEditing();
+        // AssetDatabase.StartAssetEditing();
 
         int effectCount = 1200;
 
@@ -43,41 +102,12 @@ public class RoseEffectImporter : MonoBehaviour
                     continue;
                 }
 
-                var file = Path.Combine(dataPath, stb.Cells[i][2]);
-
-                try
-                {
-                    if (i == 1177)
-                    {
-                        Debug.Log("jsuioada");
-                    }
-
-                    EFT eft = LoadEFT(file);
-
-                    if (eft == null)
-                    {
-                        continue;
-                    }
-
-                    GameObject prefab = BuildEffect(eft, dataPath, shader);
-
-                    string path = $"{GameDataPaths.Effects.Prefabs}/{Path.GetFileName(file)}.prefab";
-
-                    PrefabUtility.SaveAsPrefabAsset(prefab, path);
-
-                    GameObject.DestroyImmediate(prefab);
-                }
-
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"Failed to import effect {file}: {ex.Message}\n{ex.StackTrace}");
-                }
+                ImportEffect(database, i, dataPath, shader);
             }
         }
-
         finally
         {
-            AssetDatabase.StopAssetEditing();
+            // AssetDatabase.StopAssetEditing();
         }
 
         AssetDatabase.SaveAssets();
@@ -98,7 +128,6 @@ public class RoseEffectImporter : MonoBehaviour
             if (prefab == null)
             {
                 Debug.LogWarning($"Failed to load effect prefab: {path}");
-
                 continue;
             }
 
@@ -114,7 +143,6 @@ public class RoseEffectImporter : MonoBehaviour
             {
                 database.entries[index] = entry;
             }
-
             else
             {
                 database.entries.Add(entry);
@@ -124,6 +152,14 @@ public class RoseEffectImporter : MonoBehaviour
         EditorUtility.SetDirty(database);
 
         AssetDatabase.SaveAssets();
+    }
+
+    private static void CheckEffectFolders()
+    {
+        EditorUtils.EnsureFolder(Path.Combine(GameDataPaths.Effects.Prefabs, "dummy.asset"));
+        EditorUtils.EnsureFolder(Path.Combine(GameDataPaths.Effects.Materials, "dummy.asset"));
+        EditorUtils.EnsureFolder(Path.Combine(GameDataPaths.Effects.Textures, "dummy.asset"));
+        EditorUtils.EnsureFolder(Path.Combine(GameDataPaths.Effects.Meshes, "dummy.asset"));
     }
 
     /// <summary>
@@ -151,12 +187,11 @@ public class RoseEffectImporter : MonoBehaviour
 
             foreach (var emitter in ptl.Emitters)
             {
-                GameObject obj = BuildEmitter(emitter, dataPath);
+                GameObject obj = BuildEmitter(emitter, dataPath, shader);
 
                 obj.transform.SetParent(root.transform);
                 obj.transform.localPosition = new Vector3(emitter.MaxEmitRadius.X, emitter.MaxEmitRadius.Z, emitter.MaxEmitRadius.Y) / 100F;
                 obj.transform.localRotation = system.Rotation;
-
             }
         }
 
@@ -178,7 +213,7 @@ public class RoseEffectImporter : MonoBehaviour
     /// <param name="emitter">Emitter.</param>
     /// <param name="dataPath">Data path.</param>
     /// <returns>Particle system.</returns>
-    private static GameObject BuildEmitter(PTL.Emitter emitter, string dataPath)
+    private static GameObject BuildEmitter(PTL.Emitter emitter, string dataPath, Shader shader)
     {
         GameObject obj = new(emitter.Name);
 
@@ -191,6 +226,7 @@ public class RoseEffectImporter : MonoBehaviour
         main.loop = emitter.LoopCount == 0;
         main.startLifetime = new ParticleSystem.MinMaxCurve(emitter.LifeTime.X, emitter.LifeTime.Y);
         main.startSpeed = 0;
+        main.simulationSpeed = 2F; // Animations are hardcoded on a 30 FPS time frame, so double up
 
         main.startRotationX = new ParticleSystem.MinMaxCurve(emitter.MinSpawnDir.X, emitter.MaxSpawnDir.X);
         main.startRotationY = new ParticleSystem.MinMaxCurve(emitter.MinSpawnDir.Y, emitter.MaxSpawnDir.Y);
@@ -332,8 +368,6 @@ public class RoseEffectImporter : MonoBehaviour
 
             if (texture != null)
             {
-                var shader = Shader.Find("Particles/Standard Unlit");
-
                 Material material = ROSEEditorBaker.ImportMaterial(dataPath + "/" + emitter.Texture, texture, shader, context);
 
                 renderer.sharedMaterial = material;
@@ -359,6 +393,7 @@ public class RoseEffectImporter : MonoBehaviour
         var particleSystem = effect.AddComponent<ParticleSystem>();
         var particleRenderer = effect.GetComponent<ParticleSystemRenderer>();
 
+
         material.SetInt("_Cull", entry.TwoSided == 1 ? (int)UnityEngine.Rendering.CullMode.Off : (int)UnityEngine.Rendering.CullMode.Back);
 
         var main = particleSystem.main;
@@ -376,7 +411,7 @@ public class RoseEffectImporter : MonoBehaviour
 
         var emission = particleSystem.emission;
         emission.enabled = true;
-        emission.rateOverTime = 10f;
+        emission.rateOverTime = 100f; // This is for a perfect loop, but it doesn't matter since this is only 1 particle max
 
         var shape = particleSystem.shape;
         shape.enabled = false;
@@ -386,12 +421,12 @@ public class RoseEffectImporter : MonoBehaviour
         particleRenderer.mesh = mesh;
         particleRenderer.material = material;
 
-        BuildAnimationCurves(particleSystem, zmo);
+        BuildAnimationCurves(particleSystem, zmo, mesh);
 
         return effect;
     }
 
-    private static void BuildAnimationCurves(ParticleSystem particleSystem, ZMO zmo)
+    private static void BuildAnimationCurves(ParticleSystem particleSystem, ZMO zmo, Mesh mesh)
     {
         if (zmo.Frames == null || zmo.Frames.Length == 0 || zmo.Channels == null)
         {
@@ -408,25 +443,31 @@ public class RoseEffectImporter : MonoBehaviour
             {
                 case ZMO.ChannelType.Position:
                     {
-                        BuildPositionCurve(particleSystem, zmo, i, duration);
+                        BuildPositionCurve(particleSystem, zmo, duration);
                         break;
                     }
 
                 case ZMO.ChannelType.Rotation:
                     {
-                     //   BuildRotationCurve(particleSystem, zmo, i, duration);
+                        BuildRotationCurve(particleSystem, zmo, i, duration);
                         break;
                     }
 
                 case ZMO.ChannelType.Scale:
                     {
-                        BuildScaleCurve(particleSystem, zmo, i, duration);
+                        //    BuildScaleCurve(particleSystem, zmo, i, duration);
+                        break;
+                    }
+
+                case ZMO.ChannelType.Normal:
+                    {
+                        BuildInitialNormal(particleSystem, zmo, i);
                         break;
                     }
 
                 case ZMO.ChannelType.Alpha:
                     {
-                        BuildAlphaCurve(particleSystem, zmo, i, duration);
+                        BuildAlphaCurve(particleSystem, zmo, duration);
                         break;
                     }
 
@@ -440,6 +481,23 @@ public class RoseEffectImporter : MonoBehaviour
                     }
             }
         }
+    }
+
+    private static void BuildInitialNormal(ParticleSystem particleSystem, ZMO zmo, int channelIndex)
+    {
+        if (zmo.Frames == null || zmo.Frames.Length == 0)
+        {
+            return;
+        }
+
+        Vector3 normal = zmo.Frames[0].Channels[channelIndex].Normal;
+
+        if (normal.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        particleSystem.transform.localRotation = Quaternion.FromToRotation(Vector3.forward, normal.normalized);
     }
 
     private static void BuildScaleCurve(ParticleSystem particleSystem, ZMO zmo, int channelIndex, float duration)
@@ -461,23 +519,62 @@ public class RoseEffectImporter : MonoBehaviour
         size.size = new ParticleSystem.MinMaxCurve(1f, curve);
     }
 
-    private static void BuildAlphaCurve(ParticleSystem particleSystem, ZMO zmo, int channelIndex, float duration)
+    private static void BuildAlphaCurve(ParticleSystem particleSystem, ZMO zmo, float duration)
     {
-        var color = particleSystem.colorOverLifetime;
-
-        color.enabled = true;
-
-        var alpha = new GradientAlphaKey[zmo.Frames.Length];
-
-        for (int i = 0; i < zmo.Frames.Length; i++)
+        if (zmo.Frames == null || zmo.Frames.Length == 0 || zmo.Channels == null)
         {
-            float time = duration > 0f ? (float)i / (zmo.Frames.Length - 1) : 0f;
-            float value = zmo.Frames[i].Channels[channelIndex].Alpha;
-
-            alpha[i] = new GradientAlphaKey(value, time);
+            return;
         }
 
-        Gradient gradient = new Gradient();
+        var alphaChannels = new List<int>();
+
+        for (int i = 0; i < zmo.Channels.Length; i++)
+        {
+            if (zmo.Channels[i].Type == ZMO.ChannelType.Alpha)
+            {
+                alphaChannels.Add(i);
+            }
+        }
+
+        if (alphaChannels.Count == 0)
+        {
+            return;
+        }
+
+        var color = particleSystem.colorOverLifetime;
+        color.enabled = true;
+
+        int keyCount = Mathf.Min(zmo.Frames.Length, 8);
+        var alphaKeys = new GradientAlphaKey[keyCount];
+
+        for (int i = 0; i < keyCount; i++)
+        {
+            int frameIndex = keyCount == 1
+                ? 0
+                : Mathf.RoundToInt(
+                    i * (zmo.Frames.Length - 1f) / (keyCount - 1f));
+
+            float time = zmo.Frames.Length > 1
+                ? (float)frameIndex / (zmo.Frames.Length - 1)
+                : 0f;
+
+            float alpha = 0f;
+
+            for (int j = 0; j < alphaChannels.Count; j++)
+            {
+                alpha += zmo.Frames[frameIndex]
+                    .Channels[alphaChannels[j]]
+                    .Alpha;
+            }
+
+            alpha /= alphaChannels.Count;
+
+            alphaKeys[i] = new GradientAlphaKey(
+                Mathf.Clamp01(alpha),
+                time);
+        }
+
+        var gradient = new Gradient();
 
         gradient.SetKeys(
             new[]
@@ -485,19 +582,143 @@ public class RoseEffectImporter : MonoBehaviour
             new GradientColorKey(Color.white, 0f),
             new GradientColorKey(Color.white, 1f)
             },
-            alpha);
+            alphaKeys);
 
         color.color = new ParticleSystem.MinMaxGradient(gradient);
     }
 
-    private static void BuildPositionCurve(ParticleSystem particleSystem, ZMO zmo, int channelIndex, float duration)
+    private static void BuildPositionCurve(ParticleSystem particleSystem, ZMO zmo, float duration)
     {
-        if (zmo.Frames.Length < 2)
+        if (zmo.Frames == null || zmo.Frames.Length < 2 || zmo.Channels == null)
+        {
             return;
+        }
 
-        var velocity = particleSystem.rotationOverLifetime;
+        var positionChannels = new List<int>();
+
+        for (int i = 0; i < zmo.Channels.Length; i++)
+        {
+            if (zmo.Channels[i].Type == ZMO.ChannelType.Position)
+            {
+                positionChannels.Add(i);
+            }
+        }
+
+        if (positionChannels.Count == 0)
+        {
+            return;
+        }
+
+        var rotation = particleSystem.rotationOverLifetime;
+        rotation.enabled = true;
+        rotation.separateAxes = true;
+
+        var velocity = particleSystem.velocityOverLifetime;
         velocity.enabled = true;
-        velocity.separateAxes = true;
+        velocity.space = ParticleSystemSimulationSpace.Local;
+
+        var rotationX = new AnimationCurve();
+        var rotationY = new AnimationCurve();
+        var rotationZ = new AnimationCurve();
+
+        var velocityX = new AnimationCurve();
+        var velocityY = new AnimationCurve();
+        var velocityZ = new AnimationCurve();
+
+        float deltaTime = 1f / zmo.FPS;
+
+        Vector3[] centers = new Vector3[zmo.Frames.Length];
+
+        for (int frame = 0; frame < zmo.Frames.Length; frame++)
+        {
+            Vector3 center = Vector3.zero;
+
+            for (int i = 0; i < positionChannels.Count; i++)
+            {
+                center += zmo.Frames[frame].Channels[positionChannels[i]].Position;
+            }
+
+            centers[frame] = center / positionChannels.Count;
+        }
+
+        // Rotation is intentionally calculated from the raw position of one vertex.
+        // Do not subtract the center here: doing so changes the rotation signal.
+        int rotationChannel = positionChannels[0];
+
+        float previousAngle = 0f;
+
+        for (int frame = 0; frame < zmo.Frames.Length; frame++)
+        {
+            float time = duration > 0f
+                ? (float)frame / (zmo.Frames.Length - 1)
+                : 0f;
+
+            Vector3 position =
+                zmo.Frames[frame].Channels[rotationChannel].Position;
+
+            float angle = Mathf.Atan2(position.z, position.x);
+
+            float angularVelocity = 0f;
+
+            if (frame > 0)
+            {
+                float deltaAngle = Mathf.DeltaAngle(
+                    previousAngle * Mathf.Rad2Deg,
+                    angle * Mathf.Rad2Deg);
+
+                angularVelocity = deltaAngle * Mathf.Deg2Rad / deltaTime;
+            }
+
+            previousAngle = angle;
+
+            rotationX.AddKey(time, 0f);
+            rotationY.AddKey(time, angularVelocity);
+            rotationZ.AddKey(time, 0f);
+
+            Vector3 centerVelocity;
+
+            if (frame == 0)
+            {
+                centerVelocity =
+                    (centers[1] - centers[0]) / deltaTime;
+            }
+            else if (frame == zmo.Frames.Length - 1)
+            {
+                centerVelocity =
+                    (centers[frame] - centers[frame - 1]) / deltaTime;
+            }
+            else
+            {
+                centerVelocity =
+                    (centers[frame + 1] - centers[frame - 1]) /
+                    (deltaTime * 2f);
+            }
+
+            velocityX.AddKey(time, centerVelocity.x);
+            velocityY.AddKey(time, centerVelocity.y);
+            velocityZ.AddKey(time, centerVelocity.z);
+        }
+
+        rotation.x = new ParticleSystem.MinMaxCurve(1f, rotationX);
+        rotation.y = new ParticleSystem.MinMaxCurve(1f, rotationY);
+        rotation.z = new ParticleSystem.MinMaxCurve(1f, rotationZ);
+
+        velocity.x = new ParticleSystem.MinMaxCurve(1f, velocityX);
+        velocity.y = new ParticleSystem.MinMaxCurve(1f, velocityY);
+        velocity.z = new ParticleSystem.MinMaxCurve(1f, velocityZ);
+    }
+    private static void BuildRotationCurve(ParticleSystem particleSystem, ZMO zmo, int channelIndex, float duration)
+    {
+        Debug.Log($"BUILD ROTATIOn - channel {channelIndex}");
+
+        if (zmo.Frames.Length < 2 || zmo.FPS <= 0)
+        {
+            return;
+        }
+
+        var rotation = particleSystem.rotationOverLifetime;
+        rotation.enabled = true;
+        rotation.separateAxes = true;
 
         var x = new AnimationCurve();
         var y = new AnimationCurve();
@@ -509,63 +730,40 @@ public class RoseEffectImporter : MonoBehaviour
         {
             float time = duration > 0f ? (float)i / (zmo.Frames.Length - 1) : 0f;
 
-            Vector3 current = zmo.Frames[i].Channels[channelIndex].Position;
-
-            Vector3 velocityValue;
+            Vector3 current = zmo.GetContinuousEulerRotationAt(channelIndex, i);
+            Vector3 angularVelocity;
 
             if (i == 0)
             {
-                Vector3 next = zmo.Frames[i + 1].Channels[channelIndex].Position;
-                velocityValue = (next - current) / deltaTime;
+                Vector3 next = zmo.GetContinuousEulerRotationAt(channelIndex, i + 1);
+
+                angularVelocity = (next - current) / deltaTime;
             }
             else
             {
-                Vector3 previous = zmo.Frames[i - 1].Channels[channelIndex].Position;
-                velocityValue = (current - previous) / deltaTime;
+                Vector3 previous = zmo.GetContinuousEulerRotationAt(channelIndex, i - 1);
+
+                angularVelocity = (current - previous) / deltaTime;
             }
 
-            x.AddKey(time, velocityValue.x * Mathf.PI);
-            y.AddKey(time, velocityValue.y * Mathf.PI);
-            z.AddKey(time, velocityValue.z * Mathf.PI);
-        }
+            angularVelocity *= Mathf.Deg2Rad;
 
-        velocity.x = new ParticleSystem.MinMaxCurve(1f, x);
-        velocity.y = new ParticleSystem.MinMaxCurve(1f, y);
-        velocity.z = new ParticleSystem.MinMaxCurve(1f, z);
-    }
-
-    private static void BuildRotationCurve(ParticleSystem particleSystem, ZMO zmo, int channelIndex, float duration)
-    {
-        var rotation = particleSystem.rotationOverLifetime;
-        rotation.enabled = true;
-        rotation.separateAxes = true;
-
-        var x = new AnimationCurve();
-        var y = new AnimationCurve();
-        var z = new AnimationCurve();
-
-        for (int i = 0; i < zmo.Frames.Length; i++)
-        {
-            float time = duration > 0f ? (float)i / (zmo.Frames.Length - 1) : 0f;
-
-            Vector3 value = zmo.GetContinuousEulerRotationAt(channelIndex, i);
-
-            x.AddKey(time, value.x * Mathf.PI);
-            y.AddKey(time, value.y * Mathf.PI);
-            z.AddKey(time, value.z * Mathf.PI);
+            x.AddKey(time, angularVelocity.x);
+            y.AddKey(time, angularVelocity.y);
+            z.AddKey(time, angularVelocity.z);
         }
 
         rotation.x = new ParticleSystem.MinMaxCurve(1f, x);
         rotation.y = new ParticleSystem.MinMaxCurve(1f, y);
         rotation.z = new ParticleSystem.MinMaxCurve(1f, z);
     }
-
     // ===============================================================================
     // Particles
     // ===============================================================================
 
     private static void BuildSize(ParticleSystem particle, List<PTL.ParticleInfo> infos)
     {
+
         if (infos == null || infos.Count == 0)
         {
             return;
@@ -591,15 +789,27 @@ public class RoseEffectImporter : MonoBehaviour
         float duration = infos[infos.Count - 1].TimeRange.X;
         float initialSize = initial.SizeMinimum.X;
 
+        float minSize = float.MaxValue;
+        float maxSize = float.MinValue;
+
         foreach (var info in infos)
         {
             float time = duration > 0f ? info.TimeRange.X / duration : 0f;
             float value = initialSize != 0f ? info.SizeMinimum.X / initialSize : 0f;
 
             curve.AddKey(time, value);
+
+            //  minSize = Mathf.Min(minSize, info.SizeMinimum.X);
+            minSize = Mathf.Min(minSize, info.SizeMinimum.X) / 10F;
+            maxSize = Mathf.Max(maxSize, info.SizeMaximum.X) * 10F;  // Puting the * 10F as a temp solution because
         }
 
         size.size = new ParticleSystem.MinMaxCurve(1f, curve);
+
+        var renderer = particle.GetComponent<ParticleSystemRenderer>();
+
+        renderer.minParticleSize = minSize;
+        renderer.maxParticleSize = maxSize;
     }
 
     private static void BuildColor(ParticleSystem particle, List<PTL.ParticleInfo> infos)
@@ -610,7 +820,6 @@ public class RoseEffectImporter : MonoBehaviour
         }
 
         var initial = infos[0];
-
         var main = particle.main;
 
         main.startColor = ToUnityColor(initial.ColorMinimum);
@@ -624,14 +833,20 @@ public class RoseEffectImporter : MonoBehaviour
 
         color.enabled = true;
 
-        var colorKeys = new GradientColorKey[infos.Count];
-        var alphaKeys = new GradientAlphaKey[infos.Count];
+        int keyCount = Mathf.Min(infos.Count, 8);
+
+        var colorKeys = new GradientColorKey[keyCount];
+        var alphaKeys = new GradientAlphaKey[keyCount];
 
         float duration = infos[infos.Count - 1].TimeRange.X;
 
-        for (int i = 0; i < infos.Count; i++)
+        for (int i = 0; i < keyCount; i++)
         {
-            var info = infos[i];
+            int index = keyCount == 1
+                ? 0
+                : Mathf.RoundToInt(i * (infos.Count - 1f) / (keyCount - 1f));
+
+            var info = infos[index];
 
             float time = duration > 0f ? info.TimeRange.X / duration : 0f;
 
@@ -639,7 +854,7 @@ public class RoseEffectImporter : MonoBehaviour
             alphaKeys[i] = new GradientAlphaKey(info.ColorMinimum.A, time);
         }
 
-        Gradient gradient = new();
+        Gradient gradient = new Gradient();
 
         gradient.SetKeys(colorKeys, alphaKeys);
 
@@ -671,7 +886,7 @@ public class RoseEffectImporter : MonoBehaviour
         startColor.a = initial.ValueMinimum;
 
         var main = particle.main;
-        
+
         main.startColor = startColor;
 
         if (infos.Count < 2)
@@ -708,6 +923,7 @@ public class RoseEffectImporter : MonoBehaviour
 
         color.color = new ParticleSystem.MinMaxGradient(gradient);
     }
+
     private static void BuildVelocity(ParticleSystem particle, List<PTL.ParticleInfo> infos)
     {
         if (infos == null || infos.Count == 0)

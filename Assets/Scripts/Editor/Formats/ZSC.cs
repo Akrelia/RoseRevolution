@@ -1,3 +1,4 @@
+using RevolutionShared.Rose.Data;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -11,6 +12,7 @@ namespace UnityRose.Formats
     /// </summary>
     public class ZSC : IRoseFileFormat
     {
+        public string fileName;
         public string FormatName => "ZSC";
 
         #region Enumerations
@@ -626,6 +628,8 @@ namespace UnityRose.Formats
         /// <param name="filePath">The file path of the Text Asset resource (without extension) or file (with extension) to load</param>
         public void Load(string filePath)
         {
+            fileName = Path.GetFileNameWithoutExtension(filePath);
+
             asset = Resources.Load(filePath) as TextAsset;
             if (asset != null)
                 fh = new FileHandler(asset, Encoding.UTF8);
@@ -641,7 +645,6 @@ namespace UnityRose.Formats
         /// </summary>
         private void Load()
         {
-
             short modelCount = fh.Read<short>();
             Models = new List<string>(modelCount);
 
@@ -728,7 +731,7 @@ namespace UnityRose.Formats
                             case FlagType.Rotation:
                                 {
 
-                                    Objects[i].Models[j].Rotation = Utils.r2uRotation(new Quaternion()
+                                    Objects[i].Models[j].Rotation = Utils.RoseToUnityRotation(new Quaternion()
                                     {
                                         w = fh.Read<float>(),
                                         x = fh.Read<float>(),
@@ -746,7 +749,7 @@ namespace UnityRose.Formats
                                 });
                                 break;
                             case FlagType.AxisRotation:
-                                Objects[i].Models[j].AxisRotation = Utils.r2uRotation(fh.Read<Quaternion>());
+                                Objects[i].Models[j].AxisRotation = Utils.RoseToUnityRotation(fh.Read<Quaternion>());
                                 break;
                             case FlagType.BoneIndex:
                                 Objects[i].Models[j].BoneIndex = (BoneType)fh.Read<short>();
@@ -806,7 +809,7 @@ namespace UnityRose.Formats
                                 Objects[i].Effects[j].Position = Utils.RoseToUnityPosition(fh.Read<Vector3>() / 100.0f);
                                 break;
                             case FlagType.Rotation:
-                                Objects[i].Effects[j].Rotation = Utils.r2uRotation(fh.Read<Quaternion>());
+                                Objects[i].Effects[j].Rotation = Utils.RoseToUnityRotation(fh.Read<Quaternion>());
                                 break;
                             case FlagType.Scale:
                                 Objects[i].Effects[j].Scale = Utils.RoseToUnityScale(fh.Read<Vector3>());

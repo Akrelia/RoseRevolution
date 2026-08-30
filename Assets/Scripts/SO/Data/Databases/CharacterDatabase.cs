@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using RevolutionShared.Rose.Data.Equipment;
 using RevolutionShared.Rose.Data;
 using UnityRose;
 

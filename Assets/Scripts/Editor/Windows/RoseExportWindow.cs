@@ -7,6 +7,7 @@ using UnityEngine.AddressableAssets;
 using Codice.Client.BaseCommands;
 using UnityRose.Import;
 using System;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace UnityRose.ImportEditor
 {
@@ -68,26 +69,25 @@ namespace UnityRose.ImportEditor
         {
             string address = typeof(T).Name;
 
-            try
+            foreach (var locator in Addressables.ResourceLocators)
             {
-                var database = Addressables.LoadAssetAsync<T>(address).WaitForCompletion();
+                if (!locator.Keys.Contains(address))
+                    continue;
 
-                if (database == null)
-                {
-                    Debug.LogWarning($"Failed to load database '{address}': Addressable returned null.");
+                var handle = Addressables.LoadAssetAsync<T>(address);
 
+                if (!handle.IsValid())
                     return null;
-                }
 
-                return database;
+                handle.WaitForCompletion();
+
+                if (handle.Status != AsyncOperationStatus.Succeeded)
+                    return null;
+
+                return handle.Result;
             }
 
-            catch (Exception e)
-            {
-                Debug.LogWarning($"Failed to load database '{address}': {e.Message}");
-
-                return null;
-            }
+            return null;
         }
 
         /// <summary>
@@ -146,9 +146,12 @@ namespace UnityRose.ImportEditor
 
             scroll = GUILayout.BeginScrollView(scroll);
 
-            foreach (var map in mapDatabase.maps.OrderBy(x => x.id))
+            if (mapDatabase != null)
             {
-                DrawMapRow(map);
+                foreach (var map in mapDatabase.maps.OrderBy(x => x.id))
+                {
+                    DrawMapRow(map);
+                }
             }
 
             GUILayout.EndScrollView();
@@ -163,9 +166,17 @@ namespace UnityRose.ImportEditor
 
             scroll = GUILayout.BeginScrollView(scroll);
 
-            foreach (var npc in npcDatabase.entries.OrderBy(x => x.id))
+            if (npcDatabase != null)
             {
-                DrawNPCRow(npc);
+                foreach (var npc in npcDatabase.entries.OrderBy(x => x.id))
+                {
+                    DrawNPCRow(npc);
+                }
+            }
+
+            else
+            {
+
             }
 
             GUILayout.EndScrollView();

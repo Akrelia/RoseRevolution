@@ -762,7 +762,7 @@ namespace UnityRose.Formats
                                     },
 
                                     //Rotation = fh.Read<Quaternion>(),
-                                    Rotation = Utils.r2uRotation(new Quaternion()
+                                    Rotation = Utils.RoseToUnityRotation(new Quaternion()
                                     {
                                         //w = fh.Read<float>(),
                                         x = fh.Read<float>(),
@@ -857,7 +857,7 @@ namespace UnityRose.Formats
                                         x = fh.Read<int>()
                                     },
 
-                                    Rotation = Utils.r2uRotation(new Quaternion()
+                                    Rotation = Utils.RoseToUnityRotation(new Quaternion()
                                     {
                                         //w = fh.Read<float>(),
                                         x = fh.Read<float>(),
@@ -903,7 +903,7 @@ namespace UnityRose.Formats
                                         x = fh.Read<int>(),
                                         y = fh.Read<int>()
                                     },
-                                    Rotation = Utils.r2uRotation(new Quaternion()
+                                    Rotation = Utils.RoseToUnityRotation(new Quaternion()
                                     {
                                         w = fh.Read<float>(),
                                         x = fh.Read<float>(),

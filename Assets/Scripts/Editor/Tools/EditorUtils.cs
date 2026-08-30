@@ -6,6 +6,7 @@ using System.Linq;
 using System;
 using UnityEditor.AddressableAssets;
 using RevolutionShared.Rose.Data;
+using UnityRose.Import;
 
 /// <summary>
 /// Utils for Editor only.
@@ -352,6 +353,70 @@ public static class EditorUtils
         AssetDatabase.SaveAssets();
 
         return AssetDatabase.LoadAssetAtPath<Texture2D>(normalMapPath);
+    }
+
+    public static Sprite ImportImageAsJPG(string sourcePath, string outputDirectory)
+    {
+        string extension = Path.GetExtension(sourcePath).ToLowerInvariant();
+
+        Texture2D texture;
+
+        switch (extension)
+        {
+            case ".dds":
+                texture = RoseDdsLoader.LoadFromFile(sourcePath);
+                break;
+
+            case ".jpg":
+            case ".jpeg":
+                texture = new Texture2D(2, 2);
+                texture.LoadImage(File.ReadAllBytes(sourcePath));
+                break;
+
+            default:
+                Debug.LogWarning($"Unsupported loading screen format: {sourcePath}");
+                return null;
+        }
+
+        if (texture == null)
+        {
+            Debug.LogWarning($"Failed to load loading screen: {sourcePath}");
+            return null;
+        }
+
+        byte[] jpgData = texture.EncodeToJPG(95);
+
+        UnityEngine.Object.DestroyImmediate(texture);
+
+        string fileName = Path.GetFileNameWithoutExtension(sourcePath) + ".jpg";
+        string assetPath = Path.Combine(outputDirectory, fileName).Replace("\\", "/");
+        string filePath = Path.Combine(Application.dataPath, assetPath.Substring("Assets/".Length).TrimStart('/'));
+
+        string directory = Path.GetDirectoryName(filePath);
+
+        if (!Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        File.WriteAllBytes(filePath, jpgData);
+
+        AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+
+        var importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+
+        if (importer == null)
+        {
+            Debug.LogWarning($"Failed to get TextureImporter: {assetPath}");
+
+            return null;
+        }
+
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spriteImportMode = SpriteImportMode.Single;
+        importer.SaveAndReimport();
+
+        return AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
     }
 
     // Saves an asset into the GameData folder using AssetDatabase, then loads it back from that path and returns it

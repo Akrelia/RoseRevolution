@@ -1,7 +1,7 @@
-using RevolutionShared.Rose.Data.Equipment;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using RevolutionShared.Rose.Data.Items.Equipment;
 
 /// <summary>
 /// Item preview.

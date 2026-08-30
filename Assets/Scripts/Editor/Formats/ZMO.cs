@@ -441,8 +441,7 @@ namespace UnityRose.Formats
             return clip;
         }
 
-        public Vector3 GetContinuousEulerRotationAt(int channelIndex, int frameIndex)
-    => GetContinuousEulerRotation(channelIndex, frameIndex);
+        public Vector3 GetContinuousEulerRotationAt(int channelIndex, int frameIndex) => GetContinuousEulerRotation(channelIndex, frameIndex);
 
         /// <summary>
         /// Loads the specified file.
@@ -462,7 +461,6 @@ namespace UnityRose.Formats
 
             Channels = new Channel[channelCount];
 
-
             for (int i = 0; i < channelCount; i++)
             {
                 Channels[i] = new Channel()
@@ -471,8 +469,8 @@ namespace UnityRose.Formats
                     ID = fh.Read<int>()
                 };
 
+                Debug.Log($"ZMO Channel {i}: Type={Channels[i].Type} ({(int)Channels[i].Type}), ID={Channels[i].ID}");
             }
-
 
             Frames = new Frame[frameCount];
 
@@ -499,7 +497,7 @@ namespace UnityRose.Formats
                             break;
                         case ChannelType.Rotation:
                             {
-                                Frames[i].Channels[j].Rotation = Utils.R2URotation2(new Quaternion()
+                                Frames[i].Channels[j].Rotation = Utils.RoseToUnityRotation(new Quaternion()
                                 {
                                     w = fh.Read<float>(),
                                     x = fh.Read<float>(),

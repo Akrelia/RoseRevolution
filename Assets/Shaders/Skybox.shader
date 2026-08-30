@@ -6,6 +6,7 @@ Shader "Rose Revolution/Skybox"
         _NightTex ("Night Texture", 2D) = "black" {}
         _Blend ("Day/Night Blend", Range(0, 1)) = 0
         _TintColor ("Tint Color", Color) = (1, 1, 1, 1)
+        _FogIntensity ("Fog Intensity", Range(0, 1)) = 0.25
     }
 
     SubShader
@@ -28,6 +29,7 @@ Shader "Rose Revolution/Skybox"
 
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_fog
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -41,6 +43,7 @@ Shader "Rose Revolution/Skybox"
             {
                 float4 positionHCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
+                float fogFactor : TEXCOORD1;
             };
 
             TEXTURE2D(_DayTex);
@@ -54,14 +57,18 @@ Shader "Rose Revolution/Skybox"
                 float4 _NightTex_ST;
                 float _Blend;
                 float4 _TintColor;
+                float _FogIntensity;
             CBUFFER_END
 
             Varyings vert(Attributes input)
             {
                 Varyings output;
 
-                output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
+                VertexPositionInputs positionInputs = GetVertexPositionInputs(input.positionOS.xyz);
+
+                output.positionHCS = positionInputs.positionCS;
                 output.uv = TRANSFORM_TEX(input.uv, _DayTex);
+                output.fogFactor = ComputeFogFactor(positionInputs.positionCS.z);
 
                 return output;
             }
@@ -72,8 +79,12 @@ Shader "Rose Revolution/Skybox"
                 half4 night = SAMPLE_TEXTURE2D(_NightTex, sampler_NightTex, input.uv);
 
                 half4 color = lerp(night, day, _Blend);
+                color *= _TintColor;
 
-                return color * _TintColor;
+                half3 foggedColor = MixFog(color.rgb, input.fogFactor);
+                color.rgb = lerp(color.rgb, foggedColor, _FogIntensity);
+
+                return color;
             }
 
             ENDHLSL

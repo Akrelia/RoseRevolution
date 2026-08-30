@@ -2,6 +2,9 @@ using RevolutionShared.Rose.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Security.Policy;
 using UnityEditor;
 using UnityEngine;
 using UnityRose.Formats;
@@ -65,14 +68,27 @@ namespace UnityRose
         public STB zoneSTB;
         public STB patSTB;
         public STB fileEffectSTB;
+        public STB gradeSTB;
+        public STB loadingSTB;
+        public STB naturalSTB;
+        public STB usableSTB;
+        public STB gemSTB;
+        public STB jewelSTB;
 
         public STL zoneSTL;
+
+        public Dictionary<BodyPartType, Type> bodyPartTypes;
+        public Dictionary<BodyPartType, STB> stbEquipmentFiles;
+        public Dictionary<ItemType, STB> stbItems;
+        public Dictionary<(BodyPartType part, GenderType gender), ZSC> zscFiles;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         public ResourceManager()
         {
+            bodyPartTypes = RevolutionShared.Utils.Tools.GetEquipmentDataTypes();
+
             maleBodyZSC = LoadFile<ZSC>("3DData/Avatar/LIST_MBODY");
             maleArmsZSC = LoadFile<ZSC>("3DData/Avatar/LIST_MARMS");
             maleFootZSC = LoadFile<ZSC>("3DData/Avatar/LIST_MFOOT");
@@ -111,12 +127,70 @@ namespace UnityRose
             dropSTB = LoadFile<STB>("3DData/STB/ITEM_DROP");
             zoneSTB = LoadFile<STB>("3DData/STB/LIST_ZONE");
             skySTB = LoadFile<STB>("3DData/STB/LIST_SKY");
+            gradeSTB = LoadFile<STB>("3DData/STB/LIST_GRADE");
+            loadingSTB = LoadFile<STB>("3DData/STB/LIST_LOADING");
+            naturalSTB = LoadFile<STB>("3DData/STB/LIST_NATURAL");
+            usableSTB = LoadFile<STB>("3DData/STB/LIST_USEITEM");
+            jewelSTB = LoadFile<STB>("3DData/STB/LIST_JEWEL");
+            gemSTB = LoadFile<STB>("3DData/STB/LIST_JEMITEM");
 
             fileEffectSTB = LoadFile<STB>("3DData/STB/FILE_EFFECT");
-            
+
             patSTB = LoadFile<STB>("3DData/STB/LIST_PAT");
 
             zoneSTL = LoadFile<STL>("3DData/STB/LIST_ZONE_S");
+
+            zscFiles = new Dictionary<(BodyPartType part, GenderType gender), ZSC>()
+            {
+                { (BodyPartType.ARMS, GenderType.MALE), maleArmsZSC },
+                { (BodyPartType.FOOT, GenderType.MALE), maleFootZSC },
+                { (BodyPartType.BODY, GenderType.MALE), maleBodyZSC },
+                { (BodyPartType.CAP, GenderType.MALE), maleCapZSC },
+                { (BodyPartType.FACE, GenderType.MALE), maleFaceZSC },
+                { (BodyPartType.HAIR, GenderType.MALE), maleHairZSC },
+
+                { (BodyPartType.ARMS, GenderType.FEMALE), femaleArmsZSC },
+                { (BodyPartType.FOOT, GenderType.FEMALE), femaleFootZSC },
+                { (BodyPartType.BODY, GenderType.FEMALE), femaleBodyZSC },
+                { (BodyPartType.CAP, GenderType.FEMALE), femaleCapZSC },
+                { (BodyPartType.FACE, GenderType.FEMALE), femaleFaceZSC },
+                { (BodyPartType.HAIR, GenderType.FEMALE), femaleHairZSC },
+
+                { (BodyPartType.BACK, GenderType.NONE), backZSC },
+                { (BodyPartType.FACEITEM, GenderType.NONE), faceItemZSC },
+                { (BodyPartType.WEAPON, GenderType.NONE), weaponZSC },
+                { (BodyPartType.SUBWEAPON, GenderType.NONE), subWeaponZSC }
+            };
+
+            stbEquipmentFiles = new()
+            {
+                { BodyPartType.WEAPON, (weaponSTB) },
+                { BodyPartType.SUBWEAPON, (subWeaponSTB) },
+                { BodyPartType.CAP, (capSTB) },
+                { BodyPartType.ARMS, (armSTB) },
+                { BodyPartType.BODY, (armorSTB) },
+                { BodyPartType.FOOT, (footSTB) },
+                { BodyPartType.BACK, (backSTB) },
+                { BodyPartType.FACEITEM, (faceItemSTB) },
+                { BodyPartType.HAIR, (hairSTB) }
+            };
+
+            stbItems = new()
+            {
+                {ItemType.FACEITEM, faceItemSTB},
+                {ItemType.HAT, capSTB},
+                {ItemType.BODY, armorSTB},
+                {ItemType.GLOVES, armSTB},
+                {ItemType.BOOTS, footSTB},
+                {ItemType.BACK, backSTB},
+                {ItemType.JEWEL, jewelSTB},
+                {ItemType.WEAPON, weaponSTB},
+                {ItemType.SUBWEAPON, subWeaponSTB},
+                {ItemType.USEITEM, usableSTB},
+                {ItemType.GEMS, gemSTB},
+                {ItemType.MATERIAL, naturalSTB},
+                {ItemType.PAT, patSTB},
+            };
         }
 
         /// <summary>
@@ -142,8 +216,9 @@ namespace UnityRose
         public string GetZMOPath(WeaponType WeaponType, ActionType Action, GenderType Gender)
         {
             int actionIdx = (int)Action;
+            int weaponIdx = 0;
 
-            if (!WeaponAnimationColumn.TryGetValue(WeaponType, out int weaponIdx))
+            if (!WeaponAnimationColumn.TryGetValue(WeaponType, out weaponIdx))
             {
                 Debug.LogWarning($"GetZMOPath: no animation column mapping for {WeaponType}.");
 
@@ -268,6 +343,5 @@ namespace UnityRose
             { 251, WeaponType.KATAR},
             { 252, WeaponType.DSW},
         };
-
     }
 }
