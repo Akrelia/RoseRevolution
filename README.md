@@ -9,51 +9,38 @@
 </p>
 
 <p align="center">
-  <img src="https://i.imgur.com/7zmTjLY.png" alt="ROSE Revolution Preview" width="1000" />
+  <img src="https://i.imgur.com/KP9QGqJ.png" alt="ROSE Revolution Preview" width="1000" />
 </p>
 
 - [Discord Server](https://discord.gg/2SxQWtMC3X)
 - [Website](https://baptistefran.github.io/rose-revolution/)
 - [Server Repository](https://github.com/Akrelia/Rose-Revolution-Server/tree/master)
+- [Basic Client](https://drive.google.com/file/d/1vjBFy7oBV2MYX-qSKDiMrT8FR0IWCam5/view?usp=sharing)
 
----
-
-# About the Project
+# Introduction
 
 **ROSE Revolution** is an open-source project aiming to recreate the MMORPG **ROSE Online** (*Rush On Seven Episodes Online*) from scratch.
 
 The project features:
 
 - A completely rebuilt Unity client.
-- A brand-new server architecture written in modern C#.
+- A brand-new server  written in modern C#.
 - A complete asset conversion pipeline replacing the original legacy formats.
 - A modular and data-driven design.
 
 The goal is not simply to make the game run again, but to build a clean and modern foundation for the future of ROSE Online. Also we hope that it will help people to make their own vision of ROSE Online.
 
----
-
-# Who We Are
-
-We are former ROSE Online players who have always been passionate about the game and its community.
-
-Some of us were also involved in the ROSE private server scene over the years, giving us a unique perspective on both the game itself and the technical challenges behind it.
-
-Today, we want to give ROSE Online a fresh start with modern tools while preserving what made the game special.
-
 <p align="center">
-  <img width="400" height="298" alt="Image" src="https://github.com/user-attachments/assets/f3361465-00f5-4658-a8ff-c21be1b8508c" />
+<img width="640" height="358" alt="Image" src="https://github.com/user-attachments/assets/c4e7f20c-ddc0-4da4-be9e-6939eea76a8f" />
 </p>
 
----
+# Our Goal
 
-# Project Vision
+ROSE Online was originally developed more than 20 years ago using technologies that are now outdated. The original client and server were written in good old C++ and relied on many custom formats and tools.
 
-ROSE Online was originally developed more than 20 years ago using technologies that are now outdated. The original client and server were written in C++ and relied on many custom formats and tools.
+ROSE Revolution takes a different approach :
 
-ROSE Revolution takes a different approach:
-
-- Legacy client formats are only used during import.
+- Legacy client formats are only used during the import process (once).
 - All game content is converted into native Unity assets.
 - Data is stored in clean and reusable databases.
 - The client uses Unity Addressables for efficient loading and memory management.
@@ -62,39 +49,9 @@ ROSE Revolution takes a different approach:
 
 The result is a cleaner, easier-to-maintain, and more accessible project.
 
----
-
-# Which Version of ROSE Online?
-
-The project currently targets a mostly vanilla **iROSE (International ROSE)** experience.
-
-However, thanks to the modular architecture of both the client and server, adapting the project to other ROSE versions is possible, but we won't provide any help.
-
-![Image](https://i.imgur.com/QmtNKjQ.png)
-
----
-
-# Modern Development Workflow
-
-One of the biggest changes compared to the original game is the complete replacement of the old asset workflow.
-
-Instead of working directly with legacy files at runtime:
-
-Everything is imported into Unity:
-
-- Maps
-- Monsters
-- Items
-- Skills
-- Animations
-- Textures
-- Effects
-
-And so on.
-
-Developers can then work with standard Unity tools instead of relying on outdated external utilities.
-
----
+<p align="center">
+  <img src="https://i.imgur.com/oXR6h05.png" alt="ROSE Revolution Preview" width="1000" />
+</p>
 
 # Setup
 
@@ -103,9 +60,9 @@ We aim to keep the project as simple and portable as possible.
 To run the project, you will need:
 
 - The client repository.
-- The server repository.
+- The server repository (Rose Revolution only works with its own server).
 - Extracted ROSE client data (`3DDATA` and related files) to import everything.
-- An optionnal running PostgreSQL installation.
+- An optional running PostgreSQL installation.
 
 The original game assets are not included in this repository.
 
@@ -113,7 +70,15 @@ If you want to, we provide a very light 3DDATA folder on our Discord, including 
 
 Once imported, the assets are converted into proper Unity resources. The original files are only required once during the import process. Once the import done, you won't need to do it again.
 
----
+Note that we provide a basic client to test the project without having to setup everything, and we are also hosting a test server. 
+
+# Which Version of ROSE Online?
+
+The project currently targets a mostly vanilla **iROSE (International ROSE)** experience.
+
+However, thanks to the modular architecture of both the client and server, adapting the project to other ROSE versions is possible, but we won't provide any help.
+
+But you can write your own importer if you want.
 
 # Contributing
 
