@@ -30,8 +30,6 @@ The project features:
 
 The goal is not simply to make the game run again, but to build a clean and modern foundation for the future of ROSE Online. Also we hope that it will help people to make their own vision of ROSE Online.
 
-We use Unity **6000.0.49f1**
-
 <p align="center">
 <img width="640" height="358" alt="Image" src="https://github.com/user-attachments/assets/c4e7f20c-ddc0-4da4-be9e-6939eea76a8f" />
 </p>
@@ -61,10 +59,11 @@ We aim to keep the project as simple and portable as possible.
 
 To run the project, you will need:
 
+- Unity **6000.0.49f1**
 - The client repository.
 - The server repository (Rose Revolution only works with its own server).
 - Extracted ROSE client data (`3DDATA` and related files) to import everything.
-- An optional running PostgreSQL installation.
+- An optional running PostgreSQL installation (not needed for the Sandbox Server)
 
 The original game assets are not included in this repository.
 
